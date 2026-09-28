@@ -3,14 +3,14 @@ import "./globals.css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
-  title: "マルカ・デルノ - 旅のしおり & やりたいこと手帖",
+  title: "Marcaderno - 旅のしおり & やりたいこと手帖",
   description:
     "ご飯のお店や観光地をスケジュール立てて記録。飛行機内や海外でもオフラインでサクサク確認できる旅行計画アプリ。",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "マルカ・デルノ",
+    title: "Marcaderno",
   },
 };
 

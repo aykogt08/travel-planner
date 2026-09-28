@@ -18,7 +18,7 @@ export default function Home() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 sm:px-12 py-5 border-b border-stone-200 bg-stone-50/80 backdrop-blur-md sticky top-0 z-50">
         <span className="text-xl font-extrabold tracking-tight text-stone-900 flex items-center gap-2">
-          <span>✈️ マルカ・デルノ</span>
+          <span>✈️ Marcaderno</span>
         </span>
         <div className="flex items-center gap-3">
           <Link
@@ -149,7 +149,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-stone-200 py-8 text-center text-xs text-stone-400">
-        <p>© 2026 マルカ・デルノ (Marcaderno). Built with Next.js, TypeScript & Prisma.</p>
+        <p>© 2026 Marcaderno. Built with Next.js, TypeScript & Prisma.</p>
       </footer>
     </main>
   );

@@ -1,6 +1,6 @@
 {
-  "name": "マルカ・デルノ - 旅のしおり & やりたいこと手帖",
-  "short_name": "マルカ・デルノ",
+  "name": "Marcaderno - 旅のしおり & やりたいこと手帖",
+  "short_name": "Marcaderno",
   "description": "ご飯や観光地をスケジュール立てて記録・オフラインでも確認できる旅行計画アプリ",
   "start_url": "/trips",
   "display": "standalone",

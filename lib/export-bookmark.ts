@@ -426,7 +426,7 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
     ` : ""}
 
     <div class="footer">
-      生成日時: ${new Date().toLocaleString("ja-JP")} | ✈️ マルカ・デルノ オフライン版しおり
+      生成日時: ${new Date().toLocaleString("ja-JP")} | ✈️ Marcaderno オフライン版しおり
     </div>
   </div>
 </body>
