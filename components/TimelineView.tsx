@@ -363,67 +363,115 @@ export default function TimelineView({
       tripId,
     };
 
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+
     try {
       if (editingSchedule) {
-        const res = await fetch(`/api/schedules/${editingSchedule.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          onSchedulesChange(schedules.map((s) => (s.id === updated.id ? updated : s)));
-          if (selectedDateTab !== "ALL" && selectedDateTab !== form.date) {
-            setSelectedDateTab(form.date);
+        let updated: Schedule | null = null;
+        if (!isOfflineMode) {
+          try {
+            const res = await fetch(`/api/schedules/${editingSchedule.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              updated = await res.json();
+            }
+          } catch (e) {
+            console.warn("Online schedule update failed, fallback to offline:", e);
           }
-          setShowAddModal(false);
-          resetForm();
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          alert(`更新に失敗しました: ${errData.error || "サーバーエラー"}`);
         }
+
+        if (!updated) {
+          updated = {
+            ...editingSchedule,
+            ...payload,
+            date: payload.date,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+
+        onSchedulesChange(schedules.map((s) => (s.id === updated!.id ? updated! : s)));
+        if (selectedDateTab !== "ALL" && selectedDateTab !== form.date) {
+          setSelectedDateTab(form.date);
+        }
+        setShowAddModal(false);
+        resetForm();
       } else {
-        const res = await fetch("/api/schedules", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const created = await res.json();
-          onSchedulesChange([...schedules, created]);
-          if (selectedDateTab !== "ALL" && selectedDateTab !== form.date) {
-            setSelectedDateTab(form.date);
+        let created: Schedule | null = null;
+        if (!isOfflineMode) {
+          try {
+            const res = await fetch("/api/schedules", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              created = await res.json();
+            }
+          } catch (e) {
+            console.warn("Online schedule create failed, fallback to offline:", e);
           }
-          setShowAddModal(false);
-          resetForm();
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          alert(`予定の追加に失敗しました: ${errData.error || "サーバーエラー"}`);
         }
+
+        const finalCreated: Schedule = created || {
+          id: Date.now(),
+          ...payload,
+          date: payload.date,
+          isCompleted: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        onSchedulesChange([...schedules, finalCreated]);
+        if (selectedDateTab !== "ALL" && selectedDateTab !== form.date) {
+          setSelectedDateTab(form.date);
+        }
+        setShowAddModal(false);
+        resetForm();
       }
     } catch (err) {
       console.error("Save schedule error:", err);
-      alert("保存中にエラーが発生しました。");
+      // Fallback local update
+      const fallbackSchedule: Schedule = {
+        id: editingSchedule ? editingSchedule.id : Date.now(),
+        ...payload,
+        date: payload.date,
+        isCompleted: editingSchedule ? editingSchedule.isCompleted : false,
+        createdAt: editingSchedule ? editingSchedule.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      if (editingSchedule) {
+        onSchedulesChange(schedules.map((s) => (s.id === fallbackSchedule.id ? fallbackSchedule : s)));
+      } else {
+        onSchedulesChange([...schedules, fallbackSchedule]);
+      }
+      setShowAddModal(false);
+      resetForm();
     }
   };
 
   const handleDeleteSchedule = async (id: number) => {
     if (!confirm("このスケジュールを削除しますか？")) return;
-    await fetch(`/api/schedules/${id}`, { method: "DELETE" });
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+    if (!isOfflineMode) {
+      fetch(`/api/schedules/${id}`, { method: "DELETE" }).catch((e) => console.warn(e));
+    }
     onSchedulesChange(schedules.filter((s) => s.id !== id));
   };
 
   const handleToggleComplete = async (schedule: Schedule) => {
     const nextCompleted = !schedule.isCompleted;
-    const res = await fetch(`/api/schedules/${schedule.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isCompleted: nextCompleted }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      onSchedulesChange(schedules.map((s) => (s.id === updated.id ? updated : s)));
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+    if (!isOfflineMode) {
+      fetch(`/api/schedules/${schedule.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isCompleted: nextCompleted }),
+      }).catch((e) => console.warn(e));
     }
+    onSchedulesChange(schedules.map((s) => (s.id === schedule.id ? { ...s, isCompleted: nextCompleted } : s)));
   };
 
   const handleSelectPlace = (placeIdStr: string) => {

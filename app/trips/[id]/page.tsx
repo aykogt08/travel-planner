@@ -138,23 +138,52 @@ export default function TripDetailPage() {
     hasBreakfast?: boolean | null;
   }) => {
     if (!trip) return;
-    try {
-      const res = await fetch("/api/schedules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...scheduleData,
-          tripId: trip.id,
-        }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        handleSchedulesChange([...trip.schedules, created]);
-        setActiveTab("timeline");
+    const isOfflineMode = typeof navigator !== "undefined" && !navigator.onLine;
+    let created: Schedule | null = null;
+
+    if (!isOfflineMode) {
+      try {
+        const res = await fetch("/api/schedules", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...scheduleData,
+            tripId: trip.id,
+          }),
+        });
+        if (res.ok) {
+          created = await res.json();
+        }
+      } catch (e) {
+        console.warn("Failed to add schedule online, fallback to offline:", e);
       }
-    } catch (e) {
-      console.error("Failed to add schedule:", e);
     }
+
+    const finalSchedule: Schedule = created || {
+      id: Date.now(),
+      date: scheduleData.date,
+      startTime: scheduleData.startTime,
+      endTime: scheduleData.endTime,
+      checkOutDate: scheduleData.checkOutDate || null,
+      title: scheduleData.title,
+      category: scheduleData.category,
+      transportType: null,
+      flightNumber: null,
+      duration: null,
+      fromPlace: null,
+      toPlace: null,
+      cost: scheduleData.cost,
+      memo: scheduleData.memo,
+      hasBreakfast: scheduleData.hasBreakfast || false,
+      isCompleted: false,
+      placeId: scheduleData.placeId,
+      tripId: trip.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    handleSchedulesChange([...trip.schedules, finalSchedule]);
+    setActiveTab("timeline");
   };
 
   // Open edit modal

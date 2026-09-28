@@ -86,7 +86,11 @@ export default function OfflineGuideModal({
                   </li>
                   <li className="flex items-start gap-1.5">
                     <span className="text-emerald-600 font-bold">✓</span>
-                    <span>スポット一覧・メモ・住所の確認</span>
+                    <span>スポットの新規追加・編集・メモ確認</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <span>タイムラインへの予定追加・完了チェック</span>
                   </li>
                   <li className="flex items-start gap-1.5">
                     <span className="text-emerald-600 font-bold">✓</span>

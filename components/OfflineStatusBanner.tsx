@@ -14,21 +14,28 @@ export default function OfflineStatusBanner({
 }) {
   const [isOnline, setIsOnline] = useState(true);
   const [showBanner, setShowBanner] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     // Check initial online status
     if (typeof window !== "undefined") {
-      setIsOnline(navigator.onLine);
+      const online = navigator.onLine;
+      setIsOnline(online);
+      if (!online) {
+        setShowBanner(true);
+      }
     }
 
     const handleOnline = () => {
       setIsOnline(true);
+      setIsDismissed(false);
       setShowBanner(true);
       setTimeout(() => setShowBanner(false), 4000);
     };
 
     const handleOffline = () => {
       setIsOnline(false);
+      setIsDismissed(false);
       setShowBanner(true);
     };
 
@@ -41,7 +48,7 @@ export default function OfflineStatusBanner({
     };
   }, []);
 
-  if (!showBanner && isOnline) return null;
+  if (!showBanner || isDismissed) return null;
 
   return (
     <div
@@ -84,8 +91,13 @@ export default function OfflineStatusBanner({
           </button>
         )}
         <button
-          onClick={() => setShowBanner(false)}
-          className="text-stone-400 hover:text-white px-1"
+          onClick={() => {
+            setShowBanner(false);
+            setIsDismissed(true);
+          }}
+          className="text-stone-400 hover:text-white p-1 rounded-lg transition"
+          title="閉じる"
+          aria-label="閉じる"
         >
           ✕
         </button>

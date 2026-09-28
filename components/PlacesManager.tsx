@@ -214,86 +214,131 @@ export default function PlacesManager({
       tripId,
     };
 
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+
     try {
       if (editingPlace) {
-        // Update
-        const res = await fetch(`/api/places/${editingPlace.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          onPlacesChange(places.map((p) => (p.id === updated.id ? updated : p)));
-          if (selectedCategory !== "ALL" && selectedCategory !== form.category) {
-            setSelectedCategory(form.category);
-          }
-          setShowAddModal(false);
-          resetForm();
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          alert(`更新に失敗しました: ${errData.error || "サーバーエラー"}`);
-        }
-      } else {
-        // Create
-        const res = await fetch("/api/places", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const created = await res.json();
-          onPlacesChange([...places, created]);
-          if (selectedCategory !== "ALL" && selectedCategory !== form.category) {
-            setSelectedCategory(form.category);
-          }
-
-          // If category is HOTEL and user opted to auto-add to timeline
-          if (form.category === "HOTEL" && form.checkInDate && autoAddToSchedule) {
-            await onAddScheduleFromPlace({
-              date: form.checkInDate,
-              checkOutDate: form.checkOutDate || null,
-              startTime: form.checkInTime || "15:00",
-              endTime: form.checkOutTime || "11:00",
-              title: created.name,
-              category: "HOTEL",
-              placeId: created.id,
-              cost: created.cost,
-              memo: created.memo,
-              hasBreakfast: created.hasBreakfast,
+        let updated: Place | null = null;
+        if (!isOfflineMode) {
+          try {
+            const res = await fetch(`/api/places/${editingPlace.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
             });
+            if (res.ok) {
+              updated = await res.json();
+            }
+          } catch (e) {
+            console.warn("Online update failed, falling back to offline update:", e);
           }
-
-          setShowAddModal(false);
-          resetForm();
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          alert(`登録に失敗しました: ${errData.error || "サーバーエラー"}`);
         }
+
+        if (!updated) {
+          updated = {
+            ...editingPlace,
+            ...payload,
+            updatedAt: new Date(),
+          };
+        }
+
+        onPlacesChange(places.map((p) => (p.id === updated!.id ? updated! : p)));
+        if (selectedCategory !== "ALL" && selectedCategory !== form.category) {
+          setSelectedCategory(form.category);
+        }
+        setShowAddModal(false);
+        resetForm();
+      } else {
+        let created: Place | null = null;
+        if (!isOfflineMode) {
+          try {
+            const res = await fetch("/api/places", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              created = await res.json();
+            }
+          } catch (e) {
+            console.warn("Online create failed, falling back to offline create:", e);
+          }
+        }
+
+        if (!created) {
+          created = {
+            id: Date.now(),
+            ...payload,
+            visited: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+        }
+
+        onPlacesChange([...places, created]);
+        if (selectedCategory !== "ALL" && selectedCategory !== form.category) {
+          setSelectedCategory(form.category);
+        }
+
+        // If category is HOTEL and user opted to auto-add to timeline
+        if (form.category === "HOTEL" && form.checkInDate && autoAddToSchedule) {
+          await onAddScheduleFromPlace({
+            date: form.checkInDate,
+            checkOutDate: form.checkOutDate || null,
+            startTime: form.checkInTime || "15:00",
+            endTime: form.checkOutTime || "11:00",
+            title: created.name,
+            category: "HOTEL",
+            placeId: created.id,
+            cost: created.cost,
+            memo: created.memo,
+            hasBreakfast: created.hasBreakfast,
+          });
+        }
+
+        setShowAddModal(false);
+        resetForm();
       }
     } catch (err) {
       console.error("Save place error:", err);
-      alert("保存中にエラーが発生しました。");
+      // Fallback optimistic creation even if unexpected error occurs
+      const fallbackPlace: Place = {
+        id: editingPlace ? editingPlace.id : Date.now(),
+        ...payload,
+        visited: editingPlace ? editingPlace.visited : false,
+        createdAt: editingPlace ? editingPlace.createdAt : new Date(),
+        updatedAt: new Date(),
+      };
+      if (editingPlace) {
+        onPlacesChange(places.map((p) => (p.id === fallbackPlace.id ? fallbackPlace : p)));
+      } else {
+        onPlacesChange([...places, fallbackPlace]);
+      }
+      setShowAddModal(false);
+      resetForm();
     }
   };
 
   const handleDeletePlace = async (id: number) => {
     if (!confirm("このスポットを削除しますか？")) return;
-    await fetch(`/api/places/${id}`, { method: "DELETE" });
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+    if (!isOfflineMode) {
+      fetch(`/api/places/${id}`, { method: "DELETE" }).catch((e) => console.warn(e));
+    }
     onPlacesChange(places.filter((p) => p.id !== id));
   };
 
   const handleToggleVisited = async (place: Place) => {
     const nextVisited = !place.visited;
-    const res = await fetch(`/api/places/${place.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...place, visited: nextVisited }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      onPlacesChange(places.map((p) => (p.id === updated.id ? updated : p)));
+    const isOfflineMode = isOffline || (typeof navigator !== "undefined" && !navigator.onLine);
+    if (!isOfflineMode) {
+      fetch(`/api/places/${place.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...place, visited: nextVisited }),
+      }).catch((e) => console.warn(e));
     }
+    onPlacesChange(places.map((p) => (p.id === place.id ? { ...p, visited: nextVisited } : p)));
   };
 
   const handleConfirmAddToSchedule = async () => {
