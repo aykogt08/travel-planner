@@ -31,11 +31,11 @@ const PACKING_CATEGORY_LABELS: Record<string, string> = {
 };
 
 const PACKING_CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  ESSENTIAL: <ShieldCheck className="w-4 h-4 text-rose-600" />,
-  CLOTHES: <Shirt className="w-4 h-4 text-violet-600" />,
-  GADGET: <Smartphone className="w-4 h-4 text-sky-600" />,
-  MEDICINE: <Pill className="w-4 h-4 text-emerald-600" />,
-  OTHER: <Bookmark className="w-4 h-4 text-stone-600" />,
+  ESSENTIAL: <ShieldCheck className="w-4 h-4 text-[#C1121F]" />,
+  CLOTHES: <Shirt className="w-4 h-4 text-[#DDA15E]" />,
+  GADGET: <Smartphone className="w-4 h-4 text-[#003049]" />,
+  MEDICINE: <Pill className="w-4 h-4 text-[#386641]" />,
+  OTHER: <Bookmark className="w-4 h-4 text-[#003049]/60" />,
 };
 
 // Default checklist suggestions
@@ -138,37 +138,37 @@ export default function PackingManager({
       {/* Header & Stats */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-stone-800 flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
             <span>持ち物・事前準備リスト</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-stone-200 text-stone-700">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049]">
               {packedCount} / {totalCount} 完了 ({progressPercent}%)
             </span>
           </h2>
-          <p className="text-stone-500 text-xs mt-0.5">
+          <p className="text-[#003049]/70 text-xs mt-0.5">
             忘れ物のないように荷物をチェック！オフラインでもチェック状態を確認できます。
           </p>
         </div>
 
         <button
           onClick={handleAddDefaultSuggestions}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 transition shadow-2xs"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#DDA15E]/15 text-[#003049] hover:bg-[#DDA15E]/25 border border-[#DDA15E]/40 transition shadow-2xs"
         >
-          <Sparkles className="w-4 h-4 text-amber-600" />
+          <Sparkles className="w-4 h-4 text-[#DDA15E]" />
           定番持ち物を一括追加
         </button>
       </div>
 
       {/* Progress Bar */}
       {totalCount > 0 && (
-        <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-stone-700 mb-1.5">
+        <div className="bg-white/95 border border-[#DDA15E]/30 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#003049] mb-1.5">
             <span>パッキング進捗</span>
-            <span>{progressPercent}% 完了</span>
+            <span className="font-bold">{progressPercent}% 完了</span>
           </div>
-          <div className="w-full bg-stone-100 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-[#FDF0D5] border border-[#DDA15E]/20 rounded-full h-2.5 overflow-hidden">
             <div
               className={`h-full transition-all duration-300 rounded-full ${
-                progressPercent === 100 ? "bg-emerald-500" : "bg-stone-800"
+                progressPercent === 100 ? "bg-[#386641]" : "bg-[#003049]"
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -177,11 +177,11 @@ export default function PackingManager({
       )}
 
       {/* Input bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-2 bg-white border border-stone-200 rounded-2xl p-2.5 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center gap-2 bg-white/95 border border-[#DDA15E]/30 rounded-2xl p-2.5 shadow-xs">
         <select
           value={newCategory}
           onChange={(e) => setNewCategory(e.target.value as PackingCategory)}
-          className="w-full sm:w-44 text-xs border border-stone-200 rounded-xl px-3 py-2.5 bg-stone-50 text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400 font-medium"
+          className="w-full sm:w-44 text-xs border border-[#DDA15E]/30 rounded-xl px-3 py-2.5 bg-[#FDF0D5]/50 text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E] font-medium"
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
@@ -195,13 +195,13 @@ export default function PackingManager({
           onChange={(e) => setNewItemName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
           placeholder="持ち物を追加 (例: パスポート、充電器、予備の靴下)..."
-          className="flex-1 w-full text-xs sm:text-sm border border-stone-200 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+          className="flex-1 w-full text-xs sm:text-sm border border-[#DDA15E]/30 rounded-xl px-4 py-2.5 bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
         />
 
         <button
           onClick={handleAddItem}
           disabled={isAdding || !newItemName.trim()}
-          className="w-full sm:w-auto px-5 py-2.5 bg-stone-900 text-white rounded-xl text-xs font-semibold hover:bg-stone-700 transition disabled:opacity-50 flex items-center justify-center gap-1"
+          className="w-full sm:w-auto px-5 py-2.5 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#C1121F]/90 transition disabled:opacity-50 flex items-center justify-center gap-1 shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
           追加
@@ -210,10 +210,10 @@ export default function PackingManager({
 
       {/* Categories & Items */}
       {totalCount === 0 ? (
-        <div className="text-center py-16 px-4 bg-white border border-dashed border-stone-200 rounded-2xl">
+        <div className="text-center py-16 px-4 bg-white/95 border border-dashed border-[#DDA15E]/40 rounded-2xl">
           <div className="text-4xl mb-3">🎒</div>
-          <h3 className="text-stone-700 font-semibold text-sm">持ち物リストが空です</h3>
-          <p className="text-stone-400 text-xs mt-1 max-w-sm mx-auto">
+          <h3 className="text-[#003049] font-semibold text-sm">持ち物リストが空です</h3>
+          <p className="text-[#003049]/60 text-xs mt-1 max-w-sm mx-auto">
             上の入力欄から追加するか、「定番持ち物を一括追加」ボタンをお試しください。
           </p>
         </div>
@@ -226,15 +226,15 @@ export default function PackingManager({
             return (
               <div
                 key={catKey}
-                className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between"
+                className="bg-white/95 border border-[#DDA15E]/30 rounded-2xl p-4 shadow-xs flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center gap-2 pb-2.5 mb-3 border-b border-stone-100">
+                  <div className="flex items-center gap-2 pb-2.5 mb-3 border-b border-[#003049]/10">
                     {PACKING_CATEGORY_ICONS[catKey]}
-                    <h3 className="text-xs font-bold text-stone-800">
+                    <h3 className="text-xs font-bold text-[#003049]">
                       {PACKING_CATEGORY_LABELS[catKey]}
                     </h3>
-                    <span className="text-[10px] text-stone-400 ml-auto font-medium">
+                    <span className="text-[10px] text-[#003049]/60 ml-auto font-medium">
                       {items.filter((i) => i.isPacked).length}/{items.length}
                     </span>
                   </div>
@@ -245,8 +245,8 @@ export default function PackingManager({
                         key={item.id}
                         className={`flex items-center justify-between gap-2 p-2 rounded-xl border transition ${
                           item.isPacked
-                            ? "bg-stone-50/60 border-stone-100 text-stone-400"
-                            : "bg-white border-stone-200 text-stone-800 hover:border-stone-300"
+                            ? "bg-[#386641]/5 border-[#386641]/20 text-[#003049]/50"
+                            : "bg-white border-[#DDA15E]/30 text-[#003049] hover:border-[#DDA15E]"
                         }`}
                       >
                         <button
@@ -254,9 +254,9 @@ export default function PackingManager({
                           className="flex items-center gap-2 text-left flex-1 text-xs"
                         >
                           {item.isPacked ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-600 fill-emerald-100 flex-shrink-0" />
+                            <CheckSquare className="w-4 h-4 text-[#386641] fill-[#386641]/20 flex-shrink-0" />
                           ) : (
-                            <Square className="w-4 h-4 text-stone-300 flex-shrink-0" />
+                            <Square className="w-4 h-4 text-[#DDA15E]/60 flex-shrink-0" />
                           )}
                           <span className={`${item.isPacked ? "line-through" : "font-medium"}`}>
                             {item.name}
@@ -265,7 +265,7 @@ export default function PackingManager({
 
                         <button
                           onClick={() => handleDeleteItem(item.id)}
-                          className="text-stone-300 hover:text-red-500 p-1 transition"
+                          className="text-[#003049]/30 hover:text-[#C1121F] p-1 transition"
                           title="削除"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

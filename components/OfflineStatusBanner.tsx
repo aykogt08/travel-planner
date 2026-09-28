@@ -52,26 +52,26 @@ export default function OfflineStatusBanner({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 max-w-md px-4 py-3 rounded-2xl shadow-lg border transition-all duration-300 flex items-center justify-between gap-3 text-xs md:text-sm ${
+      className={`fixed bottom-4 right-4 z-50 max-w-md px-4 py-3 rounded-2xl shadow-xl border transition-all duration-300 flex items-center justify-between gap-3 text-xs md:text-sm ${
         isOnline
-          ? "bg-emerald-900/90 text-emerald-100 border-emerald-700 backdrop-blur-md"
-          : "bg-amber-950/95 text-amber-100 border-amber-800 backdrop-blur-md"
+          ? "bg-[#386641]/95 text-white border-[#386641] backdrop-blur-md"
+          : "bg-[#003049]/95 text-white border-[#DDA15E]/50 backdrop-blur-md"
       }`}
     >
       <div className="flex items-center gap-2.5">
         {isOnline ? (
-          <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <Wifi className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5 text-white font-medium">
+            <Wifi className="w-4 h-4 text-[#DDA15E]" />
             <span>オンライン (同期済み)</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-amber-300 font-medium flex-wrap">
-            <WifiOff className="w-4 h-4 text-amber-300" />
+          <div className="flex items-center gap-1.5 text-[#FDF0D5] font-medium flex-wrap">
+            <WifiOff className="w-4 h-4 text-[#DDA15E]" />
             <span>オフラインモード</span>
             {onOpenGuide && (
               <button
                 onClick={onOpenGuide}
-                className="underline text-amber-200 hover:text-white text-[11px] font-normal"
+                className="underline text-[#DDA15E] hover:text-white text-[11px] font-normal"
               >
                 （利用可能機能ガイド）
               </button>
@@ -84,7 +84,7 @@ export default function OfflineStatusBanner({
         {onManualSync && isOnline && (
           <button
             onClick={onManualSync}
-            className="p-1 hover:bg-emerald-800 rounded transition text-emerald-200"
+            className="p-1 hover:bg-white/20 rounded transition text-white"
             title="データを同期"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -95,7 +95,7 @@ export default function OfflineStatusBanner({
             setShowBanner(false);
             setIsDismissed(true);
           }}
-          className="text-stone-400 hover:text-white p-1 rounded-lg transition"
+          className="text-white/60 hover:text-white p-1 rounded-lg transition font-bold"
           title="閉じる"
           aria-label="閉じる"
         >

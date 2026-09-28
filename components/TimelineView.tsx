@@ -43,13 +43,13 @@ interface TimelineViewProps {
 }
 
 export const TRANSPORT_ICONS: Record<string, React.ReactNode> = {
-  WALK: <Footprints className="w-3.5 h-3.5 text-emerald-600" />,
-  TRAIN: <Train className="w-3.5 h-3.5 text-slate-600" />,
-  BUS: <Bus className="w-3.5 h-3.5 text-slate-600" />,
-  CAR: <Car className="w-3.5 h-3.5 text-slate-600" />,
-  FLIGHT: <Plane className="w-3.5 h-3.5 text-slate-600" />,
-  SHIP: <Ship className="w-3.5 h-3.5 text-slate-600" />,
-  TAXI: <Car className="w-3.5 h-3.5 text-slate-600" />,
+  WALK: <Footprints className="w-3.5 h-3.5 text-[#386641]" />,
+  TRAIN: <Train className="w-3.5 h-3.5 text-[#003049]" />,
+  BUS: <Bus className="w-3.5 h-3.5 text-[#003049]" />,
+  CAR: <Car className="w-3.5 h-3.5 text-[#003049]" />,
+  FLIGHT: <Plane className="w-3.5 h-3.5 text-[#003049]" />,
+  SHIP: <Ship className="w-3.5 h-3.5 text-[#003049]" />,
+  TAXI: <Car className="w-3.5 h-3.5 text-[#003049]" />,
 };
 
 export const TRANSPORT_LABELS: Record<string, string> = {
@@ -514,13 +514,13 @@ export default function TimelineView({
       {/* Header & Add Buttons */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-stone-800 flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
             <span>🗓️ 旅程タイムライン</span>
-            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-stone-200 text-stone-700">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
               {schedules.length} 件の予定
             </span>
           </h2>
-          <p className="text-stone-500 text-xs mt-0.5">
+          <p className="text-[#003049]/70 text-xs mt-0.5">
             日ごとのスケジュール・移動・宿泊（チェックイン/アウト）をタイムライン形式で把握できます。
           </p>
         </div>
@@ -528,14 +528,14 @@ export default function TimelineView({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => handleOpenAddModal(undefined, "HOTEL")}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl text-xs sm:text-sm font-medium hover:bg-violet-100 transition shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
           >
-            <Hotel className="w-4 h-4 text-violet-600" />
+            <Hotel className="w-4 h-4 text-[#DDA15E]" />
             宿泊を追加
           </button>
           <button
             onClick={() => handleOpenAddModal()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-stone-900 text-white rounded-xl text-xs sm:text-sm font-medium hover:bg-stone-700 transition shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
           >
             <Plus className="w-4 h-4" />
             予定を追加
@@ -547,10 +547,10 @@ export default function TimelineView({
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           onClick={() => setSelectedDateTab("ALL")}
-          className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition border ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
             selectedDateTab === "ALL"
-              ? "bg-stone-900 text-white border-stone-900 shadow-sm"
-              : "bg-white text-stone-600 border-stone-200 hover:bg-stone-50"
+              ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
+              : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
           }`}
         >
           全日程 ({allTimelineItems.length})
@@ -564,10 +564,10 @@ export default function TimelineView({
             <button
               key={dateStr}
               onClick={() => setSelectedDateTab(dateStr)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition border ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
                 isSelected
-                  ? "bg-stone-900 text-white border-stone-900 shadow-sm"
-                  : "bg-white text-stone-600 border-stone-200 hover:bg-stone-50"
+                  ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
+                  : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
               }`}
             >
               <span>
@@ -575,7 +575,7 @@ export default function TimelineView({
               </span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  isSelected ? "bg-stone-700 text-stone-200" : "bg-stone-100 text-stone-500"
+                  isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
                 }`}
               >
                 {count}
@@ -591,34 +591,34 @@ export default function TimelineView({
           {activeStayingHotels.map((h) => (
             <div
               key={h.id}
-              className="p-3.5 rounded-2xl bg-violet-50/90 border border-violet-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
+              className="p-3.5 rounded-2xl bg-[#DDA15E]/15 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-violet-100 text-violet-700">
-                  <Hotel className="w-4 h-4" />
+                <div className="p-2 rounded-xl bg-[#DDA15E]/20 text-[#003049]">
+                  <Hotel className="w-4 h-4 text-[#DDA15E]" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-violet-950 flex items-center gap-1.5 flex-wrap">
+                  <div className="text-xs font-bold text-[#003049] flex items-center gap-1.5 flex-wrap">
                     <span>宿泊中: {h.title}</span>
                     {h.hasBreakfast && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
-                        <Coffee className="w-2.5 h-2.5 text-amber-700" />
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 inline-flex items-center gap-1">
+                        <Coffee className="w-2.5 h-2.5 text-[#DDA15E]" />
                         朝食付き
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-violet-700 mt-0.5">
+                  <div className="text-[11px] text-[#003049]/70 mt-0.5">
                     チェックイン: {formatDate(h.date)} {h.startTime || "15:00"} 〜 チェックアウト: {formatDate(h.checkOutDate!)} {h.endTime || "11:00"}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 self-end sm:self-auto">
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-violet-200 text-violet-800">
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#DDA15E]/30 text-[#003049]">
                   連泊滞在中
                 </span>
                 <button
                   onClick={() => handleOpenEditModal(h)}
-                  className="text-xs text-violet-700 hover:text-violet-900 underline font-medium px-1"
+                  className="text-xs text-[#003049] hover:underline font-medium px-1"
                 >
                   宿の詳細
                 </button>
@@ -630,10 +630,10 @@ export default function TimelineView({
 
       {/* Timeline List */}
       {filteredTimelineItems.length === 0 ? (
-        <div className="text-center py-16 px-4 bg-white border border-dashed border-stone-200 rounded-2xl">
+        <div className="text-center py-16 px-4 bg-white/90 border border-dashed border-[#DDA15E]/40 rounded-2xl">
           <div className="text-4xl mb-3"></div>
-          <h3 className="text-stone-700 font-semibold text-sm">予定がありません</h3>
-          <p className="text-stone-400 text-xs mt-1 max-w-sm mx-auto">
+          <h3 className="text-[#003049] font-semibold text-sm">予定がありません</h3>
+          <p className="text-[#003049]/60 text-xs mt-1 max-w-sm mx-auto">
             {selectedDateTab === "ALL"
               ? "予定を追加して旅のスケジュールを組み立てましょう。"
               : `${formatDate(selectedDateTab)} の予定はまだありません。`}
@@ -641,20 +641,20 @@ export default function TimelineView({
           <div className="flex justify-center gap-2 mt-4">
             <button
               onClick={() => handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined)}
-              className="px-4 py-2 bg-stone-800 text-white rounded-xl text-xs font-medium hover:bg-stone-700 transition"
+              className="px-4 py-2 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition"
             >
               + この日に予定を追加
             </button>
             <button
               onClick={() => handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined, "HOTEL")}
-              className="px-4 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-xl text-xs font-medium hover:bg-violet-100 transition"
+              className="px-4 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30 transition"
             >
               宿泊を追加
             </button>
           </div>
         </div>
       ) : (
-        <div className="relative pl-6 md:pl-8 border-l-2 border-stone-300/60 flex flex-col gap-6 ml-2 my-2">
+        <div className="relative pl-6 md:pl-8 border-l-2 border-[#DDA15E]/40 flex flex-col gap-6 ml-2 my-2">
           {filteredTimelineItems.map((item) => {
             const schedule = item.schedule;
             const place = places.find((p) => p.id === schedule.placeId);
@@ -663,27 +663,25 @@ export default function TimelineView({
             const isCheckOut = item.type === "HOTEL_CHECKOUT";
 
             // Node Dot color
-            let dotBgClass = "bg-stone-400";
+            let dotBgClass = "bg-[#C1121F]";
             if (schedule.isCompleted) {
-              dotBgClass = "bg-emerald-500";
-            } else if (isCheckIn) {
-              dotBgClass = "bg-violet-600";
-            } else if (isCheckOut) {
-              dotBgClass = "bg-violet-400";
+              dotBgClass = "bg-[#386641]";
+            } else if (isCheckIn || isCheckOut) {
+              dotBgClass = "bg-[#DDA15E]";
             } else if (isTransport) {
-              dotBgClass = "bg-slate-500";
+              dotBgClass = "bg-[#003049]";
             }
 
             // Card border & background styling
-            let cardClasses = "border-stone-200 bg-white";
+            let cardClasses = "border-[#DDA15E]/30 bg-white/95";
             if (schedule.isCompleted) {
-              cardClasses = "border-stone-200/70 bg-stone-50/70 opacity-75";
+              cardClasses = "border-[#003049]/10 bg-white/60 opacity-75";
             } else if (isCheckIn) {
-              cardClasses = "border-violet-200/90 bg-violet-50/30 hover:border-violet-300";
+              cardClasses = "border-[#DDA15E]/60 bg-[#DDA15E]/10 hover:border-[#DDA15E]";
             } else if (isCheckOut) {
-              cardClasses = "border-violet-200/60 bg-violet-50/15 hover:border-violet-300";
+              cardClasses = "border-[#DDA15E]/40 bg-[#DDA15E]/5 hover:border-[#DDA15E]";
             } else if (isTransport) {
-              cardClasses = "border-slate-200 bg-slate-50/40 hover:border-slate-300";
+              cardClasses = "border-[#003049]/20 bg-[#003049]/5 hover:border-[#003049]/30";
             }
 
             return (
@@ -703,24 +701,24 @@ export default function TimelineView({
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         {/* Time badge */}
                         {isCheckIn ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-violet-900 bg-violet-100 px-2.5 py-1 rounded-lg">
-                            <LogIn className="w-3.5 h-3.5 text-violet-600" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
+                            <LogIn className="w-3.5 h-3.5 text-[#DDA15E]" />
                             チェックイン {item.timeStr}
                           </span>
                         ) : isCheckOut ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-violet-900 bg-violet-100 px-2.5 py-1 rounded-lg">
-                            <LogOut className="w-3.5 h-3.5 text-violet-600" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
+                            <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                             チェックアウト {item.timeStr}
                           </span>
                         ) : isTransport ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#003049]/10 px-2.5 py-1 rounded-lg">
+                            <Clock className="w-3.5 h-3.5 text-[#003049]" />
                             {schedule.startTime || "時間指定なし"}
                             {schedule.endTime ? ` 〜 ${schedule.endTime}` : ""}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs font-bold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-lg">
-                            <Clock className="w-3.5 h-3.5 text-stone-500" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#003049]/10 px-2.5 py-1 rounded-lg">
+                            <Clock className="w-3.5 h-3.5 text-[#003049]" />
                             {schedule.startTime || "時間指定なし"}
                             {schedule.endTime ? ` 〜 ${schedule.endTime}` : ""}
                           </span>
@@ -728,23 +726,23 @@ export default function TimelineView({
 
                         {/* Category badge */}
                         {isCheckIn ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-violet-100 text-violet-800 border border-violet-200">
-                            <Hotel className="w-3.5 h-3.5 text-violet-600" />
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40">
+                            <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             宿泊・チェックイン
                           </span>
                         ) : isCheckOut ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-violet-50 text-violet-700 border border-violet-200">
-                            <Hotel className="w-3.5 h-3.5 text-violet-500" />
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/15 text-[#003049] border border-[#DDA15E]/30">
+                            <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             宿泊・チェックアウト
                           </span>
                         ) : isTransport && schedule.transportType ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-sky-100 text-sky-800 border border-sky-200">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
                             {TRANSPORT_ICONS[schedule.transportType] || TRANSPORT_ICONS.WALK}
                             {TRANSPORT_LABELS[schedule.transportType] || schedule.transportType}
                             {schedule.flightNumber ? ` (${schedule.flightNumber})` : ""}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.8 rounded-lg bg-stone-100 text-stone-700">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.8 rounded-lg bg-[#003049]/5 text-[#003049] border border-[#003049]/10">
                             {CATEGORY_ICONS[schedule.category] || CATEGORY_ICONS.SIGHTSEEING}
                             {CATEGORY_LABELS[schedule.category] || schedule.category}
                           </span>
@@ -752,7 +750,7 @@ export default function TimelineView({
 
                         {/* Hotel Nights badge */}
                         {(isCheckIn || isCheckOut) && item.hotelNights && item.hotelNights > 0 && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-200/80 text-violet-900">
+                          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/30 text-[#003049]">
                             <Moon className="w-3 h-3" />
                             {item.hotelNights}泊{item.hotelNights + 1}日
                           </span>
@@ -761,19 +759,19 @@ export default function TimelineView({
                         {/* Hotel Breakfast badge */}
                         {(isCheckIn || isCheckOut) && (
                           schedule.hasBreakfast ? (
-                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                              <Coffee className="w-3 h-3 text-amber-700" />
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40">
+                              <Coffee className="w-3 h-3 text-[#DDA15E]" />
                               朝食付き
                             </span>
                           ) : (
-                            <span className="text-[10px] font-medium text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-medium text-[#003049]/60 bg-[#003049]/10 px-2 py-0.5 rounded-full">
                               素泊まり
                             </span>
                           )
                         )}
 
                         {selectedDateTab === "ALL" && (
-                          <span className="text-[11px] text-stone-400 font-medium ml-auto sm:ml-0">
+                          <span className="text-[11px] text-[#003049]/50 font-medium ml-auto sm:ml-0">
                             {formatDate(item.dateStr)}
                           </span>
                         )}
@@ -783,18 +781,18 @@ export default function TimelineView({
                       <div className="flex items-start gap-2 my-1">
                         <button
                           onClick={() => handleToggleComplete(schedule)}
-                          className="mt-0.5 text-stone-300 hover:text-emerald-600 transition"
+                          className="mt-0.5 text-[#003049]/30 hover:text-[#386641] transition"
                           title={schedule.isCompleted ? "未完了に戻す" : "完了にする"}
                         >
                           {schedule.isCompleted ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
+                            <CheckCircle2 className="w-5 h-5 text-[#386641] fill-[#386641]/10" />
                           ) : (
-                            <Circle className="w-5 h-5 text-stone-300" />
+                            <Circle className="w-5 h-5 text-[#003049]/30" />
                           )}
                         </button>
                         <h4
-                          className={`text-base font-bold text-stone-900 tracking-tight ${
-                            schedule.isCompleted ? "line-through text-stone-400" : ""
+                          className={`text-base font-bold text-[#003049] tracking-tight ${
+                            schedule.isCompleted ? "line-through text-[#003049]/40" : ""
                           }`}
                         >
                           {schedule.title}
@@ -805,8 +803,8 @@ export default function TimelineView({
                       {/* Hotel stay detail sub-banner */}
                       {isCheckIn && (
                         <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-violet-50 border border-violet-200 text-xs text-violet-900 font-medium">
-                            <Hotel className="w-3.5 h-3.5 text-violet-600" />
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 text-xs text-[#003049] font-medium">
+                            <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               チェックイン: {item.timeStr} → チェックアウト:{" "}
                               {schedule.checkOutDate ? formatDate(schedule.checkOutDate) : "翌日"}{" "}
@@ -818,8 +816,8 @@ export default function TimelineView({
 
                       {isCheckOut && (
                         <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-violet-50/70 border border-violet-200 text-xs text-violet-900 font-medium">
-                            <LogOut className="w-3.5 h-3.5 text-violet-600" />
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 text-xs text-[#003049] font-medium">
+                            <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               👋 チェックアウト・出発 (滞在期間: {item.hotelStayRangeText})
                             </span>
@@ -829,14 +827,14 @@ export default function TimelineView({
 
                       {/* Transit Details (From -> To, Duration) */}
                       {(schedule.fromPlace || schedule.toPlace || schedule.duration) && (
-                        <div className="flex items-center gap-2 text-xs text-stone-600 mt-1 pl-7">
+                        <div className="flex items-center gap-2 text-xs text-[#003049]/70 mt-1 pl-7">
                           {schedule.fromPlace || schedule.toPlace ? (
-                            <span className="font-medium">
+                            <span className="font-medium text-[#003049]">
                               {schedule.fromPlace || "出発地"} → {schedule.toPlace || "目的地"}
                             </span>
                           ) : null}
                           {schedule.duration ? (
-                            <span className="text-stone-400">所要約 {schedule.duration} 分</span>
+                            <span className="text-[#003049]/50">所要約 {schedule.duration} 分</span>
                           ) : null}
                         </div>
                       )}
@@ -844,12 +842,12 @@ export default function TimelineView({
                       {/* Linked Place details if any */}
                       {place && (
                         <div className="mt-2 pl-7 flex items-center gap-2 text-xs">
-                          <span className="text-stone-500 font-medium">登録スポット:</span>
-                          <span className="text-stone-700 bg-stone-100 px-2 py-0.5 rounded-md">
+                          <span className="text-[#003049]/60 font-medium">登録スポット:</span>
+                          <span className="text-[#003049] bg-[#003049]/5 px-2 py-0.5 rounded-md font-medium">
                             {place.name}
                           </span>
                           {place.address && (
-                            <span className="text-stone-400 truncate">({place.address})</span>
+                            <span className="text-[#003049]/50 truncate">({place.address})</span>
                           )}
                         </div>
                       )}
@@ -857,14 +855,14 @@ export default function TimelineView({
                       {/* Memo & Cost */}
                       <div className="mt-2 pl-7 flex flex-col gap-1">
                         {schedule.memo && (
-                          <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-100 text-xs text-stone-600 leading-relaxed">
+                          <div className="p-2.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs text-[#003049]/80 leading-relaxed">
                             {schedule.memo}
                           </div>
                         )}
                         {/* Only show cost on check-in event to prevent double counting display for hotels */}
                         {!isCheckOut && schedule.cost !== null && schedule.cost !== undefined && (
-                          <div className="flex items-center gap-1 text-xs font-semibold text-stone-600 mt-1">
-                            <CircleDollarSign className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-1 text-xs font-semibold text-[#003049] mt-1">
+                            <CircleDollarSign className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               {schedule.category === "HOTEL" ? "宿泊費" : "費用"}: ¥
                               {schedule.cost.toLocaleString()}
@@ -878,14 +876,14 @@ export default function TimelineView({
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEditModal(schedule)}
-                        className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition"
+                        className="p-1.5 text-[#003049]/40 hover:text-[#003049] rounded-lg hover:bg-[#003049]/10 transition"
                         title="編集"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteSchedule(schedule.id)}
-                        className="p-1.5 text-stone-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
+                        className="p-1.5 text-[#003049]/40 hover:text-[#C1121F] rounded-lg hover:bg-[#C1121F]/10 transition"
                         title="削除"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -901,10 +899,10 @@ export default function TimelineView({
 
       {/* Add / Edit Schedule Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-stone-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-              <h3 className="text-lg font-bold text-stone-800">
+        <div className="fixed inset-0 z-50 bg-[#003049]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white/95 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#DDA15E]/30 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10 mb-4">
+              <h3 className="text-lg font-bold text-[#003049]">
                 {editingSchedule
                   ? form.category === "HOTEL"
                     ? "宿泊・ホテル予定を編集"
@@ -915,7 +913,7 @@ export default function TimelineView({
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-stone-400 hover:text-stone-600 p-1"
+                className="text-[#003049]/40 hover:text-[#003049] p-1"
               >
                 ✕
               </button>
@@ -925,13 +923,13 @@ export default function TimelineView({
               {/* Linked Spot selector */}
               {places.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-stone-600 mb-1">
+                  <label className="block text-xs font-semibold text-[#003049] mb-1">
                     登録済みスポットから選択 (任意)
                   </label>
                   <select
                     value={form.placeId}
                     onChange={(e) => handleSelectPlace(e.target.value)}
-                    className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                   >
                     <option value="">選択しない（直接入力）</option>
                     {places.map((p) => (
@@ -947,9 +945,9 @@ export default function TimelineView({
 
               {/* Title */}
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   {form.category === "HOTEL" ? "ホテル・宿名" : "予定タイトル"}{" "}
-                  <span className="text-red-500">*</span>
+                  <span className="text-[#C1121F]">*</span>
                 </label>
                 <input
                   value={form.title}
@@ -959,23 +957,23 @@ export default function TimelineView({
                       ? "例: ホテル グランヴィア京都"
                       : "例: 清水寺 観光、新幹線 東京発、祇園でディナー"
                   }
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                 />
               </div>
 
               {/* Category selector */}
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   カテゴリ
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("SIGHTSEEING")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "SIGHTSEEING"
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
+                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
+                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Landmark className="w-3.5 h-3.5" />
@@ -984,10 +982,10 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("FOOD")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "FOOD"
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
+                        ? "bg-[#DDA15E] text-white border-[#DDA15E] shadow-xs"
+                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Utensils className="w-3.5 h-3.5" />
@@ -996,10 +994,10 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("HOTEL")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "HOTEL"
-                        ? "bg-violet-600 text-white border-violet-600 shadow-xs"
-                        : "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100"
+                        ? "bg-[#DDA15E] text-white border-[#DDA15E] shadow-xs"
+                        : "bg-[#DDA15E]/15 text-[#003049] border-[#DDA15E]/40 hover:bg-[#DDA15E]/25"
                     }`}
                   >
                     <Hotel className="w-3.5 h-3.5" />
@@ -1008,10 +1006,10 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("TRANSPORT")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "TRANSPORT"
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
+                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
+                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Train className="w-3.5 h-3.5" />
@@ -1020,10 +1018,10 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("ACTIVITY")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "ACTIVITY"
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
+                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
+                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -1032,10 +1030,10 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={() => handleCategoryChange("OTHER")}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "OTHER"
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
+                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
+                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <span>🔖 その他</span>
@@ -1045,14 +1043,14 @@ export default function TimelineView({
 
               {/* HOTEL DEDICATED PANEL */}
               {form.category === "HOTEL" ? (
-                <div className="p-4 rounded-2xl bg-violet-50/80 border border-violet-200 flex flex-col gap-3">
+                <div className="p-4 rounded-2xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-950 flex items-center gap-1.5">
-                      <Hotel className="w-4 h-4 text-violet-600" />
+                    <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
+                      <Hotel className="w-4 h-4 text-[#DDA15E]" />
                       宿泊日程 & チェックイン・チェックアウト時刻
                     </span>
                     {form.date && form.checkOutDate && (
-                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-violet-200 text-violet-900">
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
                         {(() => {
                           const start = new Date(form.date);
                           const end = new Date(form.checkOutDate);
@@ -1065,86 +1063,86 @@ export default function TimelineView({
                     )}
                   </div>
 
-                  <p className="text-[11px] text-violet-800">
+                  <p className="text-[11px] text-[#003049]/70">
                     💡 入力されたチェックイン時刻とチェックアウト時刻が、それぞれの日のタイムラインに自動挿入されます。
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Check In */}
-                    <div className="p-3 bg-white rounded-xl border border-violet-100 flex flex-col gap-2">
-                      <div className="flex items-center gap-1 text-xs font-bold text-violet-900">
-                        <LogIn className="w-3.5 h-3.5 text-violet-600" />
+                    <div className="p-3 bg-white/90 rounded-xl border border-[#DDA15E]/20 flex flex-col gap-2">
+                      <div className="flex items-center gap-1 text-xs font-bold text-[#003049]">
+                        <LogIn className="w-3.5 h-3.5 text-[#DDA15E]" />
                         <span>チェックイン</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] text-stone-600 mb-1">
-                          チェックイン日 <span className="text-red-500">*</span>
+                        <label className="block text-[11px] text-[#003049]/70 mb-1">
+                          チェックイン日 <span className="text-[#C1121F]">*</span>
                         </label>
                         <input
                           type="date"
                           value={form.date}
                           onChange={(e) => setForm({ ...form, date: e.target.value })}
-                          className="w-full border border-stone-200 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-violet-400"
+                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-stone-600 mb-1">
+                        <label className="block text-[11px] text-[#003049]/70 mb-1">
                           チェックイン時刻
                         </label>
                         <input
                           type="time"
                           value={form.startTime}
                           onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                          className="w-full border border-stone-200 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-violet-400"
+                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
                         />
                       </div>
                     </div>
 
                     {/* Check Out */}
-                    <div className="p-3 bg-white rounded-xl border border-violet-100 flex flex-col gap-2">
-                      <div className="flex items-center gap-1 text-xs font-bold text-violet-900">
-                        <LogOut className="w-3.5 h-3.5 text-violet-600" />
+                    <div className="p-3 bg-white/90 rounded-xl border border-[#DDA15E]/20 flex flex-col gap-2">
+                      <div className="flex items-center gap-1 text-xs font-bold text-[#003049]">
+                        <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                         <span>チェックアウト</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] text-stone-600 mb-1">
+                        <label className="block text-[11px] text-[#003049]/70 mb-1">
                           チェックアウト日
                         </label>
                         <input
                           type="date"
                           value={form.checkOutDate}
                           onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
-                          className="w-full border border-stone-200 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-violet-400"
+                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-stone-600 mb-1">
+                        <label className="block text-[11px] text-[#003049]/70 mb-1">
                           チェックアウト時刻
                         </label>
                         <input
                           type="time"
                           value={form.endTime}
                           onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                          className="w-full border border-stone-200 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-violet-400"
+                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Breakfast Option */}
-                  <div className="pt-2 border-t border-violet-200/60 flex items-center justify-between">
+                  <div className="pt-2 border-t border-[#DDA15E]/20 flex items-center justify-between">
                     <div>
-                      <label className="text-xs font-semibold text-stone-700 block">朝食プラン</label>
-                      <p className="text-[10px] text-stone-400">朝食が含まれているか選択</p>
+                      <label className="text-xs font-semibold text-[#003049] block">朝食プラン</label>
+                      <p className="text-[10px] text-[#003049]/60">朝食が含まれているか選択</p>
                     </div>
-                    <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-violet-200">
+                    <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-[#DDA15E]/30">
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, hasBreakfast: false })}
                         className={`px-3 py-1 text-xs rounded-lg font-medium transition ${
                           !form.hasBreakfast
-                            ? "bg-stone-100 text-stone-700 shadow-xs font-semibold"
-                            : "text-stone-400 hover:text-stone-600"
+                            ? "bg-[#003049]/10 text-[#003049] shadow-xs font-semibold"
+                            : "text-[#003049]/50 hover:text-[#003049]"
                         }`}
                       >
                         素泊まり
@@ -1154,11 +1152,11 @@ export default function TimelineView({
                         onClick={() => setForm({ ...form, hasBreakfast: true })}
                         className={`flex items-center gap-1 px-3 py-1 text-xs rounded-lg font-semibold transition ${
                           form.hasBreakfast
-                            ? "bg-amber-100 text-amber-900 border border-amber-300 shadow-xs"
-                            : "text-stone-400 hover:text-stone-600"
+                            ? "bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 shadow-xs"
+                            : "text-[#003049]/50 hover:text-[#003049]"
                         }`}
                       >
-                        <Coffee className="w-3.5 h-3.5 text-amber-700" />
+                        <Coffee className="w-3.5 h-3.5 text-[#DDA15E]" />
                         朝食付き
                       </button>
                     </div>
@@ -1168,36 +1166,36 @@ export default function TimelineView({
                 /* NON-HOTEL: Date, Start Time, End Time */
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-stone-600 mb-1">
-                      日付 <span className="text-red-500">*</span>
+                    <label className="block text-xs font-semibold text-[#003049] mb-1">
+                      日付 <span className="text-[#C1121F]">*</span>
                     </label>
                     <input
                       type="date"
                       value={form.date}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-stone-600 mb-1">
+                    <label className="block text-xs font-semibold text-[#003049] mb-1">
                       開始時刻
                     </label>
                     <input
                       type="time"
                       value={form.startTime}
                       onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                      className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-stone-600 mb-1">
+                    <label className="block text-xs font-semibold text-[#003049] mb-1">
                       終了時刻
                     </label>
                     <input
                       type="time"
                       value={form.endTime}
                       onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                      className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                     />
                   </div>
                 </div>
@@ -1205,19 +1203,19 @@ export default function TimelineView({
 
               {/* Transport selection (if category is TRANSPORT or user wants to add transport info) */}
               {form.category === "TRANSPORT" && (
-                <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 flex flex-col gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#003049]/5 border border-[#003049]/15 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-sky-800">移動手段 & 詳細</span>
+                    <span className="text-xs font-bold text-[#003049]">移動手段 & 詳細</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-stone-600 mb-1">移動手段の種類</label>
+                    <label className="block text-xs text-[#003049]/70 mb-1">移動手段の種類</label>
                     <select
                       value={form.transportType}
                       onChange={(e) =>
                         setForm({ ...form, transportType: e.target.value as TransportType | "" })
                       }
-                      className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs bg-white"
+                      className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
                     >
                       <option value="TRAIN">🚆 電車・新幹線</option>
                       <option value="FLIGHT">✈️ 飛行機</option>
@@ -1232,37 +1230,37 @@ export default function TimelineView({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-stone-600 mb-1">出発地</label>
+                      <label className="block text-xs text-[#003049]/70 mb-1">出発地</label>
                       <input
                         value={form.fromPlace}
                         onChange={(e) => setForm({ ...form, fromPlace: e.target.value })}
                         placeholder="例: 東京駅"
-                        className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-stone-600 mb-1">到着地</label>
+                      <label className="block text-xs text-[#003049]/70 mb-1">到着地</label>
                       <input
                         value={form.toPlace}
                         onChange={(e) => setForm({ ...form, toPlace: e.target.value })}
                         placeholder="例: 京都駅"
-                        className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-stone-600 mb-1">便名・列車番号</label>
+                      <label className="block text-xs text-[#003049]/70 mb-1">便名・列車番号</label>
                       <input
                         value={form.flightNumber}
                         onChange={(e) => setForm({ ...form, flightNumber: e.target.value })}
                         placeholder="例: のぞみ12号, NH025"
-                        className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-stone-600 mb-1">所要時間 (分)</label>
+                      <label className="block text-xs text-[#003049]/70 mb-1">所要時間 (分)</label>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -1271,7 +1269,7 @@ export default function TimelineView({
                           setForm({ ...form, duration: normalizeNumberInput(e.target.value) })
                         }
                         placeholder="例: 135"
-                        className="w-full border border-stone-200 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                   </div>
@@ -1281,7 +1279,7 @@ export default function TimelineView({
               {/* Cost with Full-width number normalization + Split bill */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-stone-600">
+                  <label className="block text-xs font-semibold text-[#003049]">
                     {form.category === "HOTEL" ? "宿泊費用 (円)" : "費用・チケット代 (円)"}
                   </label>
                   <button
@@ -1289,8 +1287,8 @@ export default function TimelineView({
                     onClick={() => setSplitMode(!splitMode)}
                     className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
                       splitMode
-                        ? "bg-amber-50 border-amber-300 text-amber-700"
-                        : "bg-stone-50 border-stone-200 text-stone-500 hover:bg-stone-100"
+                        ? "bg-[#DDA15E]/20 border-[#DDA15E]/50 text-[#003049] font-bold"
+                        : "bg-[#003049]/5 border-[#003049]/15 text-[#003049]/70 hover:bg-[#003049]/10"
                     }`}
                   >
                     <Divide className="w-3 h-3" />
@@ -1305,32 +1303,32 @@ export default function TimelineView({
                     setForm({ ...form, cost: normalizeNumberInput(e.target.value) })
                   }
                   placeholder={splitMode ? "合計金額を入力" : "例: 15000（全角入力も自動変換されます）"}
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                 />
                 {splitMode && (
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                      <Users className="w-3.5 h-3.5 text-amber-600" />
+                    <div className="flex items-center gap-1.5 bg-[#DDA15E]/15 border border-[#DDA15E]/30 rounded-xl px-3 py-2">
+                      <Users className="w-3.5 h-3.5 text-[#DDA15E]" />
                       <input
                         type="text"
                         inputMode="numeric"
                         value={splitPeople}
                         onChange={(e) => setSplitPeople(normalizeNumberInput(e.target.value))}
-                        className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-amber-800"
+                        className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-[#003049]"
                       />
-                      <span className="text-xs text-amber-700">人</span>
+                      <span className="text-xs text-[#003049]">人</span>
                     </div>
                     <div className="flex-1 text-right">
                       {form.cost && Number(splitPeople) > 0 ? (
                         <p className="text-sm">
-                          <span className="text-stone-500">1人あたり </span>
-                          <span className="font-bold text-amber-700">
+                          <span className="text-[#003049]/60">1人あたり </span>
+                          <span className="font-bold text-[#003049]">
                             ¥{Math.ceil(Number(form.cost) / (Number(splitPeople) || 1)).toLocaleString()}
                           </span>
-                          <span className="text-[10px] text-stone-400 ml-1">（保存される金額）</span>
+                          <span className="text-[10px] text-[#003049]/50 ml-1">（保存される金額）</span>
                         </p>
                       ) : (
-                        <p className="text-xs text-stone-400">金額を入力すると1人分が計算されます</p>
+                        <p className="text-xs text-[#003049]/50">金額を入力すると1人分が計算されます</p>
                       )}
                     </div>
                   </div>
@@ -1339,7 +1337,7 @@ export default function TimelineView({
 
               {/* Memo */}
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   メモ・予約情報
                 </label>
                 <textarea
@@ -1351,23 +1349,23 @@ export default function TimelineView({
                       : "例: 10分前にホーム集合。QRチケットを提示。"
                   }
                   rows={2}
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
                 />
               </div>
 
               {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#003049]/10">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-stone-600 hover:text-stone-800 text-xs font-medium"
+                  className="px-4 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
                 >
                   キャンセル
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveSchedule}
-                  className="px-5 py-2.5 bg-stone-900 text-white rounded-xl text-xs font-semibold hover:bg-stone-700 transition"
+                  className="px-5 py-2.5 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition"
                 >
                   {editingSchedule ? "変更を保存" : "予定を追加"}
                 </button>

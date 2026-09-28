@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1c1917",
+  themeColor: "#003049",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -40,7 +40,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
-      <body className={`${cormorant.variable} antialiased bg-stone-50 text-stone-800 font-sans min-h-screen`}>
+      <body className={`${cormorant.variable} antialiased bg-[#FDF0D5] text-[#003049] font-sans min-h-screen`}>
         <ServiceWorkerRegister />
         {children}
       </body>

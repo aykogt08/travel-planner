@@ -133,16 +133,18 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✈️ 旅のしおり - ${trip.title}</title>
+  <title>Marcaderno - 旅のしおり - ${trip.title}</title>
   <style>
     :root {
-      --primary: #292524;
-      --accent: #f97316;
-      --bg: #fafaf9;
+      --primary: #C1121F;
+      --secondary: #386641;
+      --navy: #003049;
+      --accent: #DDA15E;
+      --bg: #FDF0D5;
       --card-bg: #ffffff;
-      --border: #e7e5e4;
-      --text: #1c1917;
-      --text-muted: #78716c;
+      --border: rgba(221, 161, 94, 0.35);
+      --text: #003049;
+      --text-muted: rgba(0, 48, 73, 0.7);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -156,13 +158,13 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
       max-width: 800px;
       margin: 0 auto;
       background: var(--card-bg);
-      border-radius: 16px;
+      border-radius: 20px;
       border: 1px solid var(--border);
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 16px rgba(0, 48, 73, 0.08);
     }
     .header {
-      background: #1c1917;
+      background: var(--navy);
       color: white;
       padding: 32px 24px;
       text-align: center;
@@ -170,22 +172,23 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
     }
     .badge {
       display: inline-block;
-      background: rgba(255,255,255,0.2);
-      color: #fff;
+      background: rgba(253, 240, 213, 0.2);
+      color: #FDF0D5;
       padding: 4px 12px;
       border-radius: 999px;
       font-size: 12px;
       margin-bottom: 8px;
-      font-weight: 500;
+      font-weight: 600;
+      border: 1px solid rgba(221, 161, 94, 0.4);
     }
     .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
-    .subtitle { font-size: 14px; opacity: 0.85; margin-bottom: 12px; }
-    .dates { font-size: 13px; opacity: 0.75; }
+    .subtitle { font-size: 14px; opacity: 0.9; margin-bottom: 12px; }
+    .dates { font-size: 13px; opacity: 0.85; }
     .nav-bar {
       display: flex;
       justify-content: center;
       gap: 12px;
-      background: #f5f5f4;
+      background: #FDF0D5;
       padding: 12px;
       border-bottom: 1px solid var(--border);
     }
@@ -193,11 +196,17 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
       background: var(--primary);
       color: white;
       border: none;
-      padding: 6px 14px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-action:hover { opacity: 0.9; }
+    .btn-secondary {
+      background: var(--navy);
+      color: white;
     }
     .section { padding: 24px; border-bottom: 1px solid var(--border); }
     .section-title {
@@ -207,16 +216,19 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
       display: flex;
       align-items: center;
       gap: 8px;
-      border-left: 4px solid var(--accent);
+      border-left: 4px solid var(--primary);
       padding-left: 8px;
+      color: var(--navy);
     }
     .day-header {
       font-size: 15px;
       font-weight: 700;
-      background: #f5f5f4;
-      padding: 8px 12px;
-      border-radius: 8px;
+      background: rgba(253, 240, 213, 0.6);
+      color: var(--navy);
+      padding: 8px 14px;
+      border-radius: 10px;
       margin: 16px 0 12px;
+      border: 1px solid var(--border);
     }
     .timeline { position: relative; padding-left: 20px; border-left: 2px solid var(--border); margin-left: 8px; }
     .timeline-item {
@@ -232,15 +244,15 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--primary);
       border: 2px solid white;
     }
     .timeline-time {
       font-size: 12px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--primary);
     }
-    .timeline-title { font-size: 15px; font-weight: 600; }
+    .timeline-title { font-size: 15px; font-weight: 600; color: var(--navy); }
     .timeline-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
     .card-grid {
       display: grid;
@@ -249,21 +261,22 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
     }
     .card {
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 14px;
       background: #fff;
     }
-    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--navy); }
     .card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-    .card-memo { font-size: 13px; color: #444; background: #fdfdfd; padding: 6px; border-radius: 6px; margin-top: 6px; border: 1px dashed var(--border); }
+    .card-memo { font-size: 13px; color: var(--navy); background: rgba(253, 240, 213, 0.4); padding: 8px 10px; border-radius: 8px; margin-top: 6px; border: 1px solid var(--border); }
     .tag {
       display: inline-block;
       font-size: 11px;
       padding: 2px 8px;
-      border-radius: 4px;
-      background: #f5f5f4;
-      color: #57534e;
+      border-radius: 6px;
+      background: rgba(0, 48, 73, 0.06);
+      color: var(--navy);
       margin-right: 4px;
+      border: 1px solid rgba(0, 48, 73, 0.1);
     }
     .packing-list {
       display: grid;
@@ -275,17 +288,19 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
       align-items: center;
       gap: 8px;
       font-size: 13px;
-      padding: 6px 10px;
-      background: #fafaf9;
-      border-radius: 6px;
+      padding: 8px 12px;
+      background: #fff;
+      border-radius: 10px;
       border: 1px solid var(--border);
+      color: var(--navy);
     }
     .footer {
       padding: 20px;
       text-align: center;
       font-size: 12px;
       color: var(--text-muted);
-      background: #f5f5f4;
+      background: #FDF0D5;
+      border-top: 1px solid var(--border);
     }
     @media print {
       body { background: white; padding: 0; }
@@ -306,7 +321,7 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
 
     <div class="nav-bar">
       <button class="btn-action" onclick="window.print()">🖨️ しおりを印刷 / PDF保存</button>
-      <button class="btn-action" onclick="alert('このファイルはオフライン環境でも閲覧可能です！スマホのファイルアプリに保存してお使いいただけます。')">ℹ️ オフライン閲覧ガイド</button>
+      <button class="btn-action btn-secondary" onclick="alert('このファイルはオフライン環境でも閲覧可能です！スマホのファイルアプリに保存してお使いいただけます。')">ℹ️ オフライン閲覧ガイド</button>
     </div>
 
     ${trip.description ? `

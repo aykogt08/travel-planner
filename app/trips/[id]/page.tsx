@@ -290,18 +290,18 @@ export default function TripDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-800 pb-24">
+    <main className="min-h-screen bg-[#FDF0D5] text-[#003049] pb-24">
       {/* Top Navbar */}
-      <nav className="sticky top-0 z-40 bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 sm:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#003049]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/trips"
-            className="p-1.5 text-stone-500 hover:text-stone-900 rounded-xl hover:bg-stone-200/60 transition"
+            className="p-1.5 text-[#003049]/70 hover:text-[#003049] rounded-xl hover:bg-[#003049]/10 transition"
             title="一覧に戻る"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="text-xl font-bold tracking-wider text-stone-900 hidden sm:inline font-brand">
+          <span className="text-xl font-bold tracking-wider text-[#003049] hidden sm:inline font-brand">
             Marcaderno
           </span>
         </div>
@@ -310,17 +310,17 @@ export default function TripDetailPage() {
           {/* Offline Guidebook & Help button */}
           <button
             onClick={() => setIsOfflineModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-300/80 text-xs font-semibold transition shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/80 text-[#003049] hover:bg-white border border-[#003049]/15 text-xs font-semibold transition shadow-2xs"
             title="オフラインしおり出力 & 利用ガイド"
           >
-            <HardDrive className="w-4 h-4 text-stone-500" />
+            <HardDrive className="w-4 h-4 text-[#386641]" />
             <span className="hidden sm:inline">オフラインしおり出力</span>
             <span className="sm:hidden">しおり</span>
           </button>
 
           <button
             onClick={() => setIsOfflineModalOpen(true)}
-            className="p-2 text-stone-500 hover:text-stone-900 rounded-xl hover:bg-stone-200/60 transition"
+            className="p-2 text-[#003049]/70 hover:text-[#003049] rounded-xl hover:bg-[#003049]/10 transition"
             title="オフライン・利用ガイドヘルプ"
           >
             <HelpCircle className="w-4 h-4" />
@@ -329,7 +329,7 @@ export default function TripDetailPage() {
           {/* Edit Plan button */}
           <button
             onClick={handleOpenEditModal}
-            className="p-2 text-stone-600 hover:text-stone-900 rounded-xl hover:bg-stone-200/60 transition"
+            className="p-2 text-[#003049]/70 hover:text-[#003049] rounded-xl hover:bg-[#003049]/10 transition"
             title="プラン設定を編集"
           >
             <Edit className="w-4 h-4" />
@@ -338,7 +338,7 @@ export default function TripDetailPage() {
           {/* Delete Plan button */}
           <button
             onClick={handleDeleteTrip}
-            className="p-2 text-stone-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition"
+            className="p-2 text-[#003049]/40 hover:text-[#C1121F] rounded-xl hover:bg-[#C1121F]/10 transition"
             title="プランを削除"
           >
             <Trash2 className="w-4 h-4" />
@@ -348,43 +348,43 @@ export default function TripDetailPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 flex flex-col gap-6">
         {/* Header Summary Banner */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-2">
                 {trip.destination && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-stone-800 text-stone-50 shadow-2xs">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-[#003049] text-[#FDF0D5] shadow-2xs">
                     <MapPin className="w-3.5 h-3.5" />
                     {trip.destination}
                   </span>
                 )}
                 {getDurationText() && (
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-stone-100 text-stone-700">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#DDA15E]/20 text-[#003049]">
                     {getDurationText()}
                   </span>
                 )}
                 {isOfflineMode && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/50">
                     📴 オフラインキャッシュ
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-stone-900">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#003049]">
                 {trip.title}
               </h1>
 
               {trip.description && (
-                <p className="text-stone-500 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
+                <p className="text-[#003049]/70 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
                   {trip.description}
                 </p>
               )}
             </div>
 
             {/* Date & Budget overview */}
-            <div className="flex flex-col sm:flex-row md:flex-col gap-3 text-xs text-stone-600 bg-stone-50 p-4 rounded-2xl border border-stone-100">
+            <div className="flex flex-col sm:flex-row md:flex-col gap-3 text-xs text-[#003049] bg-[#FDF0D5]/60 p-4 rounded-2xl border border-[#DDA15E]/30">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-stone-400" />
+                <Calendar className="w-4 h-4 text-[#003049]/50" />
                 <span className="font-medium">
                   {trip.startDate ? formatDate(trip.startDate) : "日程未定"}
                   {trip.endDate && ` 〜 ${formatDate(trip.endDate)}`}
@@ -393,12 +393,12 @@ export default function TripDetailPage() {
 
               {trip.budget !== null && trip.budget !== undefined && (
                 <div className="flex items-center gap-2">
-                  <CircleDollarSign className="w-4 h-4 text-stone-400" />
+                  <CircleDollarSign className="w-4 h-4 text-[#DDA15E]" />
                   <span className="font-medium">目標予算: ¥{trip.budget.toLocaleString()}</span>
                 </div>
               )}
 
-              <div className="flex items-center gap-3 text-[11px] text-stone-400 pt-1 border-t border-stone-200/60">
+              <div className="flex items-center gap-3 text-[11px] text-[#003049]/60 pt-1 border-t border-[#003049]/10">
                 <span>{trip.places.length} スポット</span>
                 <span>{trip.schedules.length} 予定</span>
                 <span>{trip.packingList.filter((p) => p.isPacked).length}/{trip.packingList.length} 持ち物</span>
@@ -408,18 +408,24 @@ export default function TripDetailPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-stone-200/70 rounded-2xl overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#003049]/8 border border-[#003049]/10 rounded-2xl overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("timeline")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "timeline"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/60"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#003049]/70 hover:text-[#003049] hover:bg-[#003049]/5"
             }`}
           >
-            <CalendarDays className={`w-4 h-4 ${activeTab === "timeline" ? "text-stone-700" : "text-stone-500"}`} />
+            <CalendarDays className={`w-4 h-4 ${activeTab === "timeline" ? "text-white" : "text-[#003049]/60"}`} />
             <span>タイムライン</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-200/80 text-stone-500">
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "timeline"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#003049]/10 text-[#003049]/70"
+              }`}
+            >
               {trip.schedules.length}
             </span>
           </button>
@@ -428,13 +434,19 @@ export default function TripDetailPage() {
             onClick={() => setActiveTab("wishes")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "wishes"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/60"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#003049]/70 hover:text-[#003049] hover:bg-[#003049]/5"
             }`}
           >
-            <Sparkles className={`w-4 h-4 ${activeTab === "wishes" ? "text-stone-700" : "text-stone-500"}`} />
+            <Sparkles className={`w-4 h-4 ${activeTab === "wishes" ? "text-white" : "text-[#003049]/60"}`} />
             <span>やりたいこと</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-200/80 text-stone-500">
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "wishes"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#003049]/10 text-[#003049]/70"
+              }`}
+            >
               {trip.wishes ? trip.wishes.length : 0}
             </span>
           </button>
@@ -443,13 +455,19 @@ export default function TripDetailPage() {
             onClick={() => setActiveTab("places")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "places"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/60"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#003049]/70 hover:text-[#003049] hover:bg-[#003049]/5"
             }`}
           >
-            <Utensils className={`w-4 h-4 ${activeTab === "places" ? "text-stone-700" : "text-stone-500"}`} />
+            <Utensils className={`w-4 h-4 ${activeTab === "places" ? "text-white" : "text-[#003049]/60"}`} />
             <span>ご飯・観光スポット</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-200/80 text-stone-500">
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "places"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#003049]/10 text-[#003049]/70"
+              }`}
+            >
               {trip.places.length}
             </span>
           </button>
@@ -458,13 +476,19 @@ export default function TripDetailPage() {
             onClick={() => setActiveTab("packing")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "packing"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/60"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#003049]/70 hover:text-[#003049] hover:bg-[#003049]/5"
             }`}
           >
-            <Luggage className={`w-4 h-4 ${activeTab === "packing" ? "text-stone-700" : "text-stone-500"}`} />
+            <Luggage className={`w-4 h-4 ${activeTab === "packing" ? "text-white" : "text-[#003049]/60"}`} />
             <span>持ち物リスト</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-200/80 text-stone-500">
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "packing"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#003049]/10 text-[#003049]/70"
+              }`}
+            >
               {trip.packingList.length}
             </span>
           </button>
@@ -473,11 +497,11 @@ export default function TripDetailPage() {
             onClick={() => setActiveTab("budget")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "budget"
-                ? "bg-white text-stone-900 shadow-xs"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100/60"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#003049]/70 hover:text-[#003049] hover:bg-[#003049]/5"
             }`}
           >
-            <PieChart className={`w-4 h-4 ${activeTab === "budget" ? "text-stone-700" : "text-stone-500"}`} />
+            <PieChart className={`w-4 h-4 ${activeTab === "budget" ? "text-white" : "text-[#003049]/60"}`} />
             <span>予算サマリー</span>
           </button>
         </div>
@@ -532,13 +556,13 @@ export default function TripDetailPage() {
 
       {/* Edit Trip Modal */}
       {isEditTripModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-stone-200">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-              <h3 className="text-base font-bold text-stone-800">旅の基本設定を編集</h3>
+        <div className="fixed inset-0 z-50 bg-[#003049]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white/95 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#DDA15E]/30">
+            <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10 mb-4">
+              <h3 className="text-base font-bold text-[#003049]">旅の基本設定を編集</h3>
               <button
                 onClick={() => setIsEditTripModalOpen(false)}
-                className="text-stone-400 hover:text-stone-600 p-1"
+                className="text-[#003049]/40 hover:text-[#003049] p-1"
               >
                 ✕
               </button>
@@ -546,51 +570,51 @@ export default function TripDetailPage() {
 
             <div className="flex flex-col gap-4 text-sm">
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
-                  旅行タイトル <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
+                  旅行タイトル <span className="text-[#C1121F]">*</span>
                 </label>
                 <input
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   目的地・エリア (例: 京都, 札幌, パリ)
                 </label>
                 <input
                   value={editForm.destination}
                   onChange={(e) => setEditForm({ ...editForm, destination: e.target.value })}
                   placeholder="例: 京都"
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-600 mb-1">出発日</label>
+                  <label className="block text-xs font-semibold text-[#003049] mb-1">出発日</label>
                   <input
                     type="date"
                     value={editForm.startDate}
                     onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })}
-                    className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-600 mb-1">帰国日</label>
+                  <label className="block text-xs font-semibold text-[#003049] mb-1">帰国日</label>
                   <input
                     type="date"
                     value={editForm.endDate}
                     onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value })}
-                    className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   目標総予算 (円)
                 </label>
                 <input
@@ -601,34 +625,34 @@ export default function TripDetailPage() {
                     setEditForm({ ...editForm, budget: normalizeNumberInput(e.target.value) })
                   }
                   placeholder="例: 50000 (全角・半角どちらでも自動変換)"
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-600 mb-1">
+                <label className="block text-xs font-semibold text-[#003049] mb-1">
                   旅のメモ・目的
                 </label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={2}
-                  className="w-full border border-stone-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#003049]/10">
                 <button
                   type="button"
                   onClick={() => setIsEditTripModalOpen(false)}
-                  className="px-4 py-2 text-stone-600 hover:text-stone-800 text-xs font-medium"
+                  className="px-4 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
                 >
                   キャンセル
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveTrip}
-                  className="px-5 py-2.5 bg-stone-900 text-white rounded-xl text-xs font-semibold hover:bg-stone-700 transition"
+                  className="px-5 py-2.5 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition"
                 >
                   変更を保存
                 </button>
