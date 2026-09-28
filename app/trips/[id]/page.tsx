@@ -272,8 +272,8 @@ export default function TripDetailPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="text-lg font-bold tracking-tight text-stone-900 hidden sm:inline">
-            ✈️ Marcaderno
+          <span className="text-xl font-bold tracking-wider text-stone-900 hidden sm:inline font-brand">
+            Marcaderno
           </span>
         </div>
 

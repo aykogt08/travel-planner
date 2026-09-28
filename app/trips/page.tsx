@@ -82,8 +82,8 @@ export default function TripsPage() {
     <main className="min-h-screen bg-stone-50 text-stone-800 pb-24">
       {/* Nav */}
       <nav className="sticky top-0 z-40 bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 sm:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold tracking-tight text-stone-900 flex items-center gap-2">
-          <span>✈️ Marcaderno</span>
+        <Link href="/" className="text-2xl font-bold tracking-wider text-stone-900 font-brand">
+          Marcaderno
         </Link>
         <Link
           href="/trips/new"

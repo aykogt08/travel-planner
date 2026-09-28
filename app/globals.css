@@ -18,6 +18,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.font-brand {
+  font-family: var(--font-brand), "Cormorant Garamond", "Playfair Display", "Baskerville", "Georgia", serif;
+  letter-spacing: 0.04em;
+}
+
 /* Print Stylesheet for Travel Bookmark */
 @media print {
   body {

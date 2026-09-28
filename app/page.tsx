@@ -17,8 +17,8 @@ export default function Home() {
     <main className="min-h-screen bg-stone-50 text-stone-800 font-sans selection:bg-amber-100">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 sm:px-12 py-5 border-b border-stone-200 bg-stone-50/80 backdrop-blur-md sticky top-0 z-50">
-        <span className="text-xl font-extrabold tracking-tight text-stone-900 flex items-center gap-2">
-          <span>✈️ Marcaderno</span>
+        <span className="text-2xl font-bold tracking-wider text-stone-900 font-brand">
+          Marcaderno
         </span>
         <div className="flex items-center gap-3">
           <Link

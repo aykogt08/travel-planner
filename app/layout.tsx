@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-brand",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Marcaderno - 旅のしおり & やりたいこと手帖",
@@ -32,7 +40,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
-      <body className="antialiased bg-stone-50 text-stone-800 font-sans min-h-screen">
+      <body className={`${cormorant.variable} antialiased bg-stone-50 text-stone-800 font-sans min-h-screen`}>
         <ServiceWorkerRegister />
         {children}
       </body>
