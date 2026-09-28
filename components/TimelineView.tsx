@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Schedule, Place, TransportType, ScheduleCategory } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 import {
@@ -34,6 +34,8 @@ import {
   ArrowRight,
   LayoutGrid,
   ListOrdered,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./PlacesManager";
 
@@ -94,6 +96,14 @@ const KNOWN_CITIES = [
   { name: "ヨーロッパ周遊", flag: "🇪🇺", country: "ヨーロッパ", keywords: ["ヨーロッパ", "周遊"] },
 ];
 
+export interface CityOverride {
+  name: string;
+  flag: string;
+  country: string;
+  companion: string;
+  memo?: string;
+}
+
 export interface CityLeg {
   id: string;
   name: string;
@@ -106,7 +116,35 @@ export interface CityLeg {
   dayIndices: number[]; // 1-based index (e.g. [1, 2])
   schedulesCount: number;
   highlightTitles: string[];
+  customMemo?: string;
+  isCustomized?: boolean;
 }
+
+export const PRESET_FLAGS = [
+  { flag: "🇫🇷", country: "フランス" },
+  { flag: "🇵🇹", country: "ポルトガル" },
+  { flag: "🇪🇸", country: "スペイン" },
+  { flag: "🇮🇹", country: "イタリア" },
+  { flag: "🇭🇺", country: "ハンガリー" },
+  { flag: "🇨🇿", country: "チェコ" },
+  { flag: "🇦🇹", country: "オーストリア" },
+  { flag: "🇩🇪", country: "ドイツ" },
+  { flag: "🇬🇧", country: "イギリス" },
+  { flag: "🇨🇭", country: "スイス" },
+  { flag: "🇯🇵", country: "日本" },
+  { flag: "🇪🇺", country: "ヨーロッパ" },
+];
+
+export const PRESET_COMPANIONS = [
+  "両親と",
+  "一人旅",
+  "たろーと",
+  "なゆと",
+  "なゆ・ほのかと",
+  "マナと",
+  "友達と",
+  "なし",
+];
 
 export default function TimelineView({
   tripId,
@@ -122,6 +160,24 @@ export default function TimelineView({
   const [timelineViewMode, setTimelineViewMode] = useState<"TIMELINE" | "CITY_SUMMARY">("TIMELINE");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+
+  // City Leg Customization Overrides
+  const [cityOverrides, setCityOverrides] = useState<Record<string, CityOverride>>({});
+  const [editingCityLeg, setEditingCityLeg] = useState<CityLeg | null>(null);
+
+  // Load city overrides from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`trip_city_overrides_${tripId}`);
+        if (stored) {
+          setCityOverrides(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error("Failed to load city overrides from localStorage", e);
+      }
+    }
+  }, [tripId]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -193,8 +249,8 @@ export default function TimelineView({
 
   const datesList = getDateList();
 
-  // Pre-calculate per-day metadata map (dateStr -> { city, companion })
-  const dayMetaMap = useMemo(() => {
+  // Raw pre-calculated metadata before manual overrides
+  const rawDayMetaMap = useMemo(() => {
     const map = new Map<string, { city: typeof KNOWN_CITIES[0]; companion: string | null }>();
     datesList.forEach((dateStr) => {
       const dayScheds = schedules.filter((s) => s.date.split("T")[0] === dateStr);
@@ -203,7 +259,7 @@ export default function TimelineView({
     return map;
   }, [datesList, schedules]);
 
-  // Group continuous days into City Legs / Chapters
+  // Group continuous days into City Legs / Chapters with overrides applied
   const cityLegs: CityLeg[] = useMemo(() => {
     const legs: CityLeg[] = [];
     if (datesList.length === 0) return legs;
@@ -219,7 +275,7 @@ export default function TimelineView({
 
     for (let idx = 0; idx < datesList.length; idx++) {
       const dateStr = datesList[idx];
-      const meta = dayMetaMap.get(dateStr) || { city: KNOWN_CITIES[KNOWN_CITIES.length - 1], companion: null };
+      const meta = rawDayMetaMap.get(dateStr) || { city: KNOWN_CITIES[KNOWN_CITIES.length - 1], companion: null };
       const cityName = meta.city.name;
       const companion = meta.companion;
 
@@ -246,18 +302,24 @@ export default function TimelineView({
           )
         );
 
+        const legStartDate = activeLeg.dates[0];
+        const legId = `leg-${activeLeg.cityName}-${legStartDate}`;
+        const override = cityOverrides[legStartDate] || cityOverrides[legId];
+
         legs.push({
-          id: `leg-${activeLeg.cityName}-${activeLeg.dates[0]}`,
-          name: activeLeg.cityName,
-          flag: cityConfig.flag,
-          country: cityConfig.country,
-          companion: activeLeg.companion,
-          startDate: activeLeg.dates[0],
+          id: legId,
+          name: override ? override.name : activeLeg.cityName,
+          flag: override ? override.flag : cityConfig.flag,
+          country: override ? override.country : cityConfig.country,
+          companion: override ? override.companion : activeLeg.companion,
+          startDate: legStartDate,
           endDate: activeLeg.dates[activeLeg.dates.length - 1],
           dates: activeLeg.dates,
           dayIndices: activeLeg.dayIndices,
           schedulesCount: legSchedules.length,
           highlightTitles: highlights,
+          customMemo: override?.memo,
+          isCustomized: !!override,
         });
 
         currentLeg = {
@@ -282,23 +344,127 @@ export default function TimelineView({
         )
       );
 
+      const legStartDate = finalLeg.dates[0];
+      const legId = `leg-${finalLeg.cityName}-${legStartDate}`;
+      const override = cityOverrides[legStartDate] || cityOverrides[legId];
+
       legs.push({
-        id: `leg-${finalLeg.cityName}-${finalLeg.dates[0]}`,
-        name: finalLeg.cityName,
-        flag: cityConfig.flag,
-        country: cityConfig.country,
-        companion: finalLeg.companion,
-        startDate: finalLeg.dates[0],
+        id: legId,
+        name: override ? override.name : finalLeg.cityName,
+        flag: override ? override.flag : cityConfig.flag,
+        country: override ? override.country : cityConfig.country,
+        companion: override ? override.companion : finalLeg.companion,
+        startDate: legStartDate,
         endDate: finalLeg.dates[finalLeg.dates.length - 1],
         dates: finalLeg.dates,
         dayIndices: finalLeg.dayIndices,
         schedulesCount: legSchedules.length,
         highlightTitles: highlights,
+        customMemo: override?.memo,
+        isCustomized: !!override,
       });
     }
 
     return legs;
-  }, [datesList, dayMetaMap, schedules]);
+  }, [datesList, rawDayMetaMap, schedules, cityOverrides]);
+
+  // Effective day metadata mapping reflecting any overrides
+  const dayMetaMap = useMemo(() => {
+    const map = new Map<string, { city: { name: string; flag: string; country: string }; companion: string | null }>();
+    cityLegs.forEach((leg) => {
+      leg.dates.forEach((d) => {
+        map.set(d, {
+          city: { name: leg.name, flag: leg.flag, country: leg.country },
+          companion: leg.companion,
+        });
+      });
+    });
+    return map;
+  }, [cityLegs]);
+
+  // Save or update city leg customization
+  const handleSaveCityOverride = async (updated: CityOverride) => {
+    if (!editingCityLeg) return;
+    const legKey = editingCityLeg.startDate;
+    const newOverrides = {
+      ...cityOverrides,
+      [legKey]: updated,
+    };
+    setCityOverrides(newOverrides);
+    try {
+      localStorage.setItem(`trip_city_overrides_${tripId}`, JSON.stringify(newOverrides));
+    } catch (e) {
+      console.error("Failed to save city overrides to localStorage", e);
+    }
+
+    // If companion changed, batch update schedules in this leg to keep consistency
+    const oldCompanion = editingCityLeg.companion;
+    const newCompanion = updated.companion.trim();
+    if (oldCompanion && newCompanion && oldCompanion !== newCompanion) {
+      const affectedSchedules = schedules.filter((s) =>
+        editingCityLeg.dates.includes(s.date.split("T")[0])
+      );
+
+      const updatedSchedules = schedules.map((s) => {
+        if (editingCityLeg.dates.includes(s.date.split("T")[0])) {
+          let newMemo = s.memo || "";
+          if (newMemo.includes(oldCompanion)) {
+            newMemo = newMemo.replaceAll(oldCompanion, newCompanion);
+          }
+          let newTitle = s.title;
+          if (newTitle.includes(oldCompanion)) {
+            newTitle = newTitle.replaceAll(oldCompanion, newCompanion);
+          }
+          return { ...s, memo: newMemo, title: newTitle };
+        }
+        return s;
+      });
+
+      onSchedulesChange(updatedSchedules);
+
+      // Persist to server in background if online
+      if (!isOffline) {
+        for (const s of affectedSchedules) {
+          let newMemo = s.memo || "";
+          let newTitle = s.title;
+          let changed = false;
+          if (newMemo.includes(oldCompanion)) {
+            newMemo = newMemo.replaceAll(oldCompanion, newCompanion);
+            changed = true;
+          }
+          if (newTitle.includes(oldCompanion)) {
+            newTitle = newTitle.replaceAll(oldCompanion, newCompanion);
+            changed = true;
+          }
+          if (changed) {
+            fetch(`/api/schedules/${s.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...s, memo: newMemo, title: newTitle }),
+            }).catch((err) => console.error("Failed to update schedule memo", err));
+          }
+        }
+      }
+    }
+
+    setEditingCityLeg(null);
+  };
+
+  // Reset customization to auto-detection
+  const handleResetCityOverride = () => {
+    if (!editingCityLeg) return;
+    const legKey = editingCityLeg.startDate;
+    const newOverrides = { ...cityOverrides };
+    delete newOverrides[legKey];
+    delete newOverrides[editingCityLeg.id];
+    setCityOverrides(newOverrides);
+    try {
+      localStorage.setItem(`trip_city_overrides_${tripId}`, JSON.stringify(newOverrides));
+    } catch (e) {
+      console.error("Failed to delete city override from localStorage", e);
+    }
+    setEditingCityLeg(null);
+  };
 
   // Unique city list for quick filter pills
   const uniqueCitiesList = useMemo(() => {
@@ -810,7 +976,7 @@ export default function TimelineView({
                   className="group bg-white/95 border border-[#DDA15E]/30 hover:border-[#003049] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
                 >
                   <div>
-                    {/* Header: Flag, City, Day Range & Companion */}
+                    {/* Header: Flag, City, Day Range & Actions */}
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">{leg.flag}</span>
@@ -826,13 +992,31 @@ export default function TimelineView({
                           </div>
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.8 rounded-full bg-[#003049]/10 text-[#003049]">
-                        #{idx + 1}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {leg.isCustomized && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#386641]/10 text-[#386641] border border-[#386641]/20">
+                            編集済
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold px-2 py-0.8 rounded-full bg-[#003049]/10 text-[#003049]">
+                          #{idx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCityLeg(leg);
+                          }}
+                          title="この都市・エリア情報を編集"
+                          className="p-1 rounded-lg text-[#003049]/50 hover:text-[#C1121F] hover:bg-[#003049]/5 transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Date range & Companion badge */}
-                    <div className="flex items-center gap-2 flex-wrap mb-3 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap mb-2.5 text-xs">
                       <span className="text-[#003049]/70 font-medium">
                         {dateRangeText}
                       </span>
@@ -842,6 +1026,14 @@ export default function TimelineView({
                         </span>
                       )}
                     </div>
+
+                    {/* Custom Area Memo if present */}
+                    {leg.customMemo && (
+                      <div className="bg-[#003049]/5 border-l-2 border-[#003049] rounded-r-xl px-2.5 py-1.5 mb-2.5 text-xs text-[#003049]">
+                        <div className="text-[10px] font-bold text-[#003049]/60 mb-0.5">エリアメモ:</div>
+                        <div className="whitespace-pre-wrap">{leg.customMemo}</div>
+                      </div>
+                    )}
 
                     {/* Highlights */}
                     {leg.highlightTitles.length > 0 && (
@@ -861,11 +1053,21 @@ export default function TimelineView({
                     )}
                   </div>
 
-                  {/* Footer link */}
-                  <div className="pt-2 border-t border-[#003049]/10 flex items-center justify-between text-xs font-semibold text-[#003049] group-hover:text-[#C1121F] transition">
-                    <span>{leg.schedulesCount} 件の予定</span>
-                    <span className="inline-flex items-center gap-1 text-[11px]">
-                      タイムラインを見る
+                  {/* Footer link & quick edit */}
+                  <div className="pt-2 border-t border-[#003049]/10 flex items-center justify-between text-xs font-semibold text-[#003049]">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingCityLeg(leg);
+                      }}
+                      className="inline-flex items-center gap-1 text-[11px] text-[#003049]/60 hover:text-[#C1121F] transition font-medium"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                      都市情報を編集
+                    </button>
+                    <span className="inline-flex items-center gap-1 text-[11px] group-hover:text-[#C1121F] transition">
+                      <span>{leg.schedulesCount} 件の予定</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
@@ -884,12 +1086,28 @@ export default function TimelineView({
                 都市・エリアで絞り込み:
               </span>
               {selectedCityFilter !== "ALL" && (
-                <button
-                  onClick={() => setSelectedCityFilter("ALL")}
-                  className="text-xs text-[#C1121F] hover:underline font-semibold"
-                >
-                  絞り込み解除（すべて表示）
-                </button>
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const activeLeg = cityLegs.find((l) => l.name === selectedCityFilter);
+                    if (!activeLeg) return null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setEditingCityLeg(activeLeg)}
+                        className="text-xs text-[#003049] hover:text-[#C1121F] font-semibold flex items-center gap-1 transition"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        この都市情報を編集
+                      </button>
+                    );
+                  })()}
+                  <button
+                    onClick={() => setSelectedCityFilter("ALL")}
+                    className="text-xs text-[#C1121F] hover:underline font-semibold"
+                  >
+                    絞り込み解除
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1787,6 +2005,234 @@ export default function TimelineView({
           </div>
         </div>
       )}
+
+      {/* Edit City Leg Modal */}
+      {editingCityLeg && (
+        <EditCityLegModal
+          leg={editingCityLeg}
+          onClose={() => setEditingCityLeg(null)}
+          onSave={handleSaveCityOverride}
+          onReset={handleResetCityOverride}
+          formatDate={formatDate}
+        />
+      )}
+    </div>
+  );
+}
+
+interface EditCityLegModalProps {
+  leg: CityLeg;
+  onClose: () => void;
+  onSave: (override: CityOverride) => void;
+  onReset: () => void;
+  formatDate: (d: string) => string;
+}
+
+function EditCityLegModal({ leg, onClose, onSave, onReset, formatDate }: EditCityLegModalProps) {
+  const [name, setName] = useState(leg.name);
+  const [flag, setFlag] = useState(leg.flag);
+  const [country, setCountry] = useState(leg.country);
+  const [companion, setCompanion] = useState(leg.companion || "");
+  const [memo, setMemo] = useState(leg.customMemo || "");
+
+  const dayRangeText =
+    leg.dayIndices.length > 1
+      ? `Day ${leg.dayIndices[0]}〜${leg.dayIndices[leg.dayIndices.length - 1]}`
+      : `Day ${leg.dayIndices[0]}`;
+  const dateRangeText =
+    leg.startDate === leg.endDate
+      ? formatDate(leg.startDate)
+      : `${formatDate(leg.startDate)} 〜 ${formatDate(leg.endDate)}`;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onSave({
+      name: name.trim(),
+      flag: flag.trim() || "🌍",
+      country: country.trim() || "海外",
+      companion: companion.trim(),
+      memo: memo.trim(),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
+      <div className="bg-[#FDF0D5] border border-[#DDA15E]/40 rounded-2xl p-5 max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 bg-[#003049] text-white rounded-lg">
+              <MapPin className="w-4 h-4" />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-[#003049]">都市・エリア情報の編集</h2>
+              <div className="text-[11px] text-[#003049]/70 font-semibold">
+                {dayRangeText} ({dateRangeText}) ・ {leg.dates.length}日間
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-[#003049]/50 hover:text-[#003049] rounded-lg transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1">
+          {/* City Name */}
+          <div>
+            <label className="block text-xs font-semibold text-[#003049] mb-1">
+              都市・エリア名 <span className="text-[#C1121F]">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例: マドリード＆トレド, ポルト, パリ"
+              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+              required
+            />
+            <p className="mt-1 text-[11px] text-[#003049]/60">
+              日程タブや都市カード、絞り込みピルバーの表示名に反映されます。
+            </p>
+          </div>
+
+          {/* Flag & Country */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="col-span-1">
+              <label className="block text-xs font-semibold text-[#003049] mb-1">
+                国旗（絵文字）
+              </label>
+              <input
+                type="text"
+                value={flag}
+                onChange={(e) => setFlag(e.target.value)}
+                placeholder="例: 🇪🇸"
+                className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white text-center focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-[#003049] mb-1">
+                国名
+              </label>
+              <input
+                type="text"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="例: スペイン"
+                className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+              />
+            </div>
+          </div>
+
+          {/* Preset Flags Chips */}
+          <div>
+            <div className="text-[11px] font-semibold text-[#003049]/70 mb-1.5">よく使う国旗・国（タップで入力）:</div>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESET_FLAGS.map((item) => (
+                <button
+                  key={item.flag}
+                  type="button"
+                  onClick={() => {
+                    setFlag(item.flag);
+                    setCountry(item.country);
+                  }}
+                  className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition flex items-center gap-1 ${
+                    flag === item.flag
+                      ? "bg-[#003049] text-white border-[#003049]"
+                      : "bg-white/80 border-[#003049]/15 text-[#003049] hover:bg-white"
+                  }`}
+                >
+                  <span>{item.flag}</span>
+                  <span>{item.country}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Companion */}
+          <div>
+            <label className="block text-xs font-semibold text-[#003049] mb-1">
+              同行者
+            </label>
+            <input
+              type="text"
+              value={companion}
+              onChange={(e) => setCompanion(e.target.value)}
+              placeholder="例: 両親と, 一人旅, たろーと, なゆと"
+              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+            />
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {PRESET_COMPANIONS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setCompanion(preset === "なし" ? "" : preset)}
+                  className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition ${
+                    companion === preset || (preset === "なし" && !companion)
+                      ? "bg-[#386641] text-white border-[#386641]"
+                      : "bg-white/80 border-[#386641]/20 text-[#386641] hover:bg-white"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] text-[#003049]/60">
+              ※同行者を変更すると、該当区間の予定メモに含まれる同行者表記も連動して自動更新されます。
+            </p>
+          </div>
+
+          {/* Area Memo */}
+          <div>
+            <label className="block text-xs font-semibold text-[#003049] mb-1">
+              エリアメモ・ひとことハイライト（任意）
+            </label>
+            <textarea
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="例: 名物バル巡りとピンチョスを満喫！サン・セバスチャンからビルバオへ移動。"
+              rows={2}
+              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
+            />
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="flex items-center justify-between pt-3 border-t border-[#003049]/10">
+            <div>
+              {leg.isCustomized && (
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="flex items-center gap-1 text-[11px] text-[#C1121F] hover:underline font-semibold"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  自動判定に戻す
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3.5 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition shadow-xs"
+              >
+                変更を保存
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
