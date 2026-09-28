@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Schedule, Place, TransportType, ScheduleCategory } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 import {
@@ -29,6 +29,11 @@ import {
   Users,
   Divide,
   Coffee,
+  ChevronRight,
+  Compass,
+  ArrowRight,
+  LayoutGrid,
+  ListOrdered,
 } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./PlacesManager";
 
@@ -72,6 +77,37 @@ export interface TimelineEventItem {
   hotelStayRangeText?: string;
 }
 
+// City definition table with flags & keywords
+const KNOWN_CITIES = [
+  { name: "パリ", flag: "🇫🇷", country: "フランス", keywords: ["パリ", "Paris", "シャルル・ド・ゴール", "CDG", "オルリー", "ペルゴレーズ"] },
+  { name: "ポルト", flag: "🇵🇹", country: "ポルトガル", keywords: ["ポルト", "Porto", "Bernette", "フランセジーニャ"] },
+  { name: "サンティアゴ", flag: "🇪🇸", country: "スペイン", keywords: ["サンティアゴ", "コンポステーラ", "Santiago"] },
+  { name: "サン・セバスチャン", flag: "🇪🇸", country: "スペイン", keywords: ["サン・セバスチャン", "サンセバスチャン", "San Sebastian", "ドノスティア", "バル巡り"] },
+  { name: "ビルバオ", flag: "🇪🇸", country: "スペイン", keywords: ["ビルバオ", "Bilbao", "グッゲンハイム"] },
+  { name: "マドリード", flag: "🇪🇸", country: "スペイン", keywords: ["マドリード", "Madrid", "プラド美術館"] },
+  { name: "リスボン", flag: "🇵🇹", country: "ポルトガル", keywords: ["リスボン", "Lisbon", "Lisboa", "シントラ", "ベレン"] },
+  { name: "ポルトガル", flag: "🇵🇹", country: "ポルトガル", keywords: ["ポルトガル"] },
+  { name: "ナポリ", flag: "🇮🇹", country: "イタリア", keywords: ["ナポリ", "Napoli", "ポンペイ", "カプリ", "ピッツァ", "ソレント"] },
+  { name: "ブダペスト", flag: "🇭🇺", country: "ハンガリー", keywords: ["ブダペスト", "Budapest", "セーチェニ", "ドナウ"] },
+  { name: "プラハ", flag: "🇨🇿", country: "チェコ", keywords: ["プラハ", "Prague", "カレル橋"] },
+  { name: "ウィーン", flag: "🇦🇹", country: "オーストリア", keywords: ["ウィーン", "Vienna", "シェーンブルン", "カフェ・ザッハー"] },
+  { name: "ヨーロッパ周遊", flag: "🇪🇺", country: "ヨーロッパ", keywords: ["ヨーロッパ", "周遊"] },
+];
+
+export interface CityLeg {
+  id: string;
+  name: string;
+  flag: string;
+  country: string;
+  companion: string | null;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  dates: string[];
+  dayIndices: number[]; // 1-based index (e.g. [1, 2])
+  schedulesCount: number;
+  highlightTitles: string[];
+}
+
 export default function TimelineView({
   tripId,
   schedules,
@@ -82,6 +118,8 @@ export default function TimelineView({
   isOffline = false,
 }: TimelineViewProps) {
   const [selectedDateTab, setSelectedDateTab] = useState<string>("ALL");
+  const [selectedCityFilter, setSelectedCityFilter] = useState<string>("ALL");
+  const [timelineViewMode, setTimelineViewMode] = useState<"TIMELINE" | "CITY_SUMMARY">("TIMELINE");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
@@ -89,6 +127,42 @@ export default function TimelineView({
     const d = new Date(dateStr);
     const days = ["日", "月", "火", "水", "木", "金", "土"];
     return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+  };
+
+  // Helper: detect city and companion for a given day
+  const getDayMetadata = (dateStr: string, daySchedules: Schedule[]) => {
+    let detectedCity = KNOWN_CITIES.find((c) => c.name === "ヨーロッパ周遊")!;
+    let companion: string | null = null;
+
+    // Combine all texts from schedules for this day
+    const allTexts = daySchedules
+      .map((s) => `${s.title} ${s.memo || ""} ${s.fromPlace || ""} ${s.toPlace || ""}`)
+      .join(" ");
+
+    // Companion detection
+    if (allTexts.includes("両親")) {
+      companion = "両親と";
+    } else if (allTexts.includes("なゆ・ほのか") || (allTexts.includes("なゆ") && allTexts.includes("ほのか"))) {
+      companion = "なゆ・ほのかと";
+    } else if (allTexts.includes("たろー")) {
+      companion = "たろーと";
+    } else if (allTexts.includes("マナ")) {
+      companion = "マナと";
+    } else if (allTexts.includes("なゆ")) {
+      companion = "なゆと";
+    } else if (allTexts.includes("一人旅") || allTexts.includes("単独")) {
+      companion = "一人旅";
+    }
+
+    // City detection
+    for (const city of KNOWN_CITIES) {
+      if (city.keywords.some((k) => allTexts.includes(k))) {
+        detectedCity = city;
+        break;
+      }
+    }
+
+    return { city: detectedCity, companion };
   };
 
   // Calculate day list from trip start/end date & schedules (including checkOutDate)
@@ -118,6 +192,136 @@ export default function TimelineView({
   };
 
   const datesList = getDateList();
+
+  // Pre-calculate per-day metadata map (dateStr -> { city, companion })
+  const dayMetaMap = useMemo(() => {
+    const map = new Map<string, { city: typeof KNOWN_CITIES[0]; companion: string | null }>();
+    datesList.forEach((dateStr) => {
+      const dayScheds = schedules.filter((s) => s.date.split("T")[0] === dateStr);
+      map.set(dateStr, getDayMetadata(dateStr, dayScheds));
+    });
+    return map;
+  }, [datesList, schedules]);
+
+  // Group continuous days into City Legs / Chapters
+  const cityLegs: CityLeg[] = useMemo(() => {
+    const legs: CityLeg[] = [];
+    if (datesList.length === 0) return legs;
+
+    type LegBuilder = {
+      cityName: string;
+      companion: string | null;
+      dates: string[];
+      dayIndices: number[];
+    };
+
+    let currentLeg: LegBuilder | null = null;
+
+    for (let idx = 0; idx < datesList.length; idx++) {
+      const dateStr = datesList[idx];
+      const meta = dayMetaMap.get(dateStr) || { city: KNOWN_CITIES[KNOWN_CITIES.length - 1], companion: null };
+      const cityName = meta.city.name;
+      const companion = meta.companion;
+
+      if (!currentLeg) {
+        currentLeg = {
+          cityName,
+          companion,
+          dates: [dateStr],
+          dayIndices: [idx + 1],
+        };
+      } else if (currentLeg.cityName === cityName && currentLeg.companion === companion) {
+        currentLeg.dates.push(dateStr);
+        currentLeg.dayIndices.push(idx + 1);
+      } else {
+        const activeLeg: LegBuilder = currentLeg;
+        const cityConfig = KNOWN_CITIES.find((c) => c.name === activeLeg.cityName) || KNOWN_CITIES[KNOWN_CITIES.length - 1];
+        const legSchedules = schedules.filter((s) => activeLeg.dates.includes(s.date.split("T")[0]));
+        const highlights = Array.from(
+          new Set(
+            legSchedules
+              .filter((s) => s.category !== "HOTEL")
+              .map((s) => s.title)
+              .slice(0, 3)
+          )
+        );
+
+        legs.push({
+          id: `leg-${activeLeg.cityName}-${activeLeg.dates[0]}`,
+          name: activeLeg.cityName,
+          flag: cityConfig.flag,
+          country: cityConfig.country,
+          companion: activeLeg.companion,
+          startDate: activeLeg.dates[0],
+          endDate: activeLeg.dates[activeLeg.dates.length - 1],
+          dates: activeLeg.dates,
+          dayIndices: activeLeg.dayIndices,
+          schedulesCount: legSchedules.length,
+          highlightTitles: highlights,
+        });
+
+        currentLeg = {
+          cityName,
+          companion,
+          dates: [dateStr],
+          dayIndices: [idx + 1],
+        };
+      }
+    }
+
+    if (currentLeg) {
+      const finalLeg: LegBuilder = currentLeg;
+      const cityConfig = KNOWN_CITIES.find((c) => c.name === finalLeg.cityName) || KNOWN_CITIES[KNOWN_CITIES.length - 1];
+      const legSchedules = schedules.filter((s) => finalLeg.dates.includes(s.date.split("T")[0]));
+      const highlights = Array.from(
+        new Set(
+          legSchedules
+            .filter((s) => s.category !== "HOTEL")
+            .map((s) => s.title)
+            .slice(0, 3)
+        )
+      );
+
+      legs.push({
+        id: `leg-${finalLeg.cityName}-${finalLeg.dates[0]}`,
+        name: finalLeg.cityName,
+        flag: cityConfig.flag,
+        country: cityConfig.country,
+        companion: finalLeg.companion,
+        startDate: finalLeg.dates[0],
+        endDate: finalLeg.dates[finalLeg.dates.length - 1],
+        dates: finalLeg.dates,
+        dayIndices: finalLeg.dayIndices,
+        schedulesCount: legSchedules.length,
+        highlightTitles: highlights,
+      });
+    }
+
+    return legs;
+  }, [datesList, dayMetaMap, schedules]);
+
+  // Unique city list for quick filter pills
+  const uniqueCitiesList = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { name: string; flag: string; count: number }[] = [];
+    cityLegs.forEach((leg) => {
+      if (!seen.has(leg.name)) {
+        seen.add(leg.name);
+        const totalDays = cityLegs.filter((l) => l.name === leg.name).reduce((acc, l) => acc + l.dates.length, 0);
+        list.push({ name: leg.name, flag: leg.flag, count: totalDays });
+      }
+    });
+    return list;
+  }, [cityLegs]);
+
+  // Filter visible dates by selectedCityFilter
+  const visibleDatesList = useMemo(() => {
+    if (selectedCityFilter === "ALL") return datesList;
+    return datesList.filter((d) => {
+      const meta = dayMetaMap.get(d);
+      return meta?.city.name === selectedCityFilter;
+    });
+  }, [datesList, selectedCityFilter, dayMetaMap]);
 
   // Helper: Project schedules into timeline event cards (expanding Hotel check-in & check-out)
   const allTimelineItems: TimelineEventItem[] = [];
@@ -510,32 +714,60 @@ export default function TimelineView({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header & Add Buttons */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-5">
+      {/* Header & View Mode Switcher & Add Buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
-            <span>🗓️ 旅程タイムライン</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
-              {schedules.length} 件の予定
-            </span>
-          </h2>
-          <p className="text-[#003049]/70 text-xs mt-0.5">
-            日ごとのスケジュール・移動・宿泊（チェックイン/アウト）をタイムライン形式で把握できます。
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
+              <span>🗓️ 旅程タイムライン</span>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+                {schedules.length} 件の予定
+              </span>
+            </h2>
+          </div>
+          <p className="text-[#003049]/70 text-xs mt-1">
+            Day 1〜{datesList.length} の日別タイムラインと、都市・エリア別のまとめを切り替えて確認できます。
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* View mode toggle */}
+          <div className="flex items-center bg-[#003049]/5 p-1 rounded-xl border border-[#003049]/10">
+            <button
+              onClick={() => setTimelineViewMode("TIMELINE")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                timelineViewMode === "TIMELINE"
+                  ? "bg-[#003049] text-[#FDF0D5] shadow-xs"
+                  : "text-[#003049]/70 hover:text-[#003049]"
+              }`}
+            >
+              <ListOrdered className="w-3.5 h-3.5" />
+              日別タイムライン
+            </button>
+            <button
+              onClick={() => setTimelineViewMode("CITY_SUMMARY")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                timelineViewMode === "CITY_SUMMARY"
+                  ? "bg-[#003049] text-[#FDF0D5] shadow-xs"
+                  : "text-[#003049]/70 hover:text-[#003049]"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              都市・エリア別まとめ ({cityLegs.length})
+            </button>
+          </div>
+
           <button
             onClick={() => handleOpenAddModal(undefined, "HOTEL")}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
           >
             <Hotel className="w-4 h-4 text-[#DDA15E]" />
             宿泊を追加
           </button>
           <button
             onClick={() => handleOpenAddModal()}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#C1121F] text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
           >
             <Plus className="w-4 h-4" />
             予定を追加
@@ -543,90 +775,269 @@ export default function TimelineView({
         </div>
       </div>
 
-      {/* Date filter tabs (Day 1, Day 2...) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        <button
-          onClick={() => setSelectedDateTab("ALL")}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
-            selectedDateTab === "ALL"
-              ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-              : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
-          }`}
-        >
-          全日程 ({allTimelineItems.length})
-        </button>
+      {/* City Summary Cards View */}
+      {timelineViewMode === "CITY_SUMMARY" ? (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#003049]/80 flex items-center gap-1.5">
+              <Compass className="w-4 h-4 text-[#386641]" />
+              全行程チャプター一覧 ({cityLegs.length} 区間 / 計 {datesList.length} 日間)
+            </span>
+            <span className="text-[11px] text-[#003049]/60">
+              カードをタップするとその都市の日程タイムラインへジャンプできます
+            </span>
+          </div>
 
-        {datesList.map((dateStr, idx) => {
-          const isSelected = selectedDateTab === dateStr;
-          const count = allTimelineItems.filter((item) => item.dateStr === dateStr).length;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {cityLegs.map((leg, idx) => {
+              const dayRangeText =
+                leg.dayIndices.length > 1
+                  ? `Day ${leg.dayIndices[0]}〜${leg.dayIndices[leg.dayIndices.length - 1]}`
+                  : `Day ${leg.dayIndices[0]}`;
+              const dateRangeText =
+                leg.startDate === leg.endDate
+                  ? formatDate(leg.startDate)
+                  : `${formatDate(leg.startDate)} 〜 ${formatDate(leg.endDate)}`;
 
-          return (
+              return (
+                <div
+                  key={leg.id}
+                  onClick={() => {
+                    setSelectedCityFilter(leg.name);
+                    setSelectedDateTab(leg.startDate);
+                    setTimelineViewMode("TIMELINE");
+                  }}
+                  className="group bg-white/95 border border-[#DDA15E]/30 hover:border-[#003049] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Header: Flag, City, Day Range & Companion */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{leg.flag}</span>
+                        <div>
+                          <h3 className="font-bold text-base text-[#003049] group-hover:text-[#C1121F] transition flex items-center gap-1.5">
+                            {leg.name}
+                            <span className="text-[11px] font-normal text-[#003049]/60">
+                              ({leg.country})
+                            </span>
+                          </h3>
+                          <div className="text-[11px] font-semibold text-[#003049]/70">
+                            {dayRangeText} ・ {leg.dates.length}日間
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.8 rounded-full bg-[#003049]/10 text-[#003049]">
+                        #{idx + 1}
+                      </span>
+                    </div>
+
+                    {/* Date range & Companion badge */}
+                    <div className="flex items-center gap-2 flex-wrap mb-3 text-xs">
+                      <span className="text-[#003049]/70 font-medium">
+                        {dateRangeText}
+                      </span>
+                      {leg.companion && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#386641]/10 text-[#386641] border border-[#386641]/20">
+                          {leg.companion}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Highlights */}
+                    {leg.highlightTitles.length > 0 && (
+                      <div className="bg-[#FDF0D5]/50 rounded-xl p-2.5 mb-3 border border-[#DDA15E]/20">
+                        <div className="text-[10px] font-bold text-[#003049]/60 mb-1">
+                          主なスケジュール:
+                        </div>
+                        <ul className="text-xs text-[#003049] space-y-1">
+                          {leg.highlightTitles.map((title, i) => (
+                            <li key={i} className="truncate flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#DDA15E]" />
+                              {title}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer link */}
+                  <div className="pt-2 border-t border-[#003049]/10 flex items-center justify-between text-xs font-semibold text-[#003049] group-hover:text-[#C1121F] transition">
+                    <span>{leg.schedulesCount} 件の予定</span>
+                    <span className="inline-flex items-center gap-1 text-[11px]">
+                      タイムラインを見る
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* City / Area Quick Filter Pills */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-[#003049]/70 px-0.5">
+              <span className="font-bold flex items-center gap-1.5 text-[#003049]">
+                <Compass className="w-3.5 h-3.5 text-[#386641]" />
+                都市・エリアで絞り込み:
+              </span>
+              {selectedCityFilter !== "ALL" && (
+                <button
+                  onClick={() => setSelectedCityFilter("ALL")}
+                  className="text-xs text-[#C1121F] hover:underline font-semibold"
+                >
+                  絞り込み解除（すべて表示）
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                onClick={() => setSelectedCityFilter("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
+                  selectedCityFilter === "ALL"
+                    ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
+                    : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                }`}
+              >
+                🗺️ すべての都市 ({datesList.length}日)
+              </button>
+
+              {uniqueCitiesList.map((city) => {
+                const isSelected = selectedCityFilter === city.name;
+                return (
+                  <button
+                    key={city.name}
+                    onClick={() => {
+                      setSelectedCityFilter(city.name);
+                      // If current selected day is not in this city, jump to the first day of this city
+                      const firstDayOfCity = datesList.find(
+                        (d) => dayMetaMap.get(d)?.city.name === city.name
+                      );
+                      if (firstDayOfCity && selectedDateTab !== "ALL" && dayMetaMap.get(selectedDateTab)?.city.name !== city.name) {
+                        setSelectedDateTab(firstDayOfCity);
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
+                      isSelected
+                        ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
+                        : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                    }`}
+                  >
+                    <span>{city.flag}</span>
+                    <span>{city.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
+                      }`}
+                    >
+                      {city.count}日
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Date filter tabs (Day 1, Day 2...) */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button
-              key={dateStr}
-              onClick={() => setSelectedDateTab(dateStr)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
-                isSelected
+              onClick={() => setSelectedDateTab("ALL")}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                selectedDateTab === "ALL"
                   ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
                   : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
               }`}
             >
-              <span>
-                Day {idx + 1} ({formatDate(dateStr)})
-              </span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
-                }`}
-              >
-                {count}
-              </span>
+              全日程 ({allTimelineItems.length})
             </button>
-          );
-        })}
-      </div>
 
-      {/* Active Staying Hotel Banner (for multi-day stays) */}
-      {activeStayingHotels.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {activeStayingHotels.map((h) => (
-            <div
-              key={h.id}
-              className="p-3.5 rounded-2xl bg-[#DDA15E]/15 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#DDA15E]/20 text-[#003049]">
-                  <Hotel className="w-4 h-4 text-[#DDA15E]" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#003049] flex items-center gap-1.5 flex-wrap">
-                    <span>宿泊中: {h.title}</span>
-                    {h.hasBreakfast && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 inline-flex items-center gap-1">
-                        <Coffee className="w-2.5 h-2.5 text-[#DDA15E]" />
-                        朝食付き
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-[#003049]/70 mt-0.5">
-                    チェックイン: {formatDate(h.date)} {h.startTime || "15:00"} 〜 チェックアウト: {formatDate(h.checkOutDate!)} {h.endTime || "11:00"}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 self-end sm:self-auto">
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#DDA15E]/30 text-[#003049]">
-                  連泊滞在中
-                </span>
+            {visibleDatesList.map((dateStr) => {
+              const originalIndex = datesList.indexOf(dateStr);
+              const isSelected = selectedDateTab === dateStr;
+              const count = allTimelineItems.filter((item) => item.dateStr === dateStr).length;
+              const meta = dayMetaMap.get(dateStr);
+
+              return (
                 <button
-                  onClick={() => handleOpenEditModal(h)}
-                  className="text-xs text-[#003049] hover:underline font-medium px-1"
+                  key={dateStr}
+                  onClick={() => setSelectedDateTab(dateStr)}
+                  className={`flex flex-col items-start px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
+                    isSelected
+                      ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
+                      : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                  }`}
                 >
-                  宿の詳細
+                  <div className="flex items-center gap-1.5">
+                    <span>
+                      Day {originalIndex + 1} ({formatDate(dateStr)})
+                    </span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                  {meta && (
+                    <div className="flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5">
+                      <span>{meta.city.flag}</span>
+                      <span className="font-semibold">{meta.city.name}</span>
+                      {meta.companion && (
+                        <span className="opacity-75">・{meta.companion}</span>
+                      )}
+                    </div>
+                  )}
                 </button>
-              </div>
+              );
+            })}
+          </div>
+
+          {/* Active Staying Hotel Banner (for multi-day stays) */}
+          {activeStayingHotels.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {activeStayingHotels.map((h) => (
+                <div
+                  key={h.id}
+                  className="p-3.5 rounded-2xl bg-[#DDA15E]/15 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-[#DDA15E]/20 text-[#003049]">
+                      <Hotel className="w-4 h-4 text-[#DDA15E]" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#003049] flex items-center gap-1.5 flex-wrap">
+                        <span>宿泊中: {h.title}</span>
+                        {h.hasBreakfast && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 inline-flex items-center gap-1">
+                            <Coffee className="w-2.5 h-2.5 text-[#DDA15E]" />
+                            朝食付き
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-[#003049]/70 mt-0.5">
+                        チェックイン: {formatDate(h.date)} {h.startTime || "15:00"} 〜 チェックアウト: {formatDate(h.checkOutDate!)} {h.endTime || "11:00"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#DDA15E]/30 text-[#003049]">
+                      連泊滞在中
+                    </span>
+                    <button
+                      onClick={() => handleOpenEditModal(h)}
+                      className="text-xs text-[#003049] hover:underline font-medium px-1"
+                    >
+                      宿の詳細
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
       {/* Timeline List */}
       {filteredTimelineItems.length === 0 ? (
@@ -895,6 +1306,8 @@ export default function TimelineView({
             );
           })}
         </div>
+      )}
+      </>
       )}
 
       {/* Add / Edit Schedule Modal */}
