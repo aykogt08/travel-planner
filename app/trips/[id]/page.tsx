@@ -273,7 +273,7 @@ export default function TripDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <span className="text-lg font-bold tracking-tight text-stone-900 hidden sm:inline">
-            ✈️ TravelPlanner
+            ✈️ マルカ・デルノ
           </span>
         </div>
 

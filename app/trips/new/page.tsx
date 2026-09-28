@@ -105,7 +105,7 @@ export default function NewTripPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-40 bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 sm:px-10 py-4 flex items-center justify-between">
         <Link href="/trips" className="text-xl font-bold tracking-tight text-stone-900 flex items-center gap-2">
-          <span>✈️ TravelPlanner</span>
+          <span>✈️ マルカ・デルノ</span>
         </Link>
       </nav>
 
