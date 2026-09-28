@@ -1,0 +1,16 @@
+{
+  "name": "TravelPlanner - 旅行計画・しおり",
+  "short_name": "TravelPlanner",
+  "description": "ご飯や観光地をスケジュール立てて記録・オフラインでも確認できる旅行計画アプリ",
+  "start_url": "/trips",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#1c1917",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

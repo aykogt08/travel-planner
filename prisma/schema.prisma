@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Trip {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String?
+  destination String?
+  coverImage  String?
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Int?
+  currency    String?       @default("JPY")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  places      Place[]
+  schedules   Schedule[]
+  packingList PackingItem[]
+  wishes      WishItem[]
+}
+
+model Place {
+  id                Int        @id @default(autoincrement())
+  name              String
+  category          String     @default("SIGHTSEEING") // FOOD, SIGHTSEEING, CAFE, HOTEL, SHOPPING, ACTIVITY, OTHER
+  memo              String?
+  address           String?
+  mapUrl            String?
+  websiteUrl        String?
+  cost              Int?
+  businessHours     String?
+  checkInDate       String?    // e.g. "2026-03-20"
+  checkOutDate      String?    // e.g. "2026-03-22"
+  checkInTime       String?    // e.g. "15:00"
+  checkOutTime      String?    // e.g. "11:00"
+  reservationStatus String     @default("NONE") // NONE, NEED_BOOKING, BOOKED
+  rating            Int?       @default(0)
+  hasBreakfast      Boolean?   @default(false)
+  visited           Boolean    @default(false)
+  trip              Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId            Int
+  schedules         Schedule[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Schedule {
+  id            Int      @id @default(autoincrement())
+  date          DateTime
+  startTime     String?  // e.g. "12:00"
+  endTime       String?  // e.g. "13:30"
+  checkOutDate  String?  // e.g. "2026-03-22" (for hotel multi-day stays)
+  title         String
+  category      String   @default("SIGHTSEEING") // FOOD, SIGHTSEEING, TRANSPORT, HOTEL, ACTIVITY, OTHER
+  transportType String?  // WALK, TRAIN, BUS, CAR, FLIGHT, SHIP, TAXI
+  flightNumber  String?
+  duration      Int?     // in minutes
+  fromPlace     String?
+  toPlace       String?
+  cost          Int?
+  memo          String?
+  hasBreakfast  Boolean? @default(false)
+  isCompleted   Boolean  @default(false)
+  place         Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  placeId       Int?
+  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PackingItem {
+  id        Int      @id @default(autoincrement())
+  category  String   @default("ESSENTIAL") // ESSENTIAL, CLOTHES, GADGET, MEDICINE, OTHER
+  name      String
+  isPacked  Boolean  @default(false)
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    Int
+  createdAt DateTime @default(now())
+}
+
+model WishItem {
+  id        Int      @id @default(autoincrement())
+  title     String
+  city      String?
+  withWhom  String?
+  priority  Int      @default(3)
+  status    String   @default("IDEA") // IDEA, CANDIDATE, DONE, BEST, NORMAL, SKIPPED
+  category  String?  // CAFE, SEA, WALK, FOOD, SCENERY, ART, SHOPPING, RELAX, TRANSIT, OTHER
+  memo      String?
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
