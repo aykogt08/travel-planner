@@ -20,6 +20,8 @@ import {
   Check,
   Award,
   Layers,
+  ArrowLeftRight,
+  Share2,
 } from "lucide-react";
 
 interface CollageStudioProps {
@@ -190,13 +192,91 @@ export default function CollageStudio({
     }
   };
 
-  // Download directly
-  const handleDownload = () => {
+  // Shuffle photos assignment within the current template (same layout, different photo order)
+  const handleShufflePhotosOnly = () => {
+    if (!currentTemplate || analyzedPhotos.length === 0) return;
+
+    // Shuffle the photo order
+    const shuffled = [...analyzedPhotos];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    setAnalyzedPhotos(shuffled);
+    const nextSeed = jitterSeed + 1;
+    setJitterSeed(nextSeed);
+
+    const assignments = assignPhotosToTemplate(currentTemplate, shuffled, nextSeed);
+    setCurrentAssignments(assignments);
+  };
+
+  // Download directly or native share (Mobile/iOS Safari friendly)
+  const handleDownload = async () => {
     if (!canvasRef.current) return;
-    const link = document.createElement("a");
-    link.download = `Marcaderno_${currentTemplate?.style || "collage"}_${Date.now()}.png`;
-    link.href = canvasRef.current.toDataURL("image/png", 0.95);
-    link.click();
+    const canvas = canvasRef.current;
+
+    try {
+      // 1. Convert Canvas to Blob
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png", 0.95)
+      );
+      if (!blob) throw new Error("Canvas blob conversion failed");
+
+      const fileName = `Marcaderno_${currentTemplate?.style || "collage"}_${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      // 2. Web Share API (Ideal for iPhone / Mobile: opens native "Save Image" / AirDrop / SNS)
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          files: [file],
+          title: "Marcaderno コラージュ",
+          text: "旅の思い出コラージュです！",
+        });
+        return;
+      }
+
+      // 3. Desktop / Standard Download fallback
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        console.warn("Native share cancelled or failed, falling back to data URL open", err);
+        // Direct open fallback for older iOS
+        try {
+          const dataUrl = canvas.toDataURL("image/png");
+          const win = window.open();
+          if (win) {
+            win.document.write(
+              `<div style="display:flex;flex-direction:column;align-items:center;padding:16px;background:#fdf0d5;min-height:100vh;">
+                <p style="font-family:sans-serif;font-weight:bold;color:#386641;margin-bottom:12px;">画像を長押しして「写真に追加」で保存できます</p>
+                <img src="${dataUrl}" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.15);" />
+              </div>`
+            );
+          } else {
+            // Last resort: trigger simulated click on dataURL
+            const a = document.createElement("a");
+            a.href = dataUrl;
+            a.download = `Marcaderno_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        } catch (fallbackErr) {
+          alert("画像の保存に失敗しました。画面のスクリーンショットをお試しください。");
+        }
+      }
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -342,15 +422,27 @@ export default function CollageStudio({
               </div>
             </div>
 
-            {/* Quick Next Candidate Button */}
-            <button
-              type="button"
-              onClick={handleNextCandidate}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95 shrink-0"
-            >
-              <Shuffle className="w-4 h-4" />
-              <span>🎲 次の候補を試す</span>
-            </button>
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleShufflePhotosOnly}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white border border-[#386641]/20 text-[#386641] hover:bg-[#386641]/5 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95"
+                title="同じデザインのまま写真の順番を入れ替えます"
+              >
+                <ArrowLeftRight className="w-4 h-4 text-[#386641]" />
+                <span>🔀 写真をシャッフル</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextCandidate}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95"
+              >
+                <Shuffle className="w-4 h-4" />
+                <span>🎲 別のデザイン候補</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -453,11 +545,21 @@ export default function CollageStudio({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleNextCandidate}
+                  onClick={handleShufflePhotosOnly}
                   className="flex items-center gap-1.5 px-3.5 py-2 bg-white text-[#386641] border border-[#386641]/20 rounded-xl text-xs font-bold hover:bg-[#386641]/5 transition active:scale-95 shadow-2xs"
+                  title="同じデザインのまま写真の並び順だけを入れ替えます"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-[#386641]" />
+                  <span>🔀 写真の配置をシャッフル</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextCandidate}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-bold hover:bg-[#FDF0D5]/80 transition active:scale-95 shadow-2xs"
                 >
                   <Shuffle className="w-3.5 h-3.5 text-[#C1121F]" />
-                  <span>🎲 別の配置・候補を試す</span>
+                  <span>🎲 別のデザイン候補</span>
                 </button>
               </div>
 
@@ -488,7 +590,7 @@ export default function CollageStudio({
                   className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] hover:bg-[#a50f1a] text-white rounded-xl text-xs font-bold transition shadow-xs active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>画像を書き出し</span>
+                  <span>画像を保存 / 共有</span>
                 </button>
               </div>
             </div>
