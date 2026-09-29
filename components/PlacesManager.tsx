@@ -24,6 +24,8 @@ import {
   Star,
   Users,
   Divide,
+  Search,
+  X,
 } from "lucide-react";
 
 interface PlacesManagerProps {
@@ -67,6 +69,21 @@ export const CATEGORY_LABELS: Record<string, string> = {
   OTHER: "その他",
 };
 
+export const CITY_TAGS = [
+  { label: "すべての都市", query: "" },
+  { label: "🇫🇷 パリ", query: "パリ" },
+  { label: "🇵🇹 ポルト", query: "ポルト" },
+  { label: "🇪🇸 サンティアゴ", query: "サンティアゴ" },
+  { label: "🇪🇸 サン・セバスチャン", query: "サン・セバスチャン" },
+  { label: "🇪🇸 ビルバオ", query: "ビルバオ" },
+  { label: "🇪🇸 マドリード", query: "マドリード" },
+  { label: "🇵🇹 リスボン", query: "リスボン" },
+  { label: "🇮🇹 ナポリ", query: "ナポリ" },
+  { label: "🇭🇺 ブダペスト", query: "ブダペスト" },
+  { label: "🇨🇿 プラハ", query: "プラハ" },
+  { label: "🇦🇹 ウィーン", query: "ウィーン" },
+];
+
 export default function PlacesManager({
   tripId,
   places,
@@ -77,6 +94,7 @@ export default function PlacesManager({
   isOffline = false,
 }: PlacesManagerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [autoAddToSchedule, setAutoAddToSchedule] = useState(true);
@@ -123,8 +141,15 @@ export default function PlacesManager({
   ];
 
   const filteredPlaces = places.filter((p) => {
-    if (selectedCategory === "ALL") return true;
-    return p.category === selectedCategory;
+    if (selectedCategory !== "ALL" && p.category !== selectedCategory) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchName = p.name.toLowerCase().includes(q);
+      const matchAddress = p.address ? p.address.toLowerCase().includes(q) : false;
+      const matchMemo = p.memo ? p.memo.toLowerCase().includes(q) : false;
+      return matchName || matchAddress || matchMemo;
+    }
+    return true;
   });
 
   const resetForm = () => {
@@ -415,6 +440,70 @@ export default function PlacesManager({
             </button>
           );
         })}
+      </div>
+
+      {/* Search and City Filter Bar */}
+      <div className="flex flex-col gap-2.5 bg-white/70 p-3 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
+        <div className="relative">
+          <Search className="w-4 h-4 text-[#003049]/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="都市名（パリ、サンセバ、ナポリ等）やスポット名、料理名で検索..."
+            className="w-full pl-9 pr-8 py-2 bg-white border border-[#003049]/15 rounded-xl text-xs text-[#003049] placeholder-[#003049]/40 focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#003049]/40 hover:text-[#003049] p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* City quick filter pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+          <span className="text-[11px] font-bold text-[#003049]/60 whitespace-nowrap pl-0.5">都市別:</span>
+          {CITY_TAGS.map((tag) => {
+            const isTagActive = tag.query === "" ? searchQuery === "" : searchQuery === tag.query;
+            return (
+              <button
+                key={tag.label}
+                type="button"
+                onClick={() => setSearchQuery(tag.query)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition border ${
+                  isTagActive
+                    ? "bg-[#386641] text-white border-[#386641] shadow-2xs"
+                    : "bg-white/80 text-[#003049]/70 border-[#003049]/15 hover:bg-white hover:text-[#003049]"
+                }`}
+              >
+                {tag.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active search indicator */}
+        {(searchQuery || selectedCategory !== "ALL") && (
+          <div className="flex items-center justify-between text-[11px] text-[#003049]/70 pt-1 border-t border-[#003049]/10">
+            <span>
+              該当スポット: <strong className="text-[#003049]">{filteredPlaces.length}</strong> 件
+              {searchQuery && <span className="ml-1 text-[#386641]">（「{searchQuery}」で絞り込み中）</span>}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("ALL");
+              }}
+              className="text-[#C1121F] hover:underline font-semibold"
+            >
+              すべての絞り込みを解除
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Spot Cards Grid */}
