@@ -18,6 +18,7 @@ import {
   Trash2,
   Luggage,
   Sparkles,
+  Camera,
 } from "lucide-react";
 
 export default function TripsPage() {
@@ -85,13 +86,22 @@ export default function TripsPage() {
         <Link href="/" className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
         </Link>
-        <Link
-          href="/trips/new"
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] text-white rounded-full text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
-        >
-          <Plus className="w-4 h-4" />
-          新しい旅を計画
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/collage"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 text-[#386641]/80 hover:text-[#386641] hover:bg-[#386641]/5 rounded-xl transition"
+          >
+            <Camera className="w-4 h-4 text-[#C1121F]" />
+            <span>コラージュ</span>
+          </Link>
+          <Link
+            href="/trips/new"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] text-white rounded-full text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            新しい旅を計画
+          </Link>
+        </div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-10">
@@ -111,6 +121,14 @@ export default function TripsPage() {
               保存したプランは自動で端末にキャッシュされ、オフラインでも閲覧できます。
             </p>
           </div>
+
+          <Link
+            href="/collage"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#003049] text-white hover:bg-[#002235] text-xs sm:text-sm font-bold shadow-xs transition shrink-0"
+          >
+            <Camera className="w-4 h-4 text-[#DDA15E]" />
+            <span>写真コラージュを作る</span>
+          </Link>
         </div>
 
         {loading ? (

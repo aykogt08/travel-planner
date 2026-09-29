@@ -65,14 +65,21 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <Link
             href="/trips/new"
-            className="w-full sm:w-auto px-8 py-3.5 bg-[#C1121F] text-white rounded-2xl text-sm font-bold hover:bg-[#a50f1a] transition shadow-md flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3.5 bg-[#C1121F] text-white rounded-2xl text-sm font-bold hover:bg-[#a50f1a] transition shadow-md flex items-center justify-center gap-2"
           >
             <Plane className="w-4 h-4" />
             旅のプランを作る
           </Link>
           <Link
+            href="/collage"
+            className="w-full sm:w-auto px-6 py-3.5 bg-[#003049] text-white rounded-2xl text-sm font-bold hover:bg-[#002235] transition shadow-md flex items-center justify-center gap-2"
+          >
+            <Camera className="w-4 h-4 text-[#DDA15E]" />
+            写真コラージュを作る
+          </Link>
+          <Link
             href="/trips"
-            className="w-full sm:w-auto px-8 py-3.5 bg-white/80 border border-[#386641]/20 text-[#386641] rounded-2xl text-sm font-bold hover:bg-white hover:border-[#386641]/40 transition shadow-xs flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-3.5 bg-white/80 border border-[#386641]/20 text-[#386641] rounded-2xl text-sm font-bold hover:bg-white hover:border-[#386641]/40 transition shadow-xs flex items-center justify-center gap-2"
           >
             保存したプランを見る <ArrowRight className="w-4 h-4" />
           </Link>
