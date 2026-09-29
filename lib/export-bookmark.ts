@@ -137,13 +137,13 @@ export function generateOfflineHtmlBookmark(trip: Trip): string {
   <style>
     :root {
       --primary: #C1121F;
-      --secondary: #386641;
-      --navy: #003049;
+      --secondary: #003049;
+      --navy: #386641;
       --accent: #DDA15E;
       --bg: #FDF0D5;
       --card-bg: #ffffff;
       --border: rgba(221, 161, 94, 0.35);
-      --text: #003049;
+      --text: #386641;
       --text-muted: rgba(0, 48, 73, 0.7);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }

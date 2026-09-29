@@ -79,10 +79,10 @@ export default function TripsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FDF0D5] text-[#003049] pb-24">
+    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-24">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#003049]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold tracking-wider text-[#003049] font-brand">
+      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
+        <Link href="/" className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
         </Link>
         <Link
@@ -98,31 +98,31 @@ export default function TripsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#003049]">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#386641]">
                 旅行プラン一覧
               </h1>
               {isOfflineMode && (
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/50">
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/50">
                   📴 オフライン
                 </span>
               )}
             </div>
-            <p className="text-[#003049]/70 text-xs sm:text-sm mt-1">
+            <p className="text-[#386641]/70 text-xs sm:text-sm mt-1">
               保存したプランは自動で端末にキャッシュされ、オフラインでも閲覧できます。
             </p>
           </div>
         </div>
 
         {loading ? (
-          <div className="text-center py-24 text-[#003049]/50">
+          <div className="text-center py-24 text-[#386641]/50">
             <div className="text-3xl animate-bounce mb-3">✈️</div>
             <p className="text-sm font-medium">プランを読み込み中...</p>
           </div>
         ) : trips.length === 0 ? (
           <div className="text-center py-20 px-4 bg-white/90 border border-dashed border-[#DDA15E]/40 rounded-3xl max-w-lg mx-auto shadow-xs">
             <div className="text-5xl mb-4">🗺️</div>
-            <h2 className="text-lg font-bold text-[#003049] mb-1">まだ旅行プランがありません</h2>
-            <p className="text-[#003049]/60 text-xs max-w-sm mx-auto mb-6">
+            <h2 className="text-lg font-bold text-[#386641] mb-1">まだ旅行プランがありません</h2>
+            <p className="text-[#386641]/60 text-xs max-w-sm mx-auto mb-6">
               行きたい観光地やご飯のお店、日程を登録して、自分だけの旅のしおりを作りましょう！
             </p>
             <Link
@@ -152,13 +152,13 @@ export default function TripsPage() {
                     <div className="flex items-center justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         {trip.destination && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#003049] text-[#FDF0D5]">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#386641] text-[#FDF0D5]">
                             <MapPin className="w-3 h-3" />
                             {trip.destination}
                           </span>
                         )}
                         {duration && (
-                          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+                          <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
                             {duration}
                           </span>
                         )}
@@ -175,22 +175,22 @@ export default function TripsPage() {
 
                     {/* Title */}
                     <Link href={`/trips/${trip.id}`} className="block my-2">
-                      <h2 className="text-lg font-bold text-[#003049] tracking-tight group-hover:text-[#C1121F] transition">
+                      <h2 className="text-lg font-bold text-[#386641] tracking-tight group-hover:text-[#C1121F] transition">
                         {trip.title}
                       </h2>
                     </Link>
 
                     {/* Description */}
                     {trip.description && (
-                      <p className="text-[#003049]/70 text-xs mb-3 line-clamp-2 leading-relaxed">
+                      <p className="text-[#386641]/70 text-xs mb-3 line-clamp-2 leading-relaxed">
                         {trip.description}
                       </p>
                     )}
 
                     {/* Dates */}
                     {(trip.startDate || trip.endDate) && (
-                      <div className="flex items-center gap-1.5 text-xs text-[#003049]/70 mb-3">
-                        <Calendar className="w-3.5 h-3.5 text-[#003049]/50" />
+                      <div className="flex items-center gap-1.5 text-xs text-[#386641]/70 mb-3">
+                        <Calendar className="w-3.5 h-3.5 text-[#386641]/50" />
                         <span>
                           {formatDate(trip.startDate)}
                           {trip.endDate && ` 〜 ${formatDate(trip.endDate)}`}
@@ -200,7 +200,7 @@ export default function TripsPage() {
 
                     {/* Budget */}
                     {trip.budget !== null && trip.budget !== undefined && (
-                      <div className="flex items-center gap-1.5 text-xs text-[#003049] font-medium mb-3">
+                      <div className="flex items-center gap-1.5 text-xs text-[#386641] font-medium mb-3">
                         <CircleDollarSign className="w-3.5 h-3.5 text-[#DDA15E]" />
                         <span>目標予算: ¥{trip.budget.toLocaleString()}</span>
                       </div>
@@ -208,8 +208,8 @@ export default function TripsPage() {
                   </div>
 
                   {/* Footer stats & link */}
-                  <div className="pt-4 mt-2 border-t border-[#003049]/10 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3 text-[#003049]/60">
+                  <div className="pt-4 mt-2 border-t border-[#386641]/10 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3 text-[#386641]/60">
                       <span>📍 {trip.places?.length || 0} スポット</span>
                       <span>🗓️ {trip.schedules?.length || 0} 予定</span>
                       {totalPacking > 0 && (
@@ -219,7 +219,7 @@ export default function TripsPage() {
 
                     <Link
                       href={`/trips/${trip.id}`}
-                      className="inline-flex items-center gap-1 font-bold text-[#003049] group-hover:text-[#C1121F] transition"
+                      className="inline-flex items-center gap-1 font-bold text-[#386641] group-hover:text-[#C1121F] transition"
                     >
                       開く <ArrowRight className="w-3.5 h-3.5" />
                     </Link>

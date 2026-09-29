@@ -50,13 +50,13 @@ interface TimelineViewProps {
 }
 
 export const TRANSPORT_ICONS: Record<string, React.ReactNode> = {
-  WALK: <Footprints className="w-3.5 h-3.5 text-[#386641]" />,
-  TRAIN: <Train className="w-3.5 h-3.5 text-[#003049]" />,
-  BUS: <Bus className="w-3.5 h-3.5 text-[#003049]" />,
-  CAR: <Car className="w-3.5 h-3.5 text-[#003049]" />,
-  FLIGHT: <Plane className="w-3.5 h-3.5 text-[#003049]" />,
-  SHIP: <Ship className="w-3.5 h-3.5 text-[#003049]" />,
-  TAXI: <Car className="w-3.5 h-3.5 text-[#003049]" />,
+  WALK: <Footprints className="w-3.5 h-3.5 text-[#003049]" />,
+  TRAIN: <Train className="w-3.5 h-3.5 text-[#386641]" />,
+  BUS: <Bus className="w-3.5 h-3.5 text-[#386641]" />,
+  CAR: <Car className="w-3.5 h-3.5 text-[#386641]" />,
+  FLIGHT: <Plane className="w-3.5 h-3.5 text-[#386641]" />,
+  SHIP: <Ship className="w-3.5 h-3.5 text-[#386641]" />,
+  TAXI: <Car className="w-3.5 h-3.5 text-[#386641]" />,
 };
 
 export const TRANSPORT_LABELS: Record<string, string> = {
@@ -940,27 +940,27 @@ export default function TimelineView({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight text-[#386641] flex items-center gap-2">
               <span>🗓️ 旅程タイムライン</span>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
                 {schedules.length} 件の予定
               </span>
             </h2>
           </div>
-          <p className="text-[#003049]/70 text-xs mt-1">
+          <p className="text-[#386641]/70 text-xs mt-1">
             Day 1〜{datesList.length} の日別タイムラインと、都市・エリア別のまとめを切り替えて確認できます。
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* View mode toggle */}
-          <div className="flex items-center bg-[#003049]/5 p-1 rounded-xl border border-[#003049]/10">
+          <div className="flex items-center bg-[#386641]/5 p-1 rounded-xl border border-[#386641]/10">
             <button
               onClick={() => setTimelineViewMode("TIMELINE")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 timelineViewMode === "TIMELINE"
-                  ? "bg-[#003049] text-[#FDF0D5] shadow-xs"
-                  : "text-[#003049]/70 hover:text-[#003049]"
+                  ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
+                  : "text-[#386641]/70 hover:text-[#386641]"
               }`}
             >
               <ListOrdered className="w-3.5 h-3.5" />
@@ -970,8 +970,8 @@ export default function TimelineView({
               onClick={() => setTimelineViewMode("CITY_SUMMARY")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 timelineViewMode === "CITY_SUMMARY"
-                  ? "bg-[#003049] text-[#FDF0D5] shadow-xs"
-                  : "text-[#003049]/70 hover:text-[#003049]"
+                  ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
+                  : "text-[#386641]/70 hover:text-[#386641]"
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -981,7 +981,7 @@ export default function TimelineView({
 
           <button
             onClick={() => handleOpenAddModal(undefined, "HOTEL")}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
           >
             <Hotel className="w-4 h-4 text-[#DDA15E]" />
             宿泊を追加
@@ -1001,12 +1001,12 @@ export default function TimelineView({
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-[#386641]" />
+              <span className="text-xs font-bold text-[#386641] flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-[#003049]" />
                 全行程チャプター一覧 ({cityLegs.length} 区間 / 計 {datesList.length} 日間)
               </span>
               {customCityLegs !== null && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#386641]/10 text-[#386641] border border-[#386641]/20">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
                   カスタム設定中
                 </span>
               )}
@@ -1026,7 +1026,7 @@ export default function TimelineView({
               <button
                 type="button"
                 onClick={() => setIsCreatingCityLeg(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#386641] text-white rounded-xl text-xs font-semibold hover:bg-[#2b4f32] transition shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#003049] text-white rounded-xl text-xs font-semibold hover:bg-[#2b4f32] transition shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 都市を追加
@@ -1036,18 +1036,18 @@ export default function TimelineView({
 
           {cityLegs.length === 0 ? (
             <div className="bg-white/80 border border-[#DDA15E]/30 rounded-2xl p-8 text-center flex flex-col items-center gap-3">
-              <Compass className="w-8 h-8 text-[#003049]/40" />
-              <p className="text-sm font-semibold text-[#003049]">
+              <Compass className="w-8 h-8 text-[#386641]/40" />
+              <p className="text-sm font-semibold text-[#386641]">
                 表示できる都市・チャプターがありません
               </p>
-              <p className="text-xs text-[#003049]/60 max-w-sm">
+              <p className="text-xs text-[#386641]/60 max-w-sm">
                 不要な都市をすべて削除したか、初期化されています。「都市を追加」ボタンから手動で登録するか、初期判定に復元してください。
               </p>
               <div className="flex items-center gap-3 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsCreatingCityLeg(true)}
-                  className="px-4 py-2 bg-[#386641] text-white rounded-xl text-xs font-semibold hover:bg-[#2b4f32] transition"
+                  className="px-4 py-2 bg-[#003049] text-white rounded-xl text-xs font-semibold hover:bg-[#2b4f32] transition"
                 >
                   ＋ 都市を追加
                 </button>
@@ -1055,7 +1055,7 @@ export default function TimelineView({
                   <button
                     type="button"
                     onClick={handleResetAllCityLegs}
-                    className="px-4 py-2 bg-white border border-[#003049]/20 text-[#003049] rounded-xl text-xs font-semibold hover:bg-white/80 transition"
+                    className="px-4 py-2 bg-white border border-[#386641]/20 text-[#386641] rounded-xl text-xs font-semibold hover:bg-white/80 transition"
                   >
                     自動判定に戻す
                   </button>
@@ -1082,7 +1082,7 @@ export default function TimelineView({
                       setSelectedDateTab(leg.startDate);
                       setTimelineViewMode("TIMELINE");
                     }}
-                    className="group bg-white/95 border border-[#DDA15E]/30 hover:border-[#003049] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                    className="group bg-white/95 border border-[#DDA15E]/30 hover:border-[#386641] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
                   >
                     <div>
                       {/* Header: Flag, City, Day Range & Actions */}
@@ -1090,19 +1090,19 @@ export default function TimelineView({
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">{leg.flag}</span>
                           <div>
-                            <h3 className="font-bold text-base text-[#003049] group-hover:text-[#C1121F] transition flex items-center gap-1.5">
+                            <h3 className="font-bold text-base text-[#386641] group-hover:text-[#C1121F] transition flex items-center gap-1.5">
                               {leg.name}
-                              <span className="text-[11px] font-normal text-[#003049]/60">
+                              <span className="text-[11px] font-normal text-[#386641]/60">
                                 ({leg.country})
                               </span>
                             </h3>
-                            <div className="text-[11px] font-semibold text-[#003049]/70">
+                            <div className="text-[11px] font-semibold text-[#386641]/70">
                               {dayRangeText} ・ {leg.dates.length}日間
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049]">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#386641]/10 text-[#386641]">
                             #{idx + 1}
                           </span>
                           <button
@@ -1112,7 +1112,7 @@ export default function TimelineView({
                               setEditingCityLeg(leg);
                             }}
                             title="この都市・エリア情報を編集"
-                            className="p-1 rounded-lg text-[#003049]/50 hover:text-[#003049] hover:bg-[#003049]/5 transition-colors"
+                            className="p-1 rounded-lg text-[#386641]/50 hover:text-[#386641] hover:bg-[#386641]/5 transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -1123,7 +1123,7 @@ export default function TimelineView({
                               handleDeleteCityLeg(leg.id);
                             }}
                             title="この都市カードを削除"
-                            className="p-1 rounded-lg text-[#003049]/40 hover:text-[#C1121F] hover:bg-[#C1121F]/10 transition-colors"
+                            className="p-1 rounded-lg text-[#386641]/40 hover:text-[#C1121F] hover:bg-[#C1121F]/10 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1132,11 +1132,11 @@ export default function TimelineView({
 
                       {/* Date range & Companion badge */}
                       <div className="flex items-center gap-2 flex-wrap mb-2.5 text-xs">
-                        <span className="text-[#003049]/70 font-medium">
+                        <span className="text-[#386641]/70 font-medium">
                           {dateRangeText}
                         </span>
                         {leg.companion && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#386641]/10 text-[#386641] border border-[#386641]/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
                             {leg.companion}
                           </span>
                         )}
@@ -1144,8 +1144,8 @@ export default function TimelineView({
 
                       {/* Custom Area Memo if present */}
                       {leg.customMemo && (
-                        <div className="bg-[#003049]/5 border-l-2 border-[#003049] rounded-r-xl px-2.5 py-1.5 mb-2.5 text-xs text-[#003049]">
-                          <div className="text-[10px] font-bold text-[#003049]/60 mb-0.5">エリアメモ:</div>
+                        <div className="bg-[#386641]/5 border-l-2 border-[#386641] rounded-r-xl px-2.5 py-1.5 mb-2.5 text-xs text-[#386641]">
+                          <div className="text-[10px] font-bold text-[#386641]/60 mb-0.5">エリアメモ:</div>
                           <div className="whitespace-pre-wrap">{leg.customMemo}</div>
                         </div>
                       )}
@@ -1153,10 +1153,10 @@ export default function TimelineView({
                       {/* Highlights */}
                       {leg.highlightTitles.length > 0 && (
                         <div className="bg-[#FDF0D5]/50 rounded-xl p-2.5 mb-3 border border-[#DDA15E]/20">
-                          <div className="text-[10px] font-bold text-[#003049]/60 mb-1">
+                          <div className="text-[10px] font-bold text-[#386641]/60 mb-1">
                             主なスケジュール:
                           </div>
-                          <ul className="text-xs text-[#003049] space-y-1">
+                          <ul className="text-xs text-[#386641] space-y-1">
                             {leg.highlightTitles.map((title, i) => (
                               <li key={i} className="truncate flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#DDA15E]" />
@@ -1169,14 +1169,14 @@ export default function TimelineView({
                     </div>
 
                     {/* Footer link & quick edit */}
-                    <div className="pt-2 border-t border-[#003049]/10 flex items-center justify-between text-xs font-semibold text-[#003049]">
+                    <div className="pt-2 border-t border-[#386641]/10 flex items-center justify-between text-xs font-semibold text-[#386641]">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingCityLeg(leg);
                         }}
-                        className="inline-flex items-center gap-1 text-[11px] text-[#003049]/60 hover:text-[#C1121F] transition font-medium"
+                        className="inline-flex items-center gap-1 text-[11px] text-[#386641]/60 hover:text-[#C1121F] transition font-medium"
                       >
                         <Edit2 className="w-3 h-3" />
                         都市情報を編集
@@ -1196,9 +1196,9 @@ export default function TimelineView({
         <>
           {/* City / Area Quick Filter Pills */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs text-[#003049]/70 px-0.5">
-              <span className="font-bold flex items-center gap-1.5 text-[#003049]">
-                <Compass className="w-3.5 h-3.5 text-[#386641]" />
+            <div className="flex items-center justify-between text-xs text-[#386641]/70 px-0.5">
+              <span className="font-bold flex items-center gap-1.5 text-[#386641]">
+                <Compass className="w-3.5 h-3.5 text-[#003049]" />
                 都市・エリアで絞り込み:
               </span>
               {selectedCityFilter !== "ALL" && (
@@ -1210,7 +1210,7 @@ export default function TimelineView({
                       <button
                         type="button"
                         onClick={() => setEditingCityLeg(activeLeg)}
-                        className="text-xs text-[#003049] hover:text-[#C1121F] font-semibold flex items-center gap-1 transition"
+                        className="text-xs text-[#386641] hover:text-[#C1121F] font-semibold flex items-center gap-1 transition"
                       >
                         <Edit2 className="w-3 h-3" />
                         この都市情報を編集
@@ -1232,8 +1232,8 @@ export default function TimelineView({
                 onClick={() => setSelectedCityFilter("ALL")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
                   selectedCityFilter === "ALL"
-                    ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-                    : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                    ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                    : "bg-white/90 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                 }`}
               >
                 🗺️ すべての都市 ({datesList.length}日)
@@ -1256,15 +1256,15 @@ export default function TimelineView({
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
                       isSelected
-                        ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-                        : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                        : "bg-white/90 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <span>{city.flag}</span>
                     <span>{city.name}</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
+                        isSelected ? "bg-white/20 text-white" : "bg-[#386641]/10 text-[#386641]/70"
                       }`}
                     >
                       {city.count}日
@@ -1281,8 +1281,8 @@ export default function TimelineView({
               onClick={() => setSelectedDateTab("ALL")}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
                 selectedDateTab === "ALL"
-                  ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-                  : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                  ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                  : "bg-white/90 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
               }`}
             >
               全日程 ({allTimelineItems.length})
@@ -1300,8 +1300,8 @@ export default function TimelineView({
                   onClick={() => setSelectedDateTab(dateStr)}
                   className={`flex flex-col items-start px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
                     isSelected
-                      ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-                      : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                      ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                      : "bg-white/90 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
@@ -1310,7 +1310,7 @@ export default function TimelineView({
                     </span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
+                        isSelected ? "bg-white/20 text-white" : "bg-[#386641]/10 text-[#386641]/70"
                       }`}
                     >
                       {count}
@@ -1339,31 +1339,31 @@ export default function TimelineView({
                   className="p-3.5 rounded-2xl bg-[#DDA15E]/15 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-xl bg-[#DDA15E]/20 text-[#003049]">
+                    <div className="p-2 rounded-xl bg-[#DDA15E]/20 text-[#386641]">
                       <Hotel className="w-4 h-4 text-[#DDA15E]" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-[#003049] flex items-center gap-1.5 flex-wrap">
+                      <div className="text-xs font-bold text-[#386641] flex items-center gap-1.5 flex-wrap">
                         <span>宿泊中: {h.title}</span>
                         {h.hasBreakfast && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 inline-flex items-center gap-1">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 inline-flex items-center gap-1">
                             <Coffee className="w-2.5 h-2.5 text-[#DDA15E]" />
                             朝食付き
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-[#003049]/70 mt-0.5">
+                      <div className="text-[11px] text-[#386641]/70 mt-0.5">
                         チェックイン: {formatDate(h.date)} {h.startTime || "15:00"} 〜 チェックアウト: {formatDate(h.checkOutDate!)} {h.endTime || "11:00"}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#DDA15E]/30 text-[#003049]">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#DDA15E]/30 text-[#386641]">
                       連泊滞在中
                     </span>
                     <button
                       onClick={() => handleOpenEditModal(h)}
-                      className="text-xs text-[#003049] hover:underline font-medium px-1"
+                      className="text-xs text-[#386641] hover:underline font-medium px-1"
                     >
                       宿の詳細
                     </button>
@@ -1377,8 +1377,8 @@ export default function TimelineView({
       {filteredTimelineItems.length === 0 ? (
         <div className="text-center py-16 px-4 bg-white/90 border border-dashed border-[#DDA15E]/40 rounded-2xl">
           <div className="text-4xl mb-3"></div>
-          <h3 className="text-[#003049] font-semibold text-sm">予定がありません</h3>
-          <p className="text-[#003049]/60 text-xs mt-1 max-w-sm mx-auto">
+          <h3 className="text-[#386641] font-semibold text-sm">予定がありません</h3>
+          <p className="text-[#386641]/60 text-xs mt-1 max-w-sm mx-auto">
             {selectedDateTab === "ALL"
               ? "予定を追加して旅のスケジュールを組み立てましょう。"
               : `${formatDate(selectedDateTab)} の予定はまだありません。`}
@@ -1392,7 +1392,7 @@ export default function TimelineView({
             </button>
             <button
               onClick={() => handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined, "HOTEL")}
-              className="px-4 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30 transition"
+              className="px-4 py-2 bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30 transition"
             >
               宿泊を追加
             </button>
@@ -1410,23 +1410,23 @@ export default function TimelineView({
             // Node Dot color
             let dotBgClass = "bg-[#C1121F]";
             if (schedule.isCompleted) {
-              dotBgClass = "bg-[#386641]";
+              dotBgClass = "bg-[#003049]";
             } else if (isCheckIn || isCheckOut) {
               dotBgClass = "bg-[#DDA15E]";
             } else if (isTransport) {
-              dotBgClass = "bg-[#003049]";
+              dotBgClass = "bg-[#386641]";
             }
 
             // Card border & background styling
             let cardClasses = "border-[#DDA15E]/30 bg-white/95";
             if (schedule.isCompleted) {
-              cardClasses = "border-[#003049]/10 bg-white/60 opacity-75";
+              cardClasses = "border-[#386641]/10 bg-white/60 opacity-75";
             } else if (isCheckIn) {
               cardClasses = "border-[#DDA15E]/60 bg-[#DDA15E]/10 hover:border-[#DDA15E]";
             } else if (isCheckOut) {
               cardClasses = "border-[#DDA15E]/40 bg-[#DDA15E]/5 hover:border-[#DDA15E]";
             } else if (isTransport) {
-              cardClasses = "border-[#003049]/20 bg-[#003049]/5 hover:border-[#003049]/30";
+              cardClasses = "border-[#386641]/20 bg-[#386641]/5 hover:border-[#386641]/30";
             }
 
             return (
@@ -1446,24 +1446,24 @@ export default function TimelineView({
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         {/* Time badge */}
                         {isCheckIn ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#386641] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
                             <LogIn className="w-3.5 h-3.5 text-[#DDA15E]" />
                             チェックイン {item.timeStr}
                           </span>
                         ) : isCheckOut ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#386641] bg-[#DDA15E]/20 px-2.5 py-1 rounded-lg">
                             <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                             チェックアウト {item.timeStr}
                           </span>
                         ) : isTransport ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#003049]/10 px-2.5 py-1 rounded-lg">
-                            <Clock className="w-3.5 h-3.5 text-[#003049]" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#386641] bg-[#386641]/10 px-2.5 py-1 rounded-lg">
+                            <Clock className="w-3.5 h-3.5 text-[#386641]" />
                             {schedule.startTime || "時間指定なし"}
                             {schedule.endTime ? ` 〜 ${schedule.endTime}` : ""}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs font-bold text-[#003049] bg-[#003049]/10 px-2.5 py-1 rounded-lg">
-                            <Clock className="w-3.5 h-3.5 text-[#003049]" />
+                          <span className="flex items-center gap-1 text-xs font-bold text-[#386641] bg-[#386641]/10 px-2.5 py-1 rounded-lg">
+                            <Clock className="w-3.5 h-3.5 text-[#386641]" />
                             {schedule.startTime || "時間指定なし"}
                             {schedule.endTime ? ` 〜 ${schedule.endTime}` : ""}
                           </span>
@@ -1471,23 +1471,23 @@ export default function TimelineView({
 
                         {/* Category badge */}
                         {isCheckIn ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40">
                             <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             宿泊・チェックイン
                           </span>
                         ) : isCheckOut ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/15 text-[#003049] border border-[#DDA15E]/30">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#DDA15E]/15 text-[#386641] border border-[#DDA15E]/30">
                             <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             宿泊・チェックアウト
                           </span>
                         ) : isTransport && schedule.transportType ? (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.8 rounded-lg bg-[#386641]/10 text-[#386641] border border-[#386641]/20">
                             {TRANSPORT_ICONS[schedule.transportType] || TRANSPORT_ICONS.WALK}
                             {TRANSPORT_LABELS[schedule.transportType] || schedule.transportType}
                             {schedule.flightNumber ? ` (${schedule.flightNumber})` : ""}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.8 rounded-lg bg-[#003049]/5 text-[#003049] border border-[#003049]/10">
+                          <span className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.8 rounded-lg bg-[#386641]/5 text-[#386641] border border-[#386641]/10">
                             {CATEGORY_ICONS[schedule.category] || CATEGORY_ICONS.SIGHTSEEING}
                             {CATEGORY_LABELS[schedule.category] || schedule.category}
                           </span>
@@ -1495,7 +1495,7 @@ export default function TimelineView({
 
                         {/* Hotel Nights badge */}
                         {(isCheckIn || isCheckOut) && item.hotelNights && item.hotelNights > 0 && (
-                          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/30 text-[#003049]">
+                          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/30 text-[#386641]">
                             <Moon className="w-3 h-3" />
                             {item.hotelNights}泊{item.hotelNights + 1}日
                           </span>
@@ -1504,19 +1504,19 @@ export default function TimelineView({
                         {/* Hotel Breakfast badge */}
                         {(isCheckIn || isCheckOut) && (
                           schedule.hasBreakfast ? (
-                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40">
+                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40">
                               <Coffee className="w-3 h-3 text-[#DDA15E]" />
                               朝食付き
                             </span>
                           ) : (
-                            <span className="text-[10px] font-medium text-[#003049]/60 bg-[#003049]/10 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-medium text-[#386641]/60 bg-[#386641]/10 px-2 py-0.5 rounded-full">
                               素泊まり
                             </span>
                           )
                         )}
 
                         {selectedDateTab === "ALL" && (
-                          <span className="text-[11px] text-[#003049]/50 font-medium ml-auto sm:ml-0">
+                          <span className="text-[11px] text-[#386641]/50 font-medium ml-auto sm:ml-0">
                             {formatDate(item.dateStr)}
                           </span>
                         )}
@@ -1526,18 +1526,18 @@ export default function TimelineView({
                       <div className="flex items-start gap-2 my-1">
                         <button
                           onClick={() => handleToggleComplete(schedule)}
-                          className="mt-0.5 text-[#003049]/30 hover:text-[#386641] transition"
+                          className="mt-0.5 text-[#386641]/30 hover:text-[#003049] transition"
                           title={schedule.isCompleted ? "未完了に戻す" : "完了にする"}
                         >
                           {schedule.isCompleted ? (
-                            <CheckCircle2 className="w-5 h-5 text-[#386641] fill-[#386641]/10" />
+                            <CheckCircle2 className="w-5 h-5 text-[#003049] fill-[#003049]/10" />
                           ) : (
-                            <Circle className="w-5 h-5 text-[#003049]/30" />
+                            <Circle className="w-5 h-5 text-[#386641]/30" />
                           )}
                         </button>
                         <h4
-                          className={`text-base font-bold text-[#003049] tracking-tight ${
-                            schedule.isCompleted ? "line-through text-[#003049]/40" : ""
+                          className={`text-base font-bold text-[#386641] tracking-tight ${
+                            schedule.isCompleted ? "line-through text-[#386641]/40" : ""
                           }`}
                         >
                           {schedule.title}
@@ -1548,7 +1548,7 @@ export default function TimelineView({
                       {/* Hotel stay detail sub-banner */}
                       {isCheckIn && (
                         <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 text-xs text-[#003049] font-medium">
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
                             <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               チェックイン: {item.timeStr} → チェックアウト:{" "}
@@ -1561,7 +1561,7 @@ export default function TimelineView({
 
                       {isCheckOut && (
                         <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 text-xs text-[#003049] font-medium">
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
                             <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               👋 チェックアウト・出発 (滞在期間: {item.hotelStayRangeText})
@@ -1572,14 +1572,14 @@ export default function TimelineView({
 
                       {/* Transit Details (From -> To, Duration) */}
                       {(schedule.fromPlace || schedule.toPlace || schedule.duration) && (
-                        <div className="flex items-center gap-2 text-xs text-[#003049]/70 mt-1 pl-7">
+                        <div className="flex items-center gap-2 text-xs text-[#386641]/70 mt-1 pl-7">
                           {schedule.fromPlace || schedule.toPlace ? (
-                            <span className="font-medium text-[#003049]">
+                            <span className="font-medium text-[#386641]">
                               {schedule.fromPlace || "出発地"} → {schedule.toPlace || "目的地"}
                             </span>
                           ) : null}
                           {schedule.duration ? (
-                            <span className="text-[#003049]/50">所要約 {schedule.duration} 分</span>
+                            <span className="text-[#386641]/50">所要約 {schedule.duration} 分</span>
                           ) : null}
                         </div>
                       )}
@@ -1587,12 +1587,12 @@ export default function TimelineView({
                       {/* Linked Place details if any */}
                       {place && (
                         <div className="mt-2 pl-7 flex items-center gap-2 text-xs">
-                          <span className="text-[#003049]/60 font-medium">登録スポット:</span>
-                          <span className="text-[#003049] bg-[#003049]/5 px-2 py-0.5 rounded-md font-medium">
+                          <span className="text-[#386641]/60 font-medium">登録スポット:</span>
+                          <span className="text-[#386641] bg-[#386641]/5 px-2 py-0.5 rounded-md font-medium">
                             {place.name}
                           </span>
                           {place.address && (
-                            <span className="text-[#003049]/50 truncate">({place.address})</span>
+                            <span className="text-[#386641]/50 truncate">({place.address})</span>
                           )}
                         </div>
                       )}
@@ -1600,13 +1600,13 @@ export default function TimelineView({
                       {/* Memo & Cost */}
                       <div className="mt-2 pl-7 flex flex-col gap-1">
                         {schedule.memo && (
-                          <div className="p-2.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs text-[#003049]/80 leading-relaxed">
+                          <div className="p-2.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs text-[#386641]/80 leading-relaxed">
                             {schedule.memo}
                           </div>
                         )}
                         {/* Only show cost on check-in event to prevent double counting display for hotels */}
                         {!isCheckOut && schedule.cost !== null && schedule.cost !== undefined && (
-                          <div className="flex items-center gap-1 text-xs font-semibold text-[#003049] mt-1">
+                          <div className="flex items-center gap-1 text-xs font-semibold text-[#386641] mt-1">
                             <CircleDollarSign className="w-3.5 h-3.5 text-[#DDA15E]" />
                             <span>
                               {schedule.category === "HOTEL" ? "宿泊費" : "費用"}: ¥
@@ -1621,14 +1621,14 @@ export default function TimelineView({
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEditModal(schedule)}
-                        className="p-1.5 text-[#003049]/40 hover:text-[#003049] rounded-lg hover:bg-[#003049]/10 transition"
+                        className="p-1.5 text-[#386641]/40 hover:text-[#386641] rounded-lg hover:bg-[#386641]/10 transition"
                         title="編集"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteSchedule(schedule.id)}
-                        className="p-1.5 text-[#003049]/40 hover:text-[#C1121F] rounded-lg hover:bg-[#C1121F]/10 transition"
+                        className="p-1.5 text-[#386641]/40 hover:text-[#C1121F] rounded-lg hover:bg-[#C1121F]/10 transition"
                         title="削除"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1646,10 +1646,10 @@ export default function TimelineView({
 
       {/* Add / Edit Schedule Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-[#003049]/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#386641]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white/95 rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#DDA15E]/30 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10 mb-4">
-              <h3 className="text-lg font-bold text-[#003049]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#386641]/10 mb-4">
+              <h3 className="text-lg font-bold text-[#386641]">
                 {editingSchedule
                   ? form.category === "HOTEL"
                     ? "宿泊・ホテル予定を編集"
@@ -1660,7 +1660,7 @@ export default function TimelineView({
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-[#003049]/40 hover:text-[#003049] p-1"
+                className="text-[#386641]/40 hover:text-[#386641] p-1"
               >
                 ✕
               </button>
@@ -1670,13 +1670,13 @@ export default function TimelineView({
               {/* Linked Spot selector */}
               {places.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049] mb-1">
+                  <label className="block text-xs font-semibold text-[#386641] mb-1">
                     登録済みスポットから選択 (任意)
                   </label>
                   <select
                     value={form.placeId}
                     onChange={(e) => handleSelectPlace(e.target.value)}
-                    className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                    className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                   >
                     <option value="">選択しない（直接入力）</option>
                     {places.map((p) => (
@@ -1692,7 +1692,7 @@ export default function TimelineView({
 
               {/* Title */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049] mb-1">
+                <label className="block text-xs font-semibold text-[#386641] mb-1">
                   {form.category === "HOTEL" ? "ホテル・宿名" : "予定タイトル"}{" "}
                   <span className="text-[#C1121F]">*</span>
                 </label>
@@ -1704,13 +1704,13 @@ export default function TimelineView({
                       ? "例: ホテル グランヴィア京都"
                       : "例: 清水寺 観光、新幹線 東京発、祇園でディナー"
                   }
-                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                 />
               </div>
 
               {/* Category selector */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049] mb-1">
+                <label className="block text-xs font-semibold text-[#386641] mb-1">
                   カテゴリ
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -1719,8 +1719,8 @@ export default function TimelineView({
                     onClick={() => handleCategoryChange("SIGHTSEEING")}
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "SIGHTSEEING"
-                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
-                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
+                        : "bg-white/80 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Landmark className="w-3.5 h-3.5" />
@@ -1732,7 +1732,7 @@ export default function TimelineView({
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "FOOD"
                         ? "bg-[#DDA15E] text-white border-[#DDA15E] shadow-xs"
-                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        : "bg-white/80 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Utensils className="w-3.5 h-3.5" />
@@ -1744,7 +1744,7 @@ export default function TimelineView({
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "HOTEL"
                         ? "bg-[#DDA15E] text-white border-[#DDA15E] shadow-xs"
-                        : "bg-[#DDA15E]/15 text-[#003049] border-[#DDA15E]/40 hover:bg-[#DDA15E]/25"
+                        : "bg-[#DDA15E]/15 text-[#386641] border-[#DDA15E]/40 hover:bg-[#DDA15E]/25"
                     }`}
                   >
                     <Hotel className="w-3.5 h-3.5" />
@@ -1755,8 +1755,8 @@ export default function TimelineView({
                     onClick={() => handleCategoryChange("TRANSPORT")}
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "TRANSPORT"
-                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
-                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
+                        : "bg-white/80 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Train className="w-3.5 h-3.5" />
@@ -1767,8 +1767,8 @@ export default function TimelineView({
                     onClick={() => handleCategoryChange("ACTIVITY")}
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "ACTIVITY"
-                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
-                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
+                        : "bg-white/80 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -1779,8 +1779,8 @@ export default function TimelineView({
                     onClick={() => handleCategoryChange("OTHER")}
                     className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
                       form.category === "OTHER"
-                        ? "bg-[#003049] text-white border-[#003049] shadow-xs"
-                        : "bg-white/80 text-[#003049] border-[#DDA15E]/30 hover:bg-white"
+                        ? "bg-[#386641] text-white border-[#386641] shadow-xs"
+                        : "bg-white/80 text-[#386641] border-[#DDA15E]/30 hover:bg-white"
                     }`}
                   >
                     <span>🔖 その他</span>
@@ -1792,12 +1792,12 @@ export default function TimelineView({
               {form.category === "HOTEL" ? (
                 <div className="p-4 rounded-2xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#386641] flex items-center gap-1.5">
                       <Hotel className="w-4 h-4 text-[#DDA15E]" />
                       宿泊日程 & チェックイン・チェックアウト時刻
                     </span>
                     {form.date && form.checkOutDate && (
-                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
                         {(() => {
                           const start = new Date(form.date);
                           const end = new Date(form.checkOutDate);
@@ -1810,67 +1810,67 @@ export default function TimelineView({
                     )}
                   </div>
 
-                  <p className="text-[11px] text-[#003049]/70">
+                  <p className="text-[11px] text-[#386641]/70">
                     💡 入力されたチェックイン時刻とチェックアウト時刻が、それぞれの日のタイムラインに自動挿入されます。
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Check In */}
                     <div className="p-3 bg-white/90 rounded-xl border border-[#DDA15E]/20 flex flex-col gap-2">
-                      <div className="flex items-center gap-1 text-xs font-bold text-[#003049]">
+                      <div className="flex items-center gap-1 text-xs font-bold text-[#386641]">
                         <LogIn className="w-3.5 h-3.5 text-[#DDA15E]" />
                         <span>チェックイン</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] text-[#003049]/70 mb-1">
+                        <label className="block text-[11px] text-[#386641]/70 mb-1">
                           チェックイン日 <span className="text-[#C1121F]">*</span>
                         </label>
                         <input
                           type="date"
                           value={form.date}
                           onChange={(e) => setForm({ ...form, date: e.target.value })}
-                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
+                          className="w-full border border-[#386641]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#386641]/20"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-[#003049]/70 mb-1">
+                        <label className="block text-[11px] text-[#386641]/70 mb-1">
                           チェックイン時刻
                         </label>
                         <input
                           type="time"
                           value={form.startTime}
                           onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
+                          className="w-full border border-[#386641]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#386641]/20"
                         />
                       </div>
                     </div>
 
                     {/* Check Out */}
                     <div className="p-3 bg-white/90 rounded-xl border border-[#DDA15E]/20 flex flex-col gap-2">
-                      <div className="flex items-center gap-1 text-xs font-bold text-[#003049]">
+                      <div className="flex items-center gap-1 text-xs font-bold text-[#386641]">
                         <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
                         <span>チェックアウト</span>
                       </div>
                       <div>
-                        <label className="block text-[11px] text-[#003049]/70 mb-1">
+                        <label className="block text-[11px] text-[#386641]/70 mb-1">
                           チェックアウト日
                         </label>
                         <input
                           type="date"
                           value={form.checkOutDate}
                           onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
-                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
+                          className="w-full border border-[#386641]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#386641]/20"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-[#003049]/70 mb-1">
+                        <label className="block text-[11px] text-[#386641]/70 mb-1">
                           チェックアウト時刻
                         </label>
                         <input
                           type="time"
                           value={form.endTime}
                           onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                          className="w-full border border-[#003049]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#003049]/20"
+                          className="w-full border border-[#386641]/20 rounded-lg px-2.5 py-1.5 text-xs bg-white focus:ring-2 focus:ring-[#386641]/20"
                         />
                       </div>
                     </div>
@@ -1879,8 +1879,8 @@ export default function TimelineView({
                   {/* Breakfast Option */}
                   <div className="pt-2 border-t border-[#DDA15E]/20 flex items-center justify-between">
                     <div>
-                      <label className="text-xs font-semibold text-[#003049] block">朝食プラン</label>
-                      <p className="text-[10px] text-[#003049]/60">朝食が含まれているか選択</p>
+                      <label className="text-xs font-semibold text-[#386641] block">朝食プラン</label>
+                      <p className="text-[10px] text-[#386641]/60">朝食が含まれているか選択</p>
                     </div>
                     <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-[#DDA15E]/30">
                       <button
@@ -1888,8 +1888,8 @@ export default function TimelineView({
                         onClick={() => setForm({ ...form, hasBreakfast: false })}
                         className={`px-3 py-1 text-xs rounded-lg font-medium transition ${
                           !form.hasBreakfast
-                            ? "bg-[#003049]/10 text-[#003049] shadow-xs font-semibold"
-                            : "text-[#003049]/50 hover:text-[#003049]"
+                            ? "bg-[#386641]/10 text-[#386641] shadow-xs font-semibold"
+                            : "text-[#386641]/50 hover:text-[#386641]"
                         }`}
                       >
                         素泊まり
@@ -1899,8 +1899,8 @@ export default function TimelineView({
                         onClick={() => setForm({ ...form, hasBreakfast: true })}
                         className={`flex items-center gap-1 px-3 py-1 text-xs rounded-lg font-semibold transition ${
                           form.hasBreakfast
-                            ? "bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 shadow-xs"
-                            : "text-[#003049]/50 hover:text-[#003049]"
+                            ? "bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 shadow-xs"
+                            : "text-[#386641]/50 hover:text-[#386641]"
                         }`}
                       >
                         <Coffee className="w-3.5 h-3.5 text-[#DDA15E]" />
@@ -1913,36 +1913,36 @@ export default function TimelineView({
                 /* NON-HOTEL: Date, Start Time, End Time */
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#003049] mb-1">
+                    <label className="block text-xs font-semibold text-[#386641] mb-1">
                       日付 <span className="text-[#C1121F]">*</span>
                     </label>
                     <input
                       type="date"
                       value={form.date}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                      className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#003049] mb-1">
+                    <label className="block text-xs font-semibold text-[#386641] mb-1">
                       開始時刻
                     </label>
                     <input
                       type="time"
                       value={form.startTime}
                       onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                      className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#003049] mb-1">
+                    <label className="block text-xs font-semibold text-[#386641] mb-1">
                       終了時刻
                     </label>
                     <input
                       type="time"
                       value={form.endTime}
                       onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                      className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                      className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                     />
                   </div>
                 </div>
@@ -1950,19 +1950,19 @@ export default function TimelineView({
 
               {/* Transport selection (if category is TRANSPORT or user wants to add transport info) */}
               {form.category === "TRANSPORT" && (
-                <div className="p-3.5 rounded-2xl bg-[#003049]/5 border border-[#003049]/15 flex flex-col gap-3">
+                <div className="p-3.5 rounded-2xl bg-[#386641]/5 border border-[#386641]/15 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#003049]">移動手段 & 詳細</span>
+                    <span className="text-xs font-bold text-[#386641]">移動手段 & 詳細</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs text-[#003049]/70 mb-1">移動手段の種類</label>
+                    <label className="block text-xs text-[#386641]/70 mb-1">移動手段の種類</label>
                     <select
                       value={form.transportType}
                       onChange={(e) =>
                         setForm({ ...form, transportType: e.target.value as TransportType | "" })
                       }
-                      className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
+                      className="w-full border border-[#386641]/20 rounded-xl px-3 py-2 text-xs bg-white"
                     >
                       <option value="TRAIN">🚆 電車・新幹線</option>
                       <option value="FLIGHT">✈️ 飛行機</option>
@@ -1977,37 +1977,37 @@ export default function TimelineView({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-[#003049]/70 mb-1">出発地</label>
+                      <label className="block text-xs text-[#386641]/70 mb-1">出発地</label>
                       <input
                         value={form.fromPlace}
                         onChange={(e) => setForm({ ...form, fromPlace: e.target.value })}
                         placeholder="例: 東京駅"
-                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#386641]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-[#003049]/70 mb-1">到着地</label>
+                      <label className="block text-xs text-[#386641]/70 mb-1">到着地</label>
                       <input
                         value={form.toPlace}
                         onChange={(e) => setForm({ ...form, toPlace: e.target.value })}
                         placeholder="例: 京都駅"
-                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#386641]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-[#003049]/70 mb-1">便名・列車番号</label>
+                      <label className="block text-xs text-[#386641]/70 mb-1">便名・列車番号</label>
                       <input
                         value={form.flightNumber}
                         onChange={(e) => setForm({ ...form, flightNumber: e.target.value })}
                         placeholder="例: のぞみ12号, NH025"
-                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#386641]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-[#003049]/70 mb-1">所要時間 (分)</label>
+                      <label className="block text-xs text-[#386641]/70 mb-1">所要時間 (分)</label>
                       <input
                         type="text"
                         inputMode="numeric"
@@ -2016,7 +2016,7 @@ export default function TimelineView({
                           setForm({ ...form, duration: normalizeNumberInput(e.target.value) })
                         }
                         placeholder="例: 135"
-                        className="w-full border border-[#003049]/20 rounded-xl px-3 py-2 text-xs bg-white"
+                        className="w-full border border-[#386641]/20 rounded-xl px-3 py-2 text-xs bg-white"
                       />
                     </div>
                   </div>
@@ -2026,7 +2026,7 @@ export default function TimelineView({
               {/* Cost with Full-width number normalization + Split bill */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold text-[#003049]">
+                  <label className="block text-xs font-semibold text-[#386641]">
                     {form.category === "HOTEL" ? "宿泊費用 (円)" : "費用・チケット代 (円)"}
                   </label>
                   <button
@@ -2034,8 +2034,8 @@ export default function TimelineView({
                     onClick={() => setSplitMode(!splitMode)}
                     className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
                       splitMode
-                        ? "bg-[#DDA15E]/20 border-[#DDA15E]/50 text-[#003049] font-bold"
-                        : "bg-[#003049]/5 border-[#003049]/15 text-[#003049]/70 hover:bg-[#003049]/10"
+                        ? "bg-[#DDA15E]/20 border-[#DDA15E]/50 text-[#386641] font-bold"
+                        : "bg-[#386641]/5 border-[#386641]/15 text-[#386641]/70 hover:bg-[#386641]/10"
                     }`}
                   >
                     <Divide className="w-3 h-3" />
@@ -2050,7 +2050,7 @@ export default function TimelineView({
                     setForm({ ...form, cost: normalizeNumberInput(e.target.value) })
                   }
                   placeholder={splitMode ? "合計金額を入力" : "例: 15000（全角入力も自動変換されます）"}
-                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                 />
                 {splitMode && (
                   <div className="mt-2 flex items-center gap-2">
@@ -2061,21 +2061,21 @@ export default function TimelineView({
                         inputMode="numeric"
                         value={splitPeople}
                         onChange={(e) => setSplitPeople(normalizeNumberInput(e.target.value))}
-                        className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-[#003049]"
+                        className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-[#386641]"
                       />
-                      <span className="text-xs text-[#003049]">人</span>
+                      <span className="text-xs text-[#386641]">人</span>
                     </div>
                     <div className="flex-1 text-right">
                       {form.cost && Number(splitPeople) > 0 ? (
                         <p className="text-sm">
-                          <span className="text-[#003049]/60">1人あたり </span>
-                          <span className="font-bold text-[#003049]">
+                          <span className="text-[#386641]/60">1人あたり </span>
+                          <span className="font-bold text-[#386641]">
                             ¥{Math.ceil(Number(form.cost) / (Number(splitPeople) || 1)).toLocaleString()}
                           </span>
-                          <span className="text-[10px] text-[#003049]/50 ml-1">（保存される金額）</span>
+                          <span className="text-[10px] text-[#386641]/50 ml-1">（保存される金額）</span>
                         </p>
                       ) : (
-                        <p className="text-xs text-[#003049]/50">金額を入力すると1人分が計算されます</p>
+                        <p className="text-xs text-[#386641]/50">金額を入力すると1人分が計算されます</p>
                       )}
                     </div>
                   </div>
@@ -2084,7 +2084,7 @@ export default function TimelineView({
 
               {/* Memo */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049] mb-1">
+                <label className="block text-xs font-semibold text-[#386641] mb-1">
                   メモ・予約情報
                 </label>
                 <textarea
@@ -2096,16 +2096,16 @@ export default function TimelineView({
                       : "例: 10分前にホーム集合。QRチケットを提示。"
                   }
                   rows={2}
-                  className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
+                  className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641] resize-none"
                 />
               </div>
 
               {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#003049]/10">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#386641]/10">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
+                  className="px-4 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium"
                 >
                   キャンセル
                 </button>
@@ -2218,16 +2218,16 @@ function CityLegModal({
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
       <div className="bg-[#FDF0D5] border border-[#DDA15E]/40 rounded-2xl p-5 max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10">
+        <div className="flex items-center justify-between pb-3 border-b border-[#386641]/10">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-[#003049] text-white rounded-lg">
+            <span className="p-1.5 bg-[#386641] text-white rounded-lg">
               <MapPin className="w-4 h-4" />
             </span>
             <div>
-              <h2 className="text-base font-bold text-[#003049]">
+              <h2 className="text-base font-bold text-[#386641]">
                 {isEditing ? "都市・エリア情報の編集" : "新しい都市・エリアを追加"}
               </h2>
-              <div className="text-[11px] text-[#003049]/70 font-semibold">
+              <div className="text-[11px] text-[#386641]/70 font-semibold">
                 {startDate && endDate ? `${formatDate(startDate)} 〜 ${formatDate(endDate)} ・ ${calcDayIndices()}` : "滞在期間と都市を設定"}
               </div>
             </div>
@@ -2235,7 +2235,7 @@ function CityLegModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-[#003049]/50 hover:text-[#003049] rounded-lg transition"
+            className="p-1 text-[#386641]/50 hover:text-[#386641] rounded-lg transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -2245,7 +2245,7 @@ function CityLegModal({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1">
           {/* City Name */}
           <div>
-            <label className="block text-xs font-semibold text-[#003049] mb-1">
+            <label className="block text-xs font-semibold text-[#386641] mb-1">
               都市・エリア名 <span className="text-[#C1121F]">*</span>
             </label>
             <input
@@ -2253,22 +2253,22 @@ function CityLegModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例: リスボン, マドリード＆トレド, ポルト"
-              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+              className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               required
             />
-            <p className="mt-1 text-[11px] text-[#003049]/60">
+            <p className="mt-1 text-[11px] text-[#386641]/60">
               日程タブや都市カード、絞り込みピルバーの表示名になります。
             </p>
           </div>
 
           {/* Date Range Selection */}
           <div className="bg-white/70 p-3 rounded-xl border border-[#DDA15E]/30 space-y-2">
-            <label className="block text-xs font-semibold text-[#003049]">
+            <label className="block text-xs font-semibold text-[#386641]">
               滞在期間（日程範囲） <span className="text-[#C1121F]">*</span>
             </label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="block text-[10px] text-[#003049]/60 mb-1">開始日</span>
+                <span className="block text-[10px] text-[#386641]/60 mb-1">開始日</span>
                 <input
                   type="date"
                   value={startDate}
@@ -2279,27 +2279,27 @@ function CityLegModal({
                     setStartDate(val);
                     if (val > endDate) setEndDate(val);
                   }}
-                  className="w-full border border-[#003049]/20 rounded-xl px-2.5 py-2 text-xs bg-white text-[#003049] font-medium focus:outline-none focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-2.5 py-2 text-xs bg-white text-[#386641] font-medium focus:outline-none focus:border-[#386641]"
                   required
                 />
               </div>
               <div>
-                <span className="block text-[10px] text-[#003049]/60 mb-1">終了日</span>
+                <span className="block text-[10px] text-[#386641]/60 mb-1">終了日</span>
                 <input
                   type="date"
                   value={endDate}
                   min={startDate || minDate}
                   max={maxDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full border border-[#003049]/20 rounded-xl px-2.5 py-2 text-xs bg-white text-[#003049] font-medium focus:outline-none focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-2.5 py-2 text-xs bg-white text-[#386641] font-medium focus:outline-none focus:border-[#386641]"
                   required
                 />
               </div>
             </div>
-            <div className="text-[11px] font-semibold text-[#386641] flex items-center justify-between pt-1">
+            <div className="text-[11px] font-semibold text-[#003049] flex items-center justify-between pt-1">
               <span>選択期間: {calcDayIndices()}</span>
               {startDate && endDate && (
-                <span className="text-[10px] text-[#003049]/60">
+                <span className="text-[10px] text-[#386641]/60">
                   {formatDate(startDate)} 〜 {formatDate(endDate)}
                 </span>
               )}
@@ -2309,7 +2309,7 @@ function CityLegModal({
           {/* Flag & Country */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-1">
-              <label className="block text-xs font-semibold text-[#003049] mb-1">
+              <label className="block text-xs font-semibold text-[#386641] mb-1">
                 国旗（絵文字）
               </label>
               <input
@@ -2317,11 +2317,11 @@ function CityLegModal({
                 value={flag}
                 onChange={(e) => setFlag(e.target.value)}
                 placeholder="例: 🇪🇸"
-                className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white text-center focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white text-center focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-[#003049] mb-1">
+              <label className="block text-xs font-semibold text-[#386641] mb-1">
                 国名
               </label>
               <input
@@ -2329,14 +2329,14 @@ function CityLegModal({
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="例: スペイン"
-                className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               />
             </div>
           </div>
 
           {/* Preset Flags Chips */}
           <div>
-            <div className="text-[11px] font-semibold text-[#003049]/70 mb-1.5">よく使う国旗・国（タップで入力）:</div>
+            <div className="text-[11px] font-semibold text-[#386641]/70 mb-1.5">よく使う国旗・国（タップで入力）:</div>
             <div className="flex flex-wrap gap-1.5">
               {PRESET_FLAGS.map((item) => (
                 <button
@@ -2348,8 +2348,8 @@ function CityLegModal({
                   }}
                   className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition flex items-center gap-1 ${
                     flag === item.flag
-                      ? "bg-[#003049] text-white border-[#003049]"
-                      : "bg-white/80 border-[#003049]/15 text-[#003049] hover:bg-white"
+                      ? "bg-[#386641] text-white border-[#386641]"
+                      : "bg-white/80 border-[#386641]/15 text-[#386641] hover:bg-white"
                   }`}
                 >
                   <span>{item.flag}</span>
@@ -2361,7 +2361,7 @@ function CityLegModal({
 
           {/* Companion */}
           <div>
-            <label className="block text-xs font-semibold text-[#003049] mb-1">
+            <label className="block text-xs font-semibold text-[#386641] mb-1">
               同行者
             </label>
             <input
@@ -2369,7 +2369,7 @@ function CityLegModal({
               value={companion}
               onChange={(e) => setCompanion(e.target.value)}
               placeholder="例: 両親と, 一人旅, たろーと, なゆと"
-              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+              className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
             />
             <div className="flex flex-wrap gap-1.5 mt-2">
               {PRESET_COMPANIONS.map((preset) => (
@@ -2379,22 +2379,22 @@ function CityLegModal({
                   onClick={() => setCompanion(preset === "なし" ? "" : preset)}
                   className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition ${
                     companion === preset || (preset === "なし" && !companion)
-                      ? "bg-[#386641] text-white border-[#386641]"
-                      : "bg-white/80 border-[#386641]/20 text-[#386641] hover:bg-white"
+                      ? "bg-[#003049] text-white border-[#003049]"
+                      : "bg-white/80 border-[#003049]/20 text-[#003049] hover:bg-white"
                   }`}
                 >
                   {preset}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[11px] text-[#003049]/60">
+            <p className="mt-1 text-[11px] text-[#386641]/60">
               ※同行者を変更すると、該当区間の予定メモに含まれる同行者表記も連動して自動更新されます。
             </p>
           </div>
 
           {/* Area Memo */}
           <div>
-            <label className="block text-xs font-semibold text-[#003049] mb-1">
+            <label className="block text-xs font-semibold text-[#386641] mb-1">
               エリアメモ・ひとことハイライト（任意）
             </label>
             <textarea
@@ -2402,16 +2402,16 @@ function CityLegModal({
               onChange={(e) => setMemo(e.target.value)}
               placeholder="例: 名物バル巡りとピンチョスを満喫！サン・セバスチャンからビルバオへ移動。"
               rows={2}
-              className="w-full border border-[#003049]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
+              className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641] resize-none"
             />
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#003049]/10">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#386641]/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
+              className="px-3.5 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium"
             >
               キャンセル
             </button>

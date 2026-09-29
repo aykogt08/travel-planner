@@ -2,9 +2,9 @@
 
 :root {
   --background: #FDF0D5;
-  --foreground: #003049;
-  --color-primary-red: #C1121F;
+  --foreground: #386641;
   --color-primary-green: #386641;
+  --color-primary-red: #C1121F;
   --color-bg-cream: #FDF0D5;
   --color-accent-navy: #003049;
   --color-accent-ochre: #DDA15E;
@@ -13,8 +13,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-red: #C1121F;
   --color-brand-green: #386641;
+  --color-brand-red: #C1121F;
   --color-brand-cream: #FDF0D5;
   --color-brand-navy: #003049;
   --color-brand-ochre: #DDA15E;
@@ -23,7 +23,7 @@
 
 body {
   background-color: #FDF0D5;
-  color: #003049;
+  color: #386641;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
   -webkit-font-smoothing: antialiased;
 }

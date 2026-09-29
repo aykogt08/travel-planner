@@ -47,18 +47,18 @@ export const STATUS_CONFIG: Record<
 > = {
   IDEA: {
     label: "思いついた",
-    badgeClass: "bg-[#003049]/5 text-[#003049] border-[#003049]/20",
-    activeClass: "bg-[#003049] text-white border-[#003049]",
+    badgeClass: "bg-[#386641]/5 text-[#386641] border-[#386641]/20",
+    activeClass: "bg-[#386641] text-white border-[#386641]",
   },
   CANDIDATE: {
     label: "候補",
-    badgeClass: "bg-[#DDA15E]/15 text-[#003049] border-[#DDA15E]/40 font-medium",
-    activeClass: "bg-[#DDA15E] text-[#003049] font-bold border-[#DDA15E]",
+    badgeClass: "bg-[#DDA15E]/15 text-[#386641] border-[#DDA15E]/40 font-medium",
+    activeClass: "bg-[#DDA15E] text-[#386641] font-bold border-[#DDA15E]",
   },
   DONE: {
     label: "やった",
-    badgeClass: "bg-[#386641]/10 text-[#386641] border-[#386641]/30 font-semibold",
-    activeClass: "bg-[#386641] text-white border-[#386641]",
+    badgeClass: "bg-[#003049]/10 text-[#003049] border-[#003049]/30 font-semibold",
+    activeClass: "bg-[#003049] text-white border-[#003049]",
   },
   BEST: {
     label: "最高だった",
@@ -67,13 +67,13 @@ export const STATUS_CONFIG: Record<
   },
   NORMAL: {
     label: "普通だった",
-    badgeClass: "bg-[#003049]/5 text-[#003049]/70 border-[#003049]/15",
-    activeClass: "bg-[#003049]/70 text-white border-[#003049]/70",
+    badgeClass: "bg-[#386641]/5 text-[#386641]/70 border-[#386641]/15",
+    activeClass: "bg-[#386641]/70 text-white border-[#386641]/70",
   },
   SKIPPED: {
     label: "やらなかった",
-    badgeClass: "bg-[#003049]/5 text-[#003049]/40 border-[#003049]/10 line-through",
-    activeClass: "bg-[#003049]/40 text-white border-[#003049]/40",
+    badgeClass: "bg-[#386641]/5 text-[#386641]/40 border-[#386641]/10 line-through",
+    activeClass: "bg-[#386641]/40 text-white border-[#386641]/40",
   },
 };
 
@@ -509,13 +509,13 @@ export default function WishCollection({
       {/* 上部ヘッダー & 主要アクション */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-[#386641] flex items-center gap-2">
             <span>旅行でやりたいことコレクション</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049]">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#386641]/10 text-[#386641]">
               {wishes.length}
             </span>
           </h2>
-          <p className="text-[#003049]/70 text-xs mt-1">
+          <p className="text-[#386641]/70 text-xs mt-1">
             何気なく過ごしたい時間や、やってみたい小さな体験を集めて旅を育てます。
           </p>
         </div>
@@ -527,7 +527,7 @@ export default function WishCollection({
               setCurrentPrompt(getRandomPrompt());
               setShowPromptModal(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#DDA15E]/15 hover:bg-[#DDA15E]/25 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold transition shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#DDA15E]/15 hover:bg-[#DDA15E]/25 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold transition shadow-2xs"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#DDA15E]" />
             お題から考える
@@ -536,9 +536,9 @@ export default function WishCollection({
           {/* 今日これやりたいボタン */}
           <button
             onClick={handleTriggerRandomPick}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#FDF0D5]/50 text-[#003049] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-[#FDF0D5]/50 text-[#386641] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition"
           >
-            <Shuffle className="w-3.5 h-3.5 text-[#003049]/70" />
+            <Shuffle className="w-3.5 h-3.5 text-[#386641]/70" />
             今日これやりたい
           </button>
 
@@ -554,16 +554,16 @@ export default function WishCollection({
       </div>
 
       {/* サブナビゲーション（一覧 / 統計 / 振り返り） */}
-      <div className="flex items-center gap-1 bg-[#003049]/10 p-1 rounded-xl self-start border border-[#DDA15E]/20">
+      <div className="flex items-center gap-1 bg-[#386641]/10 p-1 rounded-xl self-start border border-[#DDA15E]/20">
         <button
           onClick={() => setViewMode("list")}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
             viewMode === "list"
-              ? "bg-white text-[#003049] shadow-2xs"
-              : "text-[#003049]/70 hover:text-[#003049]"
+              ? "bg-white text-[#386641] shadow-2xs"
+              : "text-[#386641]/70 hover:text-[#386641]"
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5 text-[#003049]" />
+          <BookOpen className="w-3.5 h-3.5 text-[#386641]" />
           コレクション ({wishes.length})
         </button>
 
@@ -571,11 +571,11 @@ export default function WishCollection({
           onClick={() => setViewMode("stats")}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
             viewMode === "stats"
-              ? "bg-white text-[#003049] shadow-2xs"
-              : "text-[#003049]/70 hover:text-[#003049]"
+              ? "bg-white text-[#386641] shadow-2xs"
+              : "text-[#386641]/70 hover:text-[#386641]"
           }`}
         >
-          <BarChart2 className="w-3.5 h-3.5 text-[#003049]" />
+          <BarChart2 className="w-3.5 h-3.5 text-[#386641]" />
           統計
         </button>
 
@@ -584,7 +584,7 @@ export default function WishCollection({
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
             viewMode === "reflection"
               ? "bg-white text-[#C1121F] shadow-2xs"
-              : "text-[#003049]/70 hover:text-[#C1121F]"
+              : "text-[#386641]/70 hover:text-[#C1121F]"
           }`}
         >
           <Heart className="w-3.5 h-3.5 text-[#C1121F] fill-[#C1121F]/20" />
@@ -599,15 +599,15 @@ export default function WishCollection({
           <div className="p-3 bg-white/95 rounded-2xl border border-[#DDA15E]/30 shadow-2xs flex flex-col gap-2.5">
             {/* 都市タグフィルター */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-              <span className="text-[#003049]/60 font-medium text-[11px] shrink-0 flex items-center gap-1 mr-1">
+              <span className="text-[#386641]/60 font-medium text-[11px] shrink-0 flex items-center gap-1 mr-1">
                 <MapPin className="w-3 h-3 text-[#C1121F]" /> 都市:
               </span>
               <button
                 onClick={() => setFilterCity("ALL")}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 transition ${
                   filterCity === "ALL"
-                    ? "bg-[#003049] text-white"
-                    : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                    ? "bg-[#386641] text-white"
+                    : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                 }`}
               >
                 すべて
@@ -618,8 +618,8 @@ export default function WishCollection({
                   onClick={() => setFilterCity(city)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium shrink-0 transition ${
                     filterCity === city
-                      ? "bg-[#003049] text-white"
-                      : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                      ? "bg-[#386641] text-white"
+                      : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                   }`}
                 >
                   {city}
@@ -628,15 +628,15 @@ export default function WishCollection({
             </div>
 
             {/* ステータス & 誰と & ソート */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#003049]/10 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#386641]/10 text-xs">
               <div className="flex items-center gap-2 flex-wrap">
                 {/* ステータスセレクト */}
                 <div className="flex items-center gap-1 bg-[#FDF0D5]/60 border border-[#DDA15E]/30 px-2.5 py-1 rounded-lg">
-                  <span className="text-[#003049]/70 text-[11px]">状態:</span>
+                  <span className="text-[#386641]/70 text-[11px]">状態:</span>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="bg-transparent font-medium text-[#003049] focus:outline-none cursor-pointer"
+                    className="bg-transparent font-medium text-[#386641] focus:outline-none cursor-pointer"
                   >
                     <option value="ALL">すべての状態</option>
                     <option value="IDEA">思いついた</option>
@@ -650,11 +650,11 @@ export default function WishCollection({
 
                 {/* 誰とセレクト */}
                 <div className="flex items-center gap-1 bg-[#FDF0D5]/60 border border-[#DDA15E]/30 px-2.5 py-1 rounded-lg">
-                  <span className="text-[#003049]/70 text-[11px]">誰と:</span>
+                  <span className="text-[#386641]/70 text-[11px]">誰と:</span>
                   <select
                     value={filterWithWhom}
                     onChange={(e) => setFilterWithWhom(e.target.value)}
-                    className="bg-transparent font-medium text-[#003049] focus:outline-none cursor-pointer"
+                    className="bg-transparent font-medium text-[#386641] focus:outline-none cursor-pointer"
                   >
                     <option value="ALL">全員・すべて</option>
                     <option value="ひとり">ひとり</option>
@@ -667,13 +667,13 @@ export default function WishCollection({
 
               {/* ソート */}
               <div className="flex items-center gap-1">
-                <span className="text-[#003049]/50 text-[11px] flex items-center gap-0.5">
-                  <ArrowUpDown className="w-3 h-3 text-[#003049]/70" />
+                <span className="text-[#386641]/50 text-[11px] flex items-center gap-0.5">
+                  <ArrowUpDown className="w-3 h-3 text-[#386641]/70" />
                 </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as "priority" | "newest")}
-                  className="bg-transparent text-xs font-medium text-[#003049]/80 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-medium text-[#386641]/80 focus:outline-none cursor-pointer"
                 >
                   <option value="priority">やりたい度 順</option>
                   <option value="newest">新しい順</option>
@@ -685,9 +685,9 @@ export default function WishCollection({
           {/* やりたいことカード一覧 */}
           {filteredWishes.length === 0 ? (
             <div className="text-center py-16 px-4 bg-white/95 border border-dashed border-[#DDA15E]/40 rounded-2xl">
-              <Compass className="w-8 h-8 text-[#003049]/30 mx-auto mb-2" />
-              <h3 className="text-sm font-semibold text-[#003049]">やりたいことがありません</h3>
-              <p className="text-xs text-[#003049]/60 mt-1 max-w-sm mx-auto">
+              <Compass className="w-8 h-8 text-[#386641]/30 mx-auto mb-2" />
+              <h3 className="text-sm font-semibold text-[#386641]">やりたいことがありません</h3>
+              <p className="text-xs text-[#386641]/60 mt-1 max-w-sm mx-auto">
                 フィルター条件を変更するか、「お題から考える」や「やりたいことを追加」から登録してみましょう。
               </p>
               <div className="flex justify-center gap-2 mt-4">
@@ -696,7 +696,7 @@ export default function WishCollection({
                     setCurrentPrompt(getRandomPrompt());
                     setShowPromptModal(true);
                   }}
-                  className="px-3.5 py-1.5 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30"
+                  className="px-3.5 py-1.5 bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30"
                 >
                   お題を見てみる
                 </button>
@@ -734,7 +734,7 @@ export default function WishCollection({
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {/* 都市 */}
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#003049]/5 text-[#003049]">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#386641]/5 text-[#386641]">
                           <MapPin className="w-3 h-3 text-[#C1121F]" />
                           {wish.city || "どこでも"}
                         </span>
@@ -743,16 +743,16 @@ export default function WishCollection({
                         {parsedWithWhom.map((person) => (
                           <span
                             key={person}
-                            className="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-[#FDF0D5]/50 text-[#003049] border border-[#DDA15E]/30"
+                            className="inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.5 rounded-md bg-[#FDF0D5]/50 text-[#386641] border border-[#DDA15E]/30"
                           >
-                            <Users className="w-2.5 h-2.5 text-[#003049]/50" />
+                            <Users className="w-2.5 h-2.5 text-[#386641]/50" />
                             {person}
                           </span>
                         ))}
 
                         {/* カテゴリ */}
                         {wish.category && CATEGORY_CONFIG[wish.category] && (
-                          <span className="text-[10px] text-[#003049]/50 px-1">
+                          <span className="text-[10px] text-[#386641]/50 px-1">
                             {CATEGORY_CONFIG[wish.category].label}
                           </span>
                         )}
@@ -762,14 +762,14 @@ export default function WishCollection({
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => handleOpenEditModal(wish)}
-                          className="p-1 text-[#003049]/40 hover:text-[#003049] rounded-md transition"
+                          className="p-1 text-[#386641]/40 hover:text-[#386641] rounded-md transition"
                           title="編集"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteWish(wish.id)}
-                          className="p-1 text-[#003049]/40 hover:text-[#C1121F] rounded-md transition"
+                          className="p-1 text-[#386641]/40 hover:text-[#C1121F] rounded-md transition"
                           title="削除"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -779,8 +779,8 @@ export default function WishCollection({
 
                     {/* タイトル */}
                     <h3
-                      className={`text-sm font-bold text-[#003049] leading-snug mb-2 ${
-                        wish.status === "SKIPPED" ? "line-through text-[#003049]/40" : ""
+                      className={`text-sm font-bold text-[#386641] leading-snug mb-2 ${
+                        wish.status === "SKIPPED" ? "line-through text-[#386641]/40" : ""
                       }`}
                     >
                       {wish.title}
@@ -788,16 +788,16 @@ export default function WishCollection({
 
                     {/* メモ（あれば表示） */}
                     {wish.memo && (
-                      <p className="text-xs text-[#003049]/80 bg-[#FDF0D5]/40 border border-[#DDA15E]/20 p-2 rounded-lg mb-3 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-xs text-[#386641]/80 bg-[#FDF0D5]/40 border border-[#DDA15E]/20 p-2 rounded-lg mb-3 leading-relaxed whitespace-pre-wrap">
                         {wish.memo}
                       </p>
                     )}
 
                     {/* 下部: やりたい度（タップで直接変更） & ステータスセレクター */}
-                    <div className="pt-2.5 border-t border-[#003049]/10 flex items-center justify-between gap-3 text-xs">
+                    <div className="pt-2.5 border-t border-[#386641]/10 flex items-center justify-between gap-3 text-xs">
                       {/* やりたい度 (1〜5 タップ直接変更) */}
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-[#003049]/50 mr-0.5">やりたい度:</span>
+                        <span className="text-[10px] text-[#386641]/50 mr-0.5">やりたい度:</span>
                         <div className="flex items-center gap-0.5">
                           {[1, 2, 3, 4, 5].map((lvl) => (
                             <button
@@ -806,8 +806,8 @@ export default function WishCollection({
                               onClick={() => handleDirectChangePriority(wish, lvl)}
                               className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold transition ${
                                 lvl <= wish.priority
-                                  ? "bg-[#DDA15E] text-[#003049] shadow-2xs scale-105"
-                                  : "bg-[#003049]/5 text-[#003049]/40 hover:bg-[#003049]/10"
+                                  ? "bg-[#DDA15E] text-[#386641] shadow-2xs scale-105"
+                                  : "bg-[#386641]/5 text-[#386641]/40 hover:bg-[#386641]/10"
                               }`}
                               title={`やりたい度 ${lvl} に変更`}
                             >
@@ -847,17 +847,17 @@ export default function WishCollection({
       {viewMode === "stats" && (
         <div className="flex flex-col gap-6 bg-white/95 p-6 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
           <div>
-            <h3 className="text-base font-bold text-[#003049]">コレクションの統計</h3>
-            <p className="text-xs text-[#003049]/70 mt-0.5">
+            <h3 className="text-base font-bold text-[#386641]">コレクションの統計</h3>
+            <p className="text-xs text-[#386641]/70 mt-0.5">
               集めたやりたいことの進行状況や、都市・同行者ごとの集計です。
             </p>
           </div>
 
           {/* 総数とステータスカード */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-xl bg-[#003049]/5 border border-[#003049]/15">
-              <span className="text-[11px] font-medium text-[#003049]/70 block">総登録数</span>
-              <span className="text-2xl font-bold text-[#003049] mt-0.5 block">
+            <div className="p-3.5 rounded-xl bg-[#386641]/5 border border-[#386641]/15">
+              <span className="text-[11px] font-medium text-[#386641]/70 block">総登録数</span>
+              <span className="text-2xl font-bold text-[#386641] mt-0.5 block">
                 {stats.total}
               </span>
             </div>
@@ -869,16 +869,16 @@ export default function WishCollection({
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#386641]/10 border border-[#386641]/30">
-              <span className="text-[11px] font-semibold text-[#386641] block">やった</span>
-              <span className="text-2xl font-bold text-[#386641] mt-0.5 block">
+            <div className="p-3.5 rounded-xl bg-[#003049]/10 border border-[#003049]/30">
+              <span className="text-[11px] font-semibold text-[#003049] block">やった</span>
+              <span className="text-2xl font-bold text-[#003049] mt-0.5 block">
                 {stats.byStatus.DONE || 0}
               </span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/40">
-              <span className="text-[11px] font-semibold text-[#003049] block">候補</span>
-              <span className="text-2xl font-bold text-[#003049] mt-0.5 block">
+              <span className="text-[11px] font-semibold text-[#386641] block">候補</span>
+              <span className="text-2xl font-bold text-[#386641] mt-0.5 block">
                 {stats.byStatus.CANDIDATE || 0}
               </span>
             </div>
@@ -886,29 +886,29 @@ export default function WishCollection({
 
           {/* ステータス内訳バー */}
           <div>
-            <h4 className="text-xs font-bold text-[#003049] mb-2">ステータス内訳</h4>
+            <h4 className="text-xs font-bold text-[#386641] mb-2">ステータス内訳</h4>
             <div className="space-y-1.5 text-xs">
               {Object.entries(STATUS_CONFIG).map(([stKey, cfg]) => {
                 const count = stats.byStatus[stKey] || 0;
                 const percent = stats.total > 0 ? (count / stats.total) * 100 : 0;
                 return (
                   <div key={stKey} className="flex items-center gap-2">
-                    <span className="w-20 text-[11px] text-[#003049]/80 truncate">{cfg.label}</span>
+                    <span className="w-20 text-[11px] text-[#386641]/80 truncate">{cfg.label}</span>
                     <div className="flex-1 bg-[#FDF0D5] border border-[#DDA15E]/20 rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full ${
                           stKey === "BEST"
                             ? "bg-[#C1121F]"
                             : stKey === "DONE"
-                            ? "bg-[#386641]"
+                            ? "bg-[#003049]"
                             : stKey === "CANDIDATE"
                             ? "bg-[#DDA15E]"
-                            : "bg-[#003049]/40"
+                            : "bg-[#386641]/40"
                         }`}
                         style={{ width: `${percent}%` }}
                       />
                     </div>
-                    <span className="w-8 text-right font-medium text-[#003049] text-[11px]">
+                    <span className="w-8 text-right font-medium text-[#386641] text-[11px]">
                       {count}
                     </span>
                   </div>
@@ -918,26 +918,26 @@ export default function WishCollection({
           </div>
 
           {/* 一番やりたい都市ランキング */}
-          <div className="pt-4 border-t border-[#003049]/10">
-            <h4 className="text-xs font-bold text-[#003049] mb-2">都市ごとの件数</h4>
+          <div className="pt-4 border-t border-[#386641]/10">
+            <h4 className="text-xs font-bold text-[#386641] mb-2">都市ごとの件数</h4>
             {stats.sortedCities.length === 0 ? (
-              <p className="text-xs text-[#003049]/50">データがありません</p>
+              <p className="text-xs text-[#386641]/50">データがありません</p>
             ) : (
               <div className="space-y-1.5 text-xs">
                 {stats.sortedCities.map(([city, count]) => {
                   const percent = (count / stats.total) * 100;
                   return (
                     <div key={city} className="flex items-center gap-2">
-                      <span className="w-24 text-[11px] font-medium text-[#003049] truncate">
+                      <span className="w-24 text-[11px] font-medium text-[#386641] truncate">
                         {city}
                       </span>
                       <div className="flex-1 bg-[#FDF0D5] border border-[#DDA15E]/20 rounded-full h-2 overflow-hidden">
                         <div
-                          className="h-full bg-[#003049]"
+                          className="h-full bg-[#386641]"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
-                      <span className="w-8 text-right font-medium text-[#003049] text-[11px]">
+                      <span className="w-8 text-right font-medium text-[#386641] text-[11px]">
                         {count}
                       </span>
                     </div>
@@ -948,16 +948,16 @@ export default function WishCollection({
           </div>
 
           {/* 誰とやるか別 */}
-          <div className="pt-4 border-t border-[#003049]/10">
-            <h4 className="text-xs font-bold text-[#003049] mb-2">誰とやるか</h4>
+          <div className="pt-4 border-t border-[#386641]/10">
+            <h4 className="text-xs font-bold text-[#386641] mb-2">誰とやるか</h4>
             <div className="flex flex-wrap gap-2">
               {Object.entries(stats.byWithWhom).map(([person, count]) => (
                 <div
                   key={person}
                   className="px-3 py-1.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs flex items-center gap-2"
                 >
-                  <span className="text-[#003049]">{person}</span>
-                  <span className="font-bold text-[#003049] bg-[#003049]/10 px-1.5 py-0.2 rounded-md text-[11px]">
+                  <span className="text-[#386641]">{person}</span>
+                  <span className="font-bold text-[#386641] bg-[#386641]/10 px-1.5 py-0.2 rounded-md text-[11px]">
                     {count}
                   </span>
                 </div>
@@ -975,18 +975,18 @@ export default function WishCollection({
               <Heart className="w-5 h-5 text-[#C1121F] fill-[#C1121F]" />
               <span>今回のヨーロッパで好きだったこと</span>
             </div>
-            <p className="text-xs text-[#003049]/80 leading-relaxed max-w-xl">
+            <p className="text-xs text-[#386641]/80 leading-relaxed max-w-xl">
               「最高だった」にマークした体験のコレクションです。旅行中に自分が本当に心動かされた瞬間や、好きだった時間の傾向を振り返ることができます。
             </p>
           </div>
 
           {bestWishes.length === 0 ? (
             <div className="text-center py-16 px-4 bg-white/95 border border-[#DDA15E]/30 rounded-2xl">
-              <Heart className="w-8 h-8 text-[#003049]/30 mx-auto mb-2" />
-              <h3 className="text-sm font-semibold text-[#003049]">
+              <Heart className="w-8 h-8 text-[#386641]/30 mx-auto mb-2" />
+              <h3 className="text-sm font-semibold text-[#386641]">
                 まだ「最高だった」がありません
               </h3>
-              <p className="text-xs text-[#003049]/60 mt-1 max-w-sm mx-auto">
+              <p className="text-xs text-[#386641]/60 mt-1 max-w-sm mx-auto">
                 実際に体験して心に残ったものを、カードのステータスから「最高だった」に変更してみましょう。
               </p>
             </div>
@@ -994,7 +994,7 @@ export default function WishCollection({
             <div className="space-y-4">
               {/* カテゴリ傾向サマリー */}
               <div className="p-4 bg-white/95 rounded-2xl border border-[#DDA15E]/30 text-xs">
-                <h4 className="font-bold text-[#003049] mb-2">好きだったジャンルの傾向</h4>
+                <h4 className="font-bold text-[#386641] mb-2">好きだったジャンルの傾向</h4>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(CATEGORY_CONFIG).map(([catKey, cfg]) => {
                     const count = bestWishes.filter((w) => w.category === catKey).length;
@@ -1021,7 +1021,7 @@ export default function WishCollection({
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049]">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#386641]/10 text-[#386641]">
                           <MapPin className="w-3 h-3 text-[#C1121F]" />
                           {wish.city || "どこでも"}
                         </span>
@@ -1029,21 +1029,21 @@ export default function WishCollection({
                           ★ 最高だった
                         </span>
                       </div>
-                      <h3 className="text-base font-bold text-[#003049] leading-snug mb-2">
+                      <h3 className="text-base font-bold text-[#386641] leading-snug mb-2">
                         {wish.title}
                       </h3>
                       {wish.memo && (
-                        <p className="text-xs text-[#003049]/80 bg-[#FDF0D5]/50 border border-[#DDA15E]/20 p-2.5 rounded-xl whitespace-pre-wrap leading-relaxed">
+                        <p className="text-xs text-[#386641]/80 bg-[#FDF0D5]/50 border border-[#DDA15E]/20 p-2.5 rounded-xl whitespace-pre-wrap leading-relaxed">
                           {wish.memo}
                         </p>
                       )}
                     </div>
 
-                    <div className="pt-3 mt-3 border-t border-[#003049]/10 flex items-center justify-between text-[11px] text-[#003049]/60">
+                    <div className="pt-3 mt-3 border-t border-[#386641]/10 flex items-center justify-between text-[11px] text-[#386641]/60">
                       <span>やりたい度: {wish.priority}</span>
                       <button
                         onClick={() => handleOpenEditModal(wish)}
-                        className="text-[#003049] hover:text-[#C1121F] underline font-medium"
+                        className="text-[#386641] hover:text-[#C1121F] underline font-medium"
                       >
                         詳細を編集
                       </button>
@@ -1058,16 +1058,16 @@ export default function WishCollection({
 
       {/* ======================= モーダル: お題から考える ======================= */}
       {showPromptModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#003049]/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#386641]/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl border border-[#DDA15E]/30 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049] flex items-center gap-1">
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641] flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#DDA15E]" />
                 {currentPrompt.categoryLabel}
               </span>
               <button
                 onClick={() => setShowPromptModal(false)}
-                className="p-1 rounded-full text-[#003049]/40 hover:text-[#003049]"
+                className="p-1 rounded-full text-[#386641]/40 hover:text-[#386641]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1075,7 +1075,7 @@ export default function WishCollection({
 
             {/* お題の質問文 */}
             <div className="py-4">
-              <p className="text-lg font-bold text-[#003049] leading-relaxed">
+              <p className="text-lg font-bold text-[#386641] leading-relaxed">
                 「{currentPrompt.question}」
               </p>
             </div>
@@ -1095,9 +1095,9 @@ export default function WishCollection({
 
               <button
                 onClick={() => setCurrentPrompt(getRandomPrompt(currentPrompt.id))}
-                className="w-full py-2.5 bg-[#FDF0D5]/60 hover:bg-[#FDF0D5] text-[#003049] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-[#FDF0D5]/60 hover:bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
               >
-                <Shuffle className="w-3.5 h-3.5 text-[#003049]/70" />
+                <Shuffle className="w-3.5 h-3.5 text-[#386641]/70" />
                 別のお題を見る
               </button>
             </div>
@@ -1107,16 +1107,16 @@ export default function WishCollection({
 
       {/* ======================= モーダル: 今日これやりたい ======================= */}
       {showRandomPickModal && pickedWish && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#003049]/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#386641]/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl border border-[#DDA15E]/30 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] flex items-center gap-1">
-                <Shuffle className="w-3 h-3 text-[#003049]/70" />
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#386641]/10 text-[#386641] flex items-center gap-1">
+                <Shuffle className="w-3 h-3 text-[#386641]/70" />
                 今日これやりたい
               </span>
               <button
                 onClick={() => setShowRandomPickModal(false)}
-                className="p-1 rounded-full text-[#003049]/40 hover:text-[#003049]"
+                className="p-1 rounded-full text-[#386641]/40 hover:text-[#386641]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1125,18 +1125,18 @@ export default function WishCollection({
             {/* ピックされたカード */}
             <div className="p-4 rounded-2xl bg-[#FDF0D5]/40 border border-[#DDA15E]/30 my-2">
               <div className="flex items-center gap-2 mb-2 text-xs">
-                <span className="font-semibold text-[#003049] flex items-center gap-1">
+                <span className="font-semibold text-[#386641] flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-[#C1121F]" />
                   {pickedWish.city || "どこでも"}
                 </span>
-                <span className="text-[#003049]/30">•</span>
-                <span className="text-[#003049]/70">やりたい度: {pickedWish.priority}</span>
+                <span className="text-[#386641]/30">•</span>
+                <span className="text-[#386641]/70">やりたい度: {pickedWish.priority}</span>
               </div>
-              <h3 className="text-base font-bold text-[#003049] leading-snug">
+              <h3 className="text-base font-bold text-[#386641] leading-snug">
                 {pickedWish.title}
               </h3>
               {pickedWish.memo && (
-                <p className="text-xs text-[#003049]/80 mt-2 bg-white/95 p-2 rounded-lg border border-[#DDA15E]/20">
+                <p className="text-xs text-[#386641]/80 mt-2 bg-white/95 p-2 rounded-lg border border-[#DDA15E]/20">
                   {pickedWish.memo}
                 </p>
               )}
@@ -1149,7 +1149,7 @@ export default function WishCollection({
                   handleDirectChangeStatus(pickedWish, "DONE");
                   setShowRandomPickModal(false);
                 }}
-                className="w-full py-2.5 bg-[#386641] hover:bg-[#386641]/90 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full py-2.5 bg-[#003049] hover:bg-[#003049]/90 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 やった！にする
@@ -1158,9 +1158,9 @@ export default function WishCollection({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleTriggerRandomPick}
-                  className="py-2.5 bg-[#FDF0D5]/60 hover:bg-[#FDF0D5] text-[#003049] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1"
+                  className="py-2.5 bg-[#FDF0D5]/60 hover:bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/30 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1"
                 >
-                  <Shuffle className="w-3.5 h-3.5 text-[#003049]/70" />
+                  <Shuffle className="w-3.5 h-3.5 text-[#386641]/70" />
                   もう一回
                 </button>
                 <button
@@ -1168,7 +1168,7 @@ export default function WishCollection({
                     setShowRandomPickModal(false);
                     handleOpenEditModal(pickedWish);
                   }}
-                  className="py-2.5 bg-[#003049]/5 hover:bg-[#003049]/10 text-[#003049] rounded-xl text-xs font-semibold transition"
+                  className="py-2.5 bg-[#386641]/5 hover:bg-[#386641]/10 text-[#386641] rounded-xl text-xs font-semibold transition"
                 >
                   詳細を見る
                 </button>
@@ -1180,10 +1180,10 @@ export default function WishCollection({
 
       {/* ======================= モーダル: 追加 / 編集 ======================= */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#003049]/60 backdrop-blur-xs overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#386641]/60 backdrop-blur-xs overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl border border-[#DDA15E]/30 flex flex-col gap-4 my-8">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[#003049]">
+              <h3 className="text-base font-bold text-[#386641]">
                 {editingWish ? "やりたいことを編集" : "やりたいことを追加"}
               </h3>
               <button
@@ -1191,7 +1191,7 @@ export default function WishCollection({
                   setShowAddModal(false);
                   resetForm();
                 }}
-                className="p-1 rounded-full text-[#003049]/40 hover:text-[#003049]"
+                className="p-1 rounded-full text-[#386641]/40 hover:text-[#386641]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1199,7 +1199,7 @@ export default function WishCollection({
 
             {/* やりたいことタイトル */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1">
+              <label className="block text-xs font-bold text-[#386641] mb-1">
                 やりたいこと <span className="text-[#C1121F]">*</span>
               </label>
               <textarea
@@ -1207,13 +1207,13 @@ export default function WishCollection({
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="例: 朝のカフェで1時間ぼーっとする、地元のベーカリーに並ぶ..."
                 rows={2}
-                className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
               />
             </div>
 
             {/* 都市の選択 */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 都市との紐付け
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -1224,8 +1224,8 @@ export default function WishCollection({
                     onClick={() => setForm({ ...form, city: c })}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                       form.city === c
-                        ? "bg-[#003049] text-white"
-                        : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                        ? "bg-[#386641] text-white"
+                        : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                     }`}
                   >
                     {c}
@@ -1236,8 +1236,8 @@ export default function WishCollection({
                   onClick={() => setForm({ ...form, city: "CUSTOM" })}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                     form.city === "CUSTOM"
-                      ? "bg-[#003049] text-white"
-                      : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                      ? "bg-[#386641] text-white"
+                      : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                   }`}
                 >
                   自由入力
@@ -1252,14 +1252,14 @@ export default function WishCollection({
                     if (e.key === "Enter") e.preventDefault();
                   }}
                   placeholder="都市名を入力（例: コモ湖）"
-                  className="w-full mt-2 border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                  className="w-full mt-2 border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                 />
               )}
             </div>
 
             {/* 誰とやるか（複数選択可） */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 誰とやるか（複数選択可）
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -1273,8 +1273,8 @@ export default function WishCollection({
                       onClick={() => toggleWithWhom(p)}
                       className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium transition ${
                         selected
-                          ? "bg-[#003049] text-white font-semibold"
-                          : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                          ? "bg-[#386641] text-white font-semibold"
+                          : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                       }`}
                     >
                       {selected && <Check className="w-3 h-3" />}
@@ -1289,14 +1289,14 @@ export default function WishCollection({
                   .map((customTag) => (
                     <span
                       key={customTag}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#003049] text-white shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#386641] text-white shadow-2xs"
                     >
                       <Check className="w-3 h-3" />
                       {customTag}
                       <button
                         type="button"
                         onClick={() => handleRemoveCustomWithWhom(customTag)}
-                        className="p-0.5 hover:bg-[#003049]/80 rounded text-white/70 hover:text-white transition"
+                        className="p-0.5 hover:bg-[#386641]/80 rounded text-white/70 hover:text-white transition"
                         title={`${customTag} を削除`}
                       >
                         <X className="w-3 h-3" />
@@ -1318,12 +1318,12 @@ export default function WishCollection({
                     }
                   }}
                   placeholder="タグを入力（例: 家族、同僚、現地の人）"
-                  className="flex-1 border border-[#DDA15E]/40 rounded-xl px-3 py-1.5 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                  className="flex-1 border border-[#DDA15E]/40 rounded-xl px-3 py-1.5 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomWithWhom}
-                  className="px-3.5 py-1.5 bg-[#003049] text-white hover:bg-[#003049]/90 rounded-xl text-xs font-semibold transition"
+                  className="px-3.5 py-1.5 bg-[#386641] text-white hover:bg-[#386641]/90 rounded-xl text-xs font-semibold transition"
                 >
                   追加
                 </button>
@@ -1332,7 +1332,7 @@ export default function WishCollection({
 
             {/* やりたい度 (1〜5) */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 やりたい度: <span className="text-[#DDA15E] font-bold">{form.priority}</span>
               </label>
               <div className="grid grid-cols-5 gap-2">
@@ -1343,8 +1343,8 @@ export default function WishCollection({
                     onClick={() => setForm({ ...form, priority: lvl })}
                     className={`py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 ${
                       form.priority === lvl
-                        ? "bg-[#DDA15E] text-[#003049] ring-2 ring-[#003049] shadow-2xs font-extrabold"
-                        : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                        ? "bg-[#DDA15E] text-[#386641] ring-2 ring-[#386641] shadow-2xs font-extrabold"
+                        : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                     }`}
                   >
                     <span>{lvl}</span>
@@ -1355,7 +1355,7 @@ export default function WishCollection({
 
             {/* ステータス */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 現在のステータス
               </label>
               <div className="grid grid-cols-3 gap-1.5">
@@ -1367,7 +1367,7 @@ export default function WishCollection({
                     className={`py-1.5 px-2 rounded-xl text-xs font-semibold transition border ${
                       form.status === stKey
                         ? cfg.activeClass
-                        : "bg-[#FDF0D5]/40 border-[#DDA15E]/30 text-[#003049] hover:bg-[#FDF0D5]"
+                        : "bg-[#FDF0D5]/40 border-[#DDA15E]/30 text-[#386641] hover:bg-[#FDF0D5]"
                     }`}
                   >
                     {cfg.label}
@@ -1378,7 +1378,7 @@ export default function WishCollection({
 
             {/* カテゴリ選択（振り返り用） */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 カテゴリ（振り返り用）
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -1389,8 +1389,8 @@ export default function WishCollection({
                     onClick={() => setForm({ ...form, category: catKey as WishCategory })}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition ${
                       form.category === catKey
-                        ? "bg-[#003049] text-white font-semibold"
-                        : "bg-[#003049]/5 text-[#003049] hover:bg-[#003049]/10"
+                        ? "bg-[#386641] text-white font-semibold"
+                        : "bg-[#386641]/5 text-[#386641] hover:bg-[#386641]/10"
                     }`}
                   >
                     {cfg.icon}
@@ -1402,7 +1402,7 @@ export default function WishCollection({
 
             {/* メモ */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1">
+              <label className="block text-xs font-bold text-[#386641] mb-1">
                 メモ
               </label>
               <textarea
@@ -1410,26 +1410,26 @@ export default function WishCollection({
                 onChange={(e) => setForm({ ...form, memo: e.target.value })}
                 placeholder="場所の目安や、具体的な思いつきなど"
                 rows={2}
-                className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
               />
             </div>
 
             {/* 保存ボタン */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#003049]/10">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#386641]/10">
               <button
                 type="button"
                 onClick={() => {
                   setShowAddModal(false);
                   resetForm();
                 }}
-                className="px-4 py-2 rounded-xl text-xs text-[#003049]/70 hover:bg-[#003049]/5 font-medium"
+                className="px-4 py-2 rounded-xl text-xs text-[#386641]/70 hover:bg-[#386641]/5 font-medium"
               >
                 キャンセル
               </button>
               <button
                 type="button"
                 onClick={handleSaveWish}
-                className="px-5 py-2 bg-[#386641] hover:bg-[#386641]/90 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                className="px-5 py-2 bg-[#003049] hover:bg-[#003049]/90 text-white rounded-xl text-xs font-bold transition shadow-sm"
               >
                 {editingWish ? "更新する" : "登録する"}
               </button>

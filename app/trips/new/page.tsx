@@ -101,10 +101,10 @@ export default function NewTripPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FDF0D5] text-[#003049] pb-20">
+    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-20">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#003049]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
-        <Link href="/trips" className="text-2xl font-bold tracking-wider text-[#003049] font-brand">
+      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
+        <Link href="/trips" className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
         </Link>
       </nav>
@@ -112,17 +112,17 @@ export default function NewTripPage() {
       <div className="max-w-xl mx-auto px-4 sm:px-6 pt-10">
         <Link
           href="/trips"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003049]/70 hover:text-[#003049] transition mb-6"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#386641]/70 hover:text-[#386641] transition mb-6"
         >
           <ArrowLeft className="w-4 h-4" /> プラン一覧に戻る
         </Link>
 
         <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-6 sm:p-8 shadow-xs">
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold tracking-tight text-[#003049]">
+            <h1 className="text-2xl font-extrabold tracking-tight text-[#386641]">
               新しい旅を計画する
             </h1>
-            <p className="text-[#003049]/70 text-xs mt-1">
+            <p className="text-[#386641]/70 text-xs mt-1">
               目的地や日程、予算を設定して、旅のスケジュール作りを始めましょう。
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function NewTripPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-sm">
             {/* Title */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5">
                 旅行タイトル <span className="text-[#C1121F]">*</span>
               </label>
               <input
@@ -139,14 +139,14 @@ export default function NewTripPage() {
                 onChange={handleChange}
                 placeholder="例: 京都 桜の寺社巡り & グルメ旅、沖縄ドライブ"
                 required
-                className="w-full border border-[#003049]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                className="w-full border border-[#386641]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               />
             </div>
 
             {/* Destination */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-[#003049]/50" />
+              <label className="block text-xs font-bold text-[#386641] mb-1.5 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-[#386641]/50" />
                 目的地・エリア
               </label>
               <input
@@ -154,15 +154,15 @@ export default function NewTripPage() {
                 value={form.destination}
                 onChange={handleChange}
                 placeholder="例: 京都、金沢、北海道、台湾"
-                className="w-full border border-[#003049]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                className="w-full border border-[#386641]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               />
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#003049] mb-1.5 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#003049]/50" />
+                <label className="block text-xs font-bold text-[#386641] mb-1.5 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#386641]/50" />
                   出発日
                 </label>
                 <input
@@ -170,12 +170,12 @@ export default function NewTripPage() {
                   name="startDate"
                   value={form.startDate}
                   onChange={handleChange}
-                  className="w-full border border-[#003049]/20 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#003049] mb-1.5 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#003049]/50" />
+                <label className="block text-xs font-bold text-[#386641] mb-1.5 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#386641]/50" />
                   帰国日・最終日
                 </label>
                 <input
@@ -183,14 +183,14 @@ export default function NewTripPage() {
                   name="endDate"
                   value={form.endDate}
                   onChange={handleChange}
-                  className="w-full border border-[#003049]/20 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                  className="w-full border border-[#386641]/20 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
                 />
               </div>
             </div>
 
             {/* Budget */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5 flex items-center gap-1">
+              <label className="block text-xs font-bold text-[#386641] mb-1.5 flex items-center gap-1">
                 <CircleDollarSign className="w-3.5 h-3.5 text-[#DDA15E]" />
                 目標総予算 (円)
               </label>
@@ -201,14 +201,14 @@ export default function NewTripPage() {
                 value={form.budget}
                 onChange={handleChange}
                 placeholder="例: 50000 (全角・半角どちらでも自動変換)"
-                className="w-full border border-[#003049]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+                className="w-full border border-[#386641]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold text-[#003049] mb-1.5 flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5 text-[#003049]/50" />
+              <label className="block text-xs font-bold text-[#386641] mb-1.5 flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-[#386641]/50" />
                 メモ・旅のテーマ
               </label>
               <textarea
@@ -217,7 +217,7 @@ export default function NewTripPage() {
                 onChange={handleChange}
                 placeholder="旅の目的や、やりたいことリストなど"
                 rows={3}
-                className="w-full border border-[#003049]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049] resize-none"
+                className="w-full border border-[#386641]/20 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641] resize-none"
               />
             </div>
 
@@ -230,9 +230,9 @@ export default function NewTripPage() {
                 onChange={(e) =>
                   setForm((prev) => ({ ...prev, includeDefaultPacking: e.target.checked }))
                 }
-                className="w-4 h-4 accent-[#386641] rounded cursor-pointer"
+                className="w-4 h-4 accent-[#003049] rounded cursor-pointer"
               />
-              <label htmlFor="defaultPacking" className="text-xs text-[#003049] font-medium cursor-pointer">
+              <label htmlFor="defaultPacking" className="text-xs text-[#386641] font-medium cursor-pointer">
                 ✨ 定番の持ち物リスト（充電器、着替え、常備薬など）を初期登録する
               </label>
             </div>

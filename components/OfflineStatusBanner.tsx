@@ -54,8 +54,8 @@ export default function OfflineStatusBanner({
     <div
       className={`fixed bottom-4 right-4 z-50 max-w-md px-4 py-3 rounded-2xl shadow-xl border transition-all duration-300 flex items-center justify-between gap-3 text-xs md:text-sm ${
         isOnline
-          ? "bg-[#386641]/95 text-white border-[#386641] backdrop-blur-md"
-          : "bg-[#003049]/95 text-white border-[#DDA15E]/50 backdrop-blur-md"
+          ? "bg-[#003049]/95 text-white border-[#003049] backdrop-blur-md"
+          : "bg-[#386641]/95 text-white border-[#DDA15E]/50 backdrop-blur-md"
       }`}
     >
       <div className="flex items-center gap-2.5">

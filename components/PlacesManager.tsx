@@ -51,12 +51,12 @@ interface PlacesManagerProps {
 
 export const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   FOOD: <Utensils className="w-4 h-4 text-[#DDA15E]" />,
-  SIGHTSEEING: <Landmark className="w-4 h-4 text-[#386641]" />,
+  SIGHTSEEING: <Landmark className="w-4 h-4 text-[#003049]" />,
   CAFE: <Coffee className="w-4 h-4 text-[#DDA15E]" />,
   HOTEL: <Hotel className="w-4 h-4 text-[#DDA15E]" />,
   SHOPPING: <ShoppingBag className="w-4 h-4 text-[#C1121F]" />,
-  ACTIVITY: <Ticket className="w-4 h-4 text-[#386641]" />,
-  OTHER: <Bookmark className="w-4 h-4 text-[#003049]" />,
+  ACTIVITY: <Ticket className="w-4 h-4 text-[#003049]" />,
+  OTHER: <Bookmark className="w-4 h-4 text-[#386641]" />,
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -389,13 +389,13 @@ export default function PlacesManager({
       {/* Top action bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#003049] flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-[#386641] flex items-center gap-2">
             <span>📍 行きたいスポット・お店リスト</span>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
               {places.length} 件
             </span>
           </h2>
-          <p className="text-[#003049]/70 text-xs mt-0.5">
+          <p className="text-[#386641]/70 text-xs mt-0.5">
             食べたいグルメや観光地をストックし、ワンクリックで旅程タイムラインに組み込めます。
           </p>
         </div>
@@ -424,15 +424,15 @@ export default function PlacesManager({
               onClick={() => setSelectedCategory(cat.key)}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
                 isSelected
-                  ? "bg-[#003049] text-[#FDF0D5] border-[#003049] shadow-xs"
-                  : "bg-white/90 text-[#003049] border-[#DDA15E]/30 hover:border-[#DDA15E]/60 hover:bg-white"
+                  ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                  : "bg-white/90 text-[#386641] border-[#DDA15E]/30 hover:border-[#DDA15E]/60 hover:bg-white"
               }`}
             >
               {cat.icon}
               <span>{cat.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  isSelected ? "bg-white/20 text-white" : "bg-[#003049]/10 text-[#003049]/70"
+                  isSelected ? "bg-white/20 text-white" : "bg-[#386641]/10 text-[#386641]/70"
                 }`}
               >
                 {count}
@@ -445,18 +445,18 @@ export default function PlacesManager({
       {/* Search and City Filter Bar */}
       <div className="flex flex-col gap-2.5 bg-white/70 p-3 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#003049]/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#386641]/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="都市名（パリ、サンセバ、ナポリ等）やスポット名、料理名で検索..."
-            className="w-full pl-9 pr-8 py-2 bg-white border border-[#003049]/15 rounded-xl text-xs text-[#003049] placeholder-[#003049]/40 focus:outline-none focus:ring-2 focus:ring-[#003049]/20 focus:border-[#003049]"
+            className="w-full pl-9 pr-8 py-2 bg-white border border-[#386641]/15 rounded-xl text-xs text-[#386641] placeholder-[#386641]/40 focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#003049]/40 hover:text-[#003049] p-0.5"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#386641]/40 hover:text-[#386641] p-0.5"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -465,7 +465,7 @@ export default function PlacesManager({
 
         {/* City quick filter pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-          <span className="text-[11px] font-bold text-[#003049]/60 whitespace-nowrap pl-0.5">都市別:</span>
+          <span className="text-[11px] font-bold text-[#386641]/60 whitespace-nowrap pl-0.5">都市別:</span>
           {CITY_TAGS.map((tag) => {
             const isTagActive = tag.query === "" ? searchQuery === "" : searchQuery === tag.query;
             return (
@@ -475,8 +475,8 @@ export default function PlacesManager({
                 onClick={() => setSearchQuery(tag.query)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition border ${
                   isTagActive
-                    ? "bg-[#386641] text-white border-[#386641] shadow-2xs"
-                    : "bg-white/80 text-[#003049]/70 border-[#003049]/15 hover:bg-white hover:text-[#003049]"
+                    ? "bg-[#003049] text-white border-[#003049] shadow-2xs"
+                    : "bg-white/80 text-[#386641]/70 border-[#386641]/15 hover:bg-white hover:text-[#386641]"
                 }`}
               >
                 {tag.label}
@@ -487,10 +487,10 @@ export default function PlacesManager({
 
         {/* Active search indicator */}
         {(searchQuery || selectedCategory !== "ALL") && (
-          <div className="flex items-center justify-between text-[11px] text-[#003049]/70 pt-1 border-t border-[#003049]/10">
+          <div className="flex items-center justify-between text-[11px] text-[#386641]/70 pt-1 border-t border-[#386641]/10">
             <span>
-              該当スポット: <strong className="text-[#003049]">{filteredPlaces.length}</strong> 件
-              {searchQuery && <span className="ml-1 text-[#386641]">（「{searchQuery}」で絞り込み中）</span>}
+              該当スポット: <strong className="text-[#386641]">{filteredPlaces.length}</strong> 件
+              {searchQuery && <span className="ml-1 text-[#003049]">（「{searchQuery}」で絞り込み中）</span>}
             </span>
             <button
               type="button"
@@ -510,20 +510,20 @@ export default function PlacesManager({
       {filteredPlaces.length === 0 ? (
         <div className="text-center py-16 px-4 bg-white/90 border border-dashed border-[#DDA15E]/40 rounded-2xl">
           <div className="text-4xl mb-3">📍</div>
-          <h3 className="text-[#003049] font-semibold text-sm">スポットが登録されていません</h3>
-          <p className="text-[#003049]/60 text-xs mt-1 max-w-sm mx-auto">
+          <h3 className="text-[#386641] font-semibold text-sm">スポットが登録されていません</h3>
+          <p className="text-[#386641]/60 text-xs mt-1 max-w-sm mx-auto">
             ご飯のお店や行きたい観光スポットを追加して、旅の計画を充実させましょう！
           </p>
           <div className="flex justify-center gap-2 mt-4">
             <button
               onClick={() => handleOpenAddModal("FOOD")}
-              className="px-3.5 py-2 bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30 transition flex items-center gap-1"
+              className="px-3.5 py-2 bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-semibold hover:bg-[#DDA15E]/30 transition flex items-center gap-1"
             >
               <Utensils className="w-3.5 h-3.5" /> 飲食店を追加
             </button>
             <button
               onClick={() => handleOpenAddModal("SIGHTSEEING")}
-              className="px-3.5 py-2 bg-[#386641]/15 text-[#386641] border border-[#386641]/30 rounded-xl text-xs font-semibold hover:bg-[#386641]/25 transition flex items-center gap-1"
+              className="px-3.5 py-2 bg-[#003049]/15 text-[#003049] border border-[#003049]/30 rounded-xl text-xs font-semibold hover:bg-[#003049]/25 transition flex items-center gap-1"
             >
               <Landmark className="w-3.5 h-3.5" /> 観光地を追加
             </button>
@@ -536,7 +536,7 @@ export default function PlacesManager({
               key={place.id}
               className={`bg-white/95 border rounded-2xl p-5 shadow-xs transition-all hover:shadow-md flex flex-col justify-between ${
                 place.visited
-                  ? "border-[#003049]/10 bg-white/60 opacity-80"
+                  ? "border-[#386641]/10 bg-white/60 opacity-80"
                   : "border-[#DDA15E]/30 hover:border-[#DDA15E]/60"
               }`}
             >
@@ -544,13 +544,13 @@ export default function PlacesManager({
                 {/* Header: Category, Visited check & Actions */}
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#003049]/5 text-[#003049] border border-[#003049]/10">
+                    <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#386641]/5 text-[#386641] border border-[#386641]/10">
                       {CATEGORY_ICONS[place.category] || CATEGORY_ICONS.OTHER}
                       {CATEGORY_LABELS[place.category] || place.category}
                     </span>
 
                     {place.reservationStatus === "BOOKED" && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#386641]/15 text-[#386641] border border-[#386641]/30">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#003049]/15 text-[#003049] border border-[#003049]/30">
                         ✓ 予約済み
                       </span>
                     )}
@@ -572,14 +572,14 @@ export default function PlacesManager({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleOpenEditModal(place)}
-                      className="p-1.5 text-[#003049]/40 hover:text-[#003049] rounded-lg hover:bg-[#003049]/10 transition"
+                      className="p-1.5 text-[#386641]/40 hover:text-[#386641] rounded-lg hover:bg-[#386641]/10 transition"
                       title="編集"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDeletePlace(place.id)}
-                      className="p-1.5 text-[#003049]/40 hover:text-[#C1121F] rounded-lg hover:bg-[#C1121F]/10 transition"
+                      className="p-1.5 text-[#386641]/40 hover:text-[#C1121F] rounded-lg hover:bg-[#C1121F]/10 transition"
                       title="削除"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -591,18 +591,18 @@ export default function PlacesManager({
                 <div className="flex items-start gap-2.5 my-2">
                   <button
                     onClick={() => handleToggleVisited(place)}
-                    className="mt-0.5 text-[#003049]/30 hover:text-[#386641] transition"
+                    className="mt-0.5 text-[#386641]/30 hover:text-[#003049] transition"
                     title={place.visited ? "未訪問に戻す" : "訪問済みにする"}
                   >
                     {place.visited ? (
-                      <CheckCircle2 className="w-5 h-5 text-[#386641] fill-[#386641]/10" />
+                      <CheckCircle2 className="w-5 h-5 text-[#003049] fill-[#003049]/10" />
                     ) : (
-                      <Circle className="w-5 h-5 text-[#003049]/30" />
+                      <Circle className="w-5 h-5 text-[#386641]/30" />
                     )}
                   </button>
                   <h3
-                    className={`text-base font-bold tracking-tight text-[#003049] ${
-                      place.visited ? "line-through text-[#003049]/40" : ""
+                    className={`text-base font-bold tracking-tight text-[#386641] ${
+                      place.visited ? "line-through text-[#386641]/40" : ""
                     }`}
                   >
                     {place.name}
@@ -611,14 +611,14 @@ export default function PlacesManager({
 
                 {/* Hotel Stay Banner if HOTEL category */}
                 {place.category === "HOTEL" && (place.checkInDate || place.checkOutDate) && (
-                  <div className="my-2 p-2.5 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 flex flex-col gap-1 text-xs text-[#003049]">
-                    <div className="flex items-center justify-between font-bold text-[#003049]">
+                  <div className="my-2 p-2.5 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 flex flex-col gap-1 text-xs text-[#386641]">
+                    <div className="flex items-center justify-between font-bold text-[#386641]">
                       <span className="flex items-center gap-1.5">
                         <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
                         宿泊日程
                       </span>
                       {place.checkInDate && place.checkOutDate && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#DDA15E]/30 text-[#003049]">
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#DDA15E]/30 text-[#386641]">
                           {(() => {
                             const start = new Date(place.checkInDate);
                             const end = new Date(place.checkOutDate);
@@ -628,7 +628,7 @@ export default function PlacesManager({
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-[#003049]/80 font-medium">
+                    <div className="flex items-center gap-2 text-[11px] text-[#386641]/80 font-medium">
                       <span>
                         IN: {place.checkInDate ? new Date(place.checkInDate).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }) : "-"}
                         {place.checkInTime ? ` ${place.checkInTime}` : ""}
@@ -643,12 +643,12 @@ export default function PlacesManager({
                     {/* Breakfast status */}
                     <div className="mt-1 pt-1.5 border-t border-[#DDA15E]/20 flex items-center gap-1.5">
                       {place.hasBreakfast ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#DDA15E]/20 text-[#003049] border border-[#DDA15E]/40">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40">
                           <Coffee className="w-3.5 h-3.5 text-[#DDA15E]" />
                           朝食付き
                         </span>
                       ) : (
-                        <span className="text-[10px] font-medium text-[#003049]/60 bg-[#003049]/10 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-medium text-[#386641]/60 bg-[#386641]/10 px-2 py-0.5 rounded-md">
                           素泊まり（朝食なし）
                         </span>
                       )}
@@ -657,30 +657,30 @@ export default function PlacesManager({
                 )}
 
                 {/* Meta Information (Cost, Hours, Address) */}
-                <div className="flex flex-col gap-1.5 text-xs text-[#003049]/80 mt-2">
+                <div className="flex flex-col gap-1.5 text-xs text-[#386641]/80 mt-2">
                   {place.cost !== null && place.cost !== undefined && (
-                    <div className="flex items-center gap-1.5 text-[#003049]">
+                    <div className="flex items-center gap-1.5 text-[#386641]">
                       <CircleDollarSign className="w-3.5 h-3.5 text-[#DDA15E]" />
                       <span>{place.category === "HOTEL" ? "宿泊費用" : "目安予算"}: ¥{place.cost.toLocaleString()}</span>
                     </div>
                   )}
 
                   {place.businessHours && place.category !== "HOTEL" && (
-                    <div className="flex items-center gap-1.5 text-[#003049]/70">
-                      <Clock className="w-3.5 h-3.5 text-[#003049]/40" />
+                    <div className="flex items-center gap-1.5 text-[#386641]/70">
+                      <Clock className="w-3.5 h-3.5 text-[#386641]/40" />
                       <span>営業時間: {place.businessHours}</span>
                     </div>
                   )}
 
                   {place.address && (
-                    <div className="flex items-center gap-1.5 text-[#003049]/70">
-                      <MapPin className="w-3.5 h-3.5 text-[#003049]/40" />
+                    <div className="flex items-center gap-1.5 text-[#386641]/70">
+                      <MapPin className="w-3.5 h-3.5 text-[#386641]/40" />
                       <span className="truncate">{place.address}</span>
                     </div>
                   )}
 
                   {place.memo && (
-                    <div className="mt-2 p-2.5 rounded-xl bg-[#FDF0D5]/50 text-[#003049]/80 text-xs border border-[#DDA15E]/30 leading-relaxed">
+                    <div className="mt-2 p-2.5 rounded-xl bg-[#FDF0D5]/50 text-[#386641]/80 text-xs border border-[#DDA15E]/30 leading-relaxed">
                       💬 {place.memo}
                     </div>
                   )}
@@ -688,14 +688,14 @@ export default function PlacesManager({
               </div>
 
               {/* Bottom Actions: Map link, Web link & Add to Schedule button */}
-              <div className="flex items-center justify-between pt-4 mt-3 border-t border-[#003049]/10 gap-2">
+              <div className="flex items-center justify-between pt-4 mt-3 border-t border-[#386641]/10 gap-2">
                 <div className="flex items-center gap-2">
                   {place.mapUrl ? (
                     <a
                       href={place.mapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#003049] hover:text-[#C1121F] bg-[#003049]/5 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#386641] hover:text-[#C1121F] bg-[#386641]/5 px-2.5 py-1 rounded-lg transition"
                     >
                       <MapPin className="w-3 h-3 text-[#C1121F]" />
                       Googleマップ
@@ -707,9 +707,9 @@ export default function PlacesManager({
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#003049]/70 hover:text-[#003049] bg-[#003049]/5 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#386641]/70 hover:text-[#386641] bg-[#386641]/5 px-2.5 py-1 rounded-lg transition"
                     >
-                      <MapPin className="w-3 h-3 text-[#003049]/50" />
+                      <MapPin className="w-3 h-3 text-[#386641]/50" />
                       マップ検索
                     </a>
                   )}
@@ -719,7 +719,7 @@ export default function PlacesManager({
                       href={place.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#003049]/70 hover:text-[#003049] bg-[#003049]/5 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-[#386641]/70 hover:text-[#386641] bg-[#386641]/5 px-2.5 py-1 rounded-lg transition"
                     >
                       <ExternalLink className="w-3 h-3" />
                       サイト
@@ -755,7 +755,7 @@ export default function PlacesManager({
                       endTime: isHotel ? place.checkOutTime || "11:00" : "13:30",
                     });
                   }}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#DDA15E]/20 text-[#003049] hover:bg-[#DDA15E]/30 border border-[#DDA15E]/40 transition shadow-2xs"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#DDA15E]/20 text-[#386641] hover:bg-[#DDA15E]/30 border border-[#DDA15E]/40 transition shadow-2xs"
                 >
                   <CalendarPlus className="w-3.5 h-3.5 text-[#DDA15E]" />
                   旅程に追加
@@ -768,15 +768,15 @@ export default function PlacesManager({
 
       {/* Add / Edit Place Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-[#003049]/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#386641]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#DDA15E]/30 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10 mb-4">
-              <h3 className="text-lg font-bold text-[#003049]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#386641]/10 mb-4">
+              <h3 className="text-lg font-bold text-[#386641]">
                 {editingPlace ? "スポットを編集" : "新しいスポットを追加"}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-[#003049]/40 hover:text-[#003049] p-1 font-bold"
+                className="text-[#386641]/40 hover:text-[#386641] p-1 font-bold"
               >
                 ✕
               </button>
@@ -785,7 +785,7 @@ export default function PlacesManager({
             <div className="flex flex-col gap-4 text-sm">
               {/* Category selection */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049]/80 mb-1.5">
+                <label className="block text-xs font-semibold text-[#386641]/80 mb-1.5">
                   カテゴリ
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -796,8 +796,8 @@ export default function PlacesManager({
                       onClick={() => setForm({ ...form, category: catKey as PlaceCategory })}
                       className={`px-3 py-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition ${
                         form.category === catKey
-                          ? "bg-[#003049] text-white border-[#003049] shadow-xs"
-                          : "bg-[#FDF0D5]/30 text-[#003049] border-[#DDA15E]/30 hover:bg-[#FDF0D5]"
+                          ? "bg-[#386641] text-white border-[#386641] shadow-xs"
+                          : "bg-[#FDF0D5]/30 text-[#386641] border-[#DDA15E]/30 hover:bg-[#FDF0D5]"
                       }`}
                     >
                       {CATEGORY_ICONS[catKey]}
@@ -809,14 +809,14 @@ export default function PlacesManager({
 
               {/* Spot Name */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                   {form.category === "HOTEL" ? "ホテル・宿名" : "スポット名・店名"} <span className="text-[#C1121F]">*</span>
                 </label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder={form.category === "HOTEL" ? "例: 京都ホテルオークラ、星野リゾート" : "例: 祇園きなな、清水寺、ルーヴル美術館"}
-                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                 />
               </div>
 
@@ -824,12 +824,12 @@ export default function PlacesManager({
               {form.category === "HOTEL" && (
                 <div className="p-4 rounded-2xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#386641] flex items-center gap-1.5">
                       <Hotel className="w-4 h-4 text-[#DDA15E]" />
                       宿泊期間（チェックイン & チェックアウト）
                     </span>
                     {form.checkInDate && form.checkOutDate && (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
                         {(() => {
                           const start = new Date(form.checkInDate);
                           const end = new Date(form.checkOutDate);
@@ -843,25 +843,25 @@ export default function PlacesManager({
                   {/* Check-in Date & Time */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         チェックイン日
                       </label>
                       <input
                         type="date"
                         value={form.checkInDate}
                         onChange={(e) => setForm({ ...form, checkInDate: e.target.value })}
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         チェックイン時刻
                       </label>
                       <input
                         type="time"
                         value={form.checkInTime}
                         onChange={(e) => setForm({ ...form, checkInTime: e.target.value })}
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                   </div>
@@ -869,25 +869,25 @@ export default function PlacesManager({
                   {/* Check-out Date & Time */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         チェックアウト日
                       </label>
                       <input
                         type="date"
                         value={form.checkOutDate}
                         onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         チェックアウト時刻
                       </label>
                       <input
                         type="time"
                         value={form.checkOutTime}
                         onChange={(e) => setForm({ ...form, checkOutTime: e.target.value })}
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                   </div>
@@ -895,8 +895,8 @@ export default function PlacesManager({
                   {/* Breakfast Option */}
                   <div className="pt-2 border-t border-[#DDA15E]/30 flex items-center justify-between">
                     <div>
-                      <label className="text-xs font-semibold text-[#003049] block">朝食プラン</label>
-                      <p className="text-[10px] text-[#003049]/60">朝食が含まれているか選択</p>
+                      <label className="text-xs font-semibold text-[#386641] block">朝食プラン</label>
+                      <p className="text-[10px] text-[#386641]/60">朝食が含まれているか選択</p>
                     </div>
                     <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-[#DDA15E]/30">
                       <button
@@ -904,8 +904,8 @@ export default function PlacesManager({
                         onClick={() => setForm({ ...form, hasBreakfast: false })}
                         className={`px-3 py-1 text-xs rounded-lg font-medium transition ${
                           !form.hasBreakfast
-                            ? "bg-[#003049] text-white shadow-xs font-semibold"
-                            : "text-[#003049]/60 hover:text-[#003049]"
+                            ? "bg-[#386641] text-white shadow-xs font-semibold"
+                            : "text-[#386641]/60 hover:text-[#386641]"
                         }`}
                       >
                         素泊まり
@@ -915,11 +915,11 @@ export default function PlacesManager({
                         onClick={() => setForm({ ...form, hasBreakfast: true })}
                         className={`flex items-center gap-1 px-3 py-1 text-xs rounded-lg font-semibold transition ${
                           form.hasBreakfast
-                            ? "bg-[#DDA15E] text-[#003049] font-bold shadow-xs"
-                            : "text-[#003049]/60 hover:text-[#003049]"
+                            ? "bg-[#DDA15E] text-[#386641] font-bold shadow-xs"
+                            : "text-[#386641]/60 hover:text-[#386641]"
                         }`}
                       >
-                        <Coffee className="w-3.5 h-3.5 text-[#003049]" />
+                        <Coffee className="w-3.5 h-3.5 text-[#386641]" />
                         朝食付き
                       </button>
                     </div>
@@ -927,12 +927,12 @@ export default function PlacesManager({
 
                   {!editingPlace && (
                     <div className="pt-2 border-t border-[#DDA15E]/30 mt-1">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#003049]">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#386641]">
                         <input
                           type="checkbox"
                           checked={autoAddToSchedule}
                           onChange={(e) => setAutoAddToSchedule(e.target.checked)}
-                          className="w-4 h-4 rounded text-[#386641] focus:ring-[#386641]"
+                          className="w-4 h-4 rounded text-[#003049] focus:ring-[#003049]"
                         />
                         <span>🗓️ 保存時に旅程タイムラインにも自動で追加する</span>
                       </label>
@@ -945,7 +945,7 @@ export default function PlacesManager({
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-semibold text-[#003049]/80">
+                    <label className="block text-xs font-semibold text-[#386641]/80">
                       目安予算 (円)
                     </label>
                     <button
@@ -953,8 +953,8 @@ export default function PlacesManager({
                       onClick={() => setSplitMode(!splitMode)}
                       className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
                         splitMode
-                          ? "bg-[#DDA15E]/20 border-[#DDA15E] text-[#003049] font-semibold"
-                          : "bg-white border-[#DDA15E]/30 text-[#003049]/70 hover:bg-[#FDF0D5]/50"
+                          ? "bg-[#DDA15E]/20 border-[#DDA15E] text-[#386641] font-semibold"
+                          : "bg-white border-[#DDA15E]/30 text-[#386641]/70 hover:bg-[#FDF0D5]/50"
                       }`}
                     >
                       <Divide className="w-3 h-3" />
@@ -969,7 +969,7 @@ export default function PlacesManager({
                       setForm({ ...form, cost: normalizeNumberInput(e.target.value) })
                     }
                     placeholder={splitMode ? "合計金額を入力" : "例: 2500"}
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   />
                   {splitMode && (
                     <div className="mt-2 flex items-center gap-2">
@@ -980,28 +980,28 @@ export default function PlacesManager({
                           inputMode="numeric"
                           value={splitPeople}
                           onChange={(e) => setSplitPeople(normalizeNumberInput(e.target.value))}
-                          className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-[#003049]"
+                          className="w-10 text-center text-sm bg-transparent focus:outline-none font-semibold text-[#386641]"
                         />
-                        <span className="text-xs text-[#003049]">人</span>
+                        <span className="text-xs text-[#386641]">人</span>
                       </div>
                       <div className="flex-1 text-right">
                         {form.cost && Number(splitPeople) > 0 ? (
                           <p className="text-sm">
-                            <span className="text-[#003049]/70">1人あたり </span>
-                            <span className="font-bold text-[#003049]">
+                            <span className="text-[#386641]/70">1人あたり </span>
+                            <span className="font-bold text-[#386641]">
                               ¥{Math.ceil(Number(form.cost) / (Number(splitPeople) || 1)).toLocaleString()}
                             </span>
-                            <span className="text-[10px] text-[#003049]/50 ml-1">（保存される金額）</span>
+                            <span className="text-[10px] text-[#386641]/50 ml-1">（保存される金額）</span>
                           </p>
                         ) : (
-                          <p className="text-xs text-[#003049]/50">金額を入力すると1人分が計算されます</p>
+                          <p className="text-xs text-[#386641]/50">金額を入力すると1人分が計算されます</p>
                         )}
                       </div>
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                  <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                     予約ステータス
                   </label>
                   <select
@@ -1009,7 +1009,7 @@ export default function PlacesManager({
                     onChange={(e) =>
                       setForm({ ...form, reservationStatus: e.target.value as ReservationStatus })
                     }
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   >
                     <option value="NONE">予約不要</option>
                     <option value="NEED_BOOKING">⚠️ 要予約</option>
@@ -1021,24 +1021,24 @@ export default function PlacesManager({
               {/* Business hours & Rating */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                  <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                     営業時間・定休日
                   </label>
                   <input
                     value={form.businessHours}
                     onChange={(e) => setForm({ ...form, businessHours: e.target.value })}
                     placeholder="例: 11:00〜20:00 (水曜休)"
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                  <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                     行きたい度 (星評価)
                   </label>
                   <select
                     value={form.rating}
                     onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   >
                     <option value="5">★★★★★ 絶対行きたい</option>
                     <option value="4">★★★★☆ とても行きたい</option>
@@ -1051,46 +1051,46 @@ export default function PlacesManager({
 
               {/* Address */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                   住所・最寄り駅
                 </label>
                 <input
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   placeholder="例: 京都市東山区祇園町南側570-119"
-                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                 />
               </div>
 
               {/* Google Maps URL & Website URL */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                  <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                     Google Maps URL
                   </label>
                   <input
                     value={form.mapUrl}
                     onChange={(e) => setForm({ ...form, mapUrl: e.target.value })}
                     placeholder="https://maps.app.goo.gl/..."
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                  <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                     公式サイト / 食べログ / SNS
                   </label>
                   <input
                     value={form.websiteUrl}
                     onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
                     placeholder="https://tabelog.com/..."
-                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                    className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                   />
                 </div>
               </div>
 
               {/* Memo */}
               <div>
-                <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                   メモ・おすすめメニュー・予約番号
                 </label>
                 <textarea
@@ -1098,23 +1098,23 @@ export default function PlacesManager({
                   onChange={(e) => setForm({ ...form, memo: e.target.value })}
                   placeholder="例: パフェが有名。混むので開店直後がおすすめ。予約番号 #12345"
                   rows={3}
-                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E] resize-none"
+                  className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E] resize-none"
                 />
               </div>
 
               {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#003049]/10">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#386641]/10">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
+                  className="px-4 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium"
                 >
                   キャンセル
                 </button>
                 <button
                   type="button"
                   onClick={handleSavePlace}
-                  className="px-5 py-2.5 bg-[#386641] text-white rounded-xl text-xs font-semibold hover:bg-[#386641]/90 shadow-xs transition"
+                  className="px-5 py-2.5 bg-[#003049] text-white rounded-xl text-xs font-semibold hover:bg-[#003049]/90 shadow-xs transition"
                 >
                   {editingPlace ? "変更を保存" : "スポットを登録"}
                 </button>
@@ -1126,23 +1126,23 @@ export default function PlacesManager({
 
       {/* Add To Schedule Modal */}
       {targetPlaceForSchedule && (
-        <div className="fixed inset-0 z-50 bg-[#003049]/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#386641]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-[#DDA15E]/30">
-            <div className="flex items-center justify-between pb-3 border-b border-[#003049]/10 mb-4">
-              <h3 className="text-base font-bold text-[#003049] flex items-center gap-2">
+            <div className="flex items-center justify-between pb-3 border-b border-[#386641]/10 mb-4">
+              <h3 className="text-base font-bold text-[#386641] flex items-center gap-2">
                 <CalendarPlus className="w-5 h-5 text-[#DDA15E]" />
                 旅程タイムラインに追加
               </h3>
               <button
                 onClick={() => setTargetPlaceForSchedule(null)}
-                className="text-[#003049]/40 hover:text-[#003049] p-1 font-bold"
+                className="text-[#386641]/40 hover:text-[#386641] p-1 font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-xs text-[#003049]/80 mb-3">
-              「<span className="font-semibold text-[#003049]">{targetPlaceForSchedule.name}</span>
+            <p className="text-xs text-[#386641]/80 mb-3">
+              「<span className="font-semibold text-[#386641]">{targetPlaceForSchedule.name}</span>
               」をタイムラインに追加します。
             </p>
 
@@ -1151,12 +1151,12 @@ export default function PlacesManager({
                 /* Hotel specific checkin / checkout dates */
                 <div className="p-3.5 rounded-2xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#386641] flex items-center gap-1.5">
                       <Hotel className="w-4 h-4 text-[#DDA15E]" />
                       宿泊設定
                     </span>
                     {scheduleForm.date && scheduleForm.checkOutDate && (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#003049]">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#DDA15E]/20 text-[#386641]">
                         {(() => {
                           const start = new Date(scheduleForm.date);
                           const end = new Date(scheduleForm.checkOutDate);
@@ -1169,24 +1169,24 @@ export default function PlacesManager({
                     )}
                   </div>
 
-                  <p className="text-[11px] text-[#003049]/80">
+                  <p className="text-[11px] text-[#386641]/80">
                     💡 チェックイン時刻とチェックアウト時刻がそれぞれの日のタイムラインに自動挿入されます。
                   </p>
 
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-[11px] font-semibold text-[#386641]/80 mb-1">
                         チェックイン日 <span className="text-[#C1121F]">*</span>
                       </label>
                       <input
                         type="date"
                         value={scheduleForm.date}
                         onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })}
-                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-[11px] font-semibold text-[#386641]/80 mb-1">
                         チェックイン時刻
                       </label>
                       <input
@@ -1195,14 +1195,14 @@ export default function PlacesManager({
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, startTime: e.target.value })
                         }
-                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-[11px] font-semibold text-[#386641]/80 mb-1">
                         チェックアウト日
                       </label>
                       <input
@@ -1211,11 +1211,11 @@ export default function PlacesManager({
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, checkOutDate: e.target.value })
                         }
-                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-[11px] font-semibold text-[#386641]/80 mb-1">
                         チェックアウト時刻
                       </label>
                       <input
@@ -1224,7 +1224,7 @@ export default function PlacesManager({
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, endTime: e.target.value })
                         }
-                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#003049] focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-lg px-2.5 py-1.5 text-xs bg-white text-[#386641] focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                   </div>
@@ -1233,20 +1233,20 @@ export default function PlacesManager({
                 /* Non-hotel date and time */
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                    <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                       訪問日 <span className="text-[#C1121F]">*</span>
                     </label>
                     <input
                       type="date"
                       value={scheduleForm.date}
                       onChange={(e) => setScheduleForm({ ...scheduleForm, date: e.target.value })}
-                      className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                      className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         開始時刻
                       </label>
                       <input
@@ -1255,11 +1255,11 @@ export default function PlacesManager({
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, startTime: e.target.value })
                         }
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      <label className="block text-xs font-semibold text-[#386641]/80 mb-1">
                         終了時刻
                       </label>
                       <input
@@ -1268,18 +1268,18 @@ export default function PlacesManager({
                         onChange={(e) =>
                           setScheduleForm({ ...scheduleForm, endTime: e.target.value })
                         }
-                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#003049] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
+                        className="w-full border border-[#DDA15E]/40 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#DDA15E]"
                       />
                     </div>
                   </div>
                 </>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#003049]/10 mt-2">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#386641]/10 mt-2">
                 <button
                   type="button"
                   onClick={() => setTargetPlaceForSchedule(null)}
-                  className="px-4 py-2 text-[#003049]/70 hover:text-[#003049] text-xs font-medium"
+                  className="px-4 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium"
                 >
                   キャンセル
                 </button>
