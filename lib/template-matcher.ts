@@ -15,7 +15,7 @@ export interface MappedSlotAssignment {
 
 /**
  * Deterministically evaluates and scores all templates based on user's photo features.
- * Returns sorted list of templates with matching reasons.
+ * Gives highest priority to templates matching the exact count of user's selected photos.
  */
 export function scoreTemplatesForPhotos(
   photos: PhotoFeatures[],
@@ -26,7 +26,6 @@ export function scoreTemplatesForPhotos(
   const photoCount = photos.length;
   const portraitCount = photos.filter((p) => p.orientation === "portrait").length;
   const landscapeCount = photos.filter((p) => p.orientation === "landscape").length;
-  const squareCount = photos.filter((p) => p.orientation === "square").length;
   const avgBrightness =
     photos.reduce((sum, p) => sum + p.brightness, 0) / (photos.length || 1);
 
@@ -34,26 +33,33 @@ export function scoreTemplatesForPhotos(
     let score = 50; // base score
     const reasons: string[] = [];
 
-    // 1. Photo Count Compatibility
-    const requiredSlots = tpl.slots.filter((s) => !s.optional).length;
+    // 1. Photo Count Compatibility (Strongest weight)
+    const minCount = tpl.supportedPhotoCount.min;
+    const maxCount = tpl.supportedPhotoCount.max;
     const totalSlots = tpl.slots.length;
 
-    if (photoCount >= tpl.supportedPhotoCount.min && photoCount <= tpl.supportedPhotoCount.max) {
-      score += 25;
-      reasons.push(`写真枚数(${photoCount}枚)が最適構成と一致`);
-      if (photoCount === totalSlots) {
+    if (photoCount >= minCount && photoCount <= maxCount) {
+      score += 35;
+      reasons.push(`選択枚数(${photoCount}枚)にジャストフィット`);
+
+      // Bonus if template slots can accommodate all without overflow
+      if (photoCount <= totalSlots) {
         score += 10;
-        reasons.push(`全スロットがピッタリ埋まるベスト枚数`);
+        reasons.push(`全${photoCount}枚が綺麗に配置される構成`);
       }
-    } else if (photoCount < requiredSlots) {
-      score -= 35; // missing slots
+    } else if (photoCount < minCount) {
+      // Photo count is fewer than template min
+      const diff = minCount - photoCount;
+      score -= diff * 15;
     } else {
-      score -= 15; // exceeds max supported count
+      // Photo count is larger than template max
+      const diff = photoCount - maxCount;
+      score -= diff * 10;
     }
 
     // 2. Orientation Alignment
     let orientationMatches = 0;
-    const sortedPhotos = [...photos].sort((a, b) => (b.width * b.height) - (a.width * a.height));
+    const sortedPhotos = [...photos].sort((a, b) => b.width * b.height - a.width * a.height);
 
     tpl.slots.forEach((slot, idx) => {
       const photo = sortedPhotos[idx % sortedPhotos.length];
@@ -72,9 +78,9 @@ export function scoreTemplatesForPhotos(
     score += orientationScore;
     if (orientationScore >= 16) {
       if (portraitCount >= landscapeCount) {
-        reasons.push(`縦向き写真の構成にフィット`);
+        reasons.push(`縦写真多めの構成にマッチ`);
       } else {
-        reasons.push(`横向き写真の比率にマッチ`);
+        reasons.push(`横写真多めの構成にマッチ`);
       }
     }
 
@@ -117,7 +123,9 @@ export function scoreTemplatesForPhotos(
 }
 
 /**
- * Assigns photos into template slots with deterministic, pleasant jitter within rotationRange.
+ * Assigns photos into template slots.
+ * IMPORTANT: Ensures that 100% of the user's selected photos are placed on the canvas.
+ * If photos exceed the template's predefined slots, dynamic overflow overlay slots are generated.
  */
 export function assignPhotosToTemplate(
   template: CollageTemplate,
@@ -126,22 +134,20 @@ export function assignPhotosToTemplate(
 ): MappedSlotAssignment[] {
   if (photos.length === 0) return [];
 
-  // Sort photos: prioritize main candidates for main slots
-  const sorted = [...photos];
   const assignments: MappedSlotAssignment[] = [];
+  const assignedPhotoIds = new Set<string>();
 
+  // 1. Assign photos to defined template slots
   template.slots.forEach((slot, idx) => {
-    // If photos are fewer than slots, only fill available or repeat nicely
-    if (idx >= sorted.length && slot.optional) return;
-    const photo = sorted[idx % sorted.length];
+    if (idx >= photos.length) return; // No more photos to assign to this slot
+    const photo = photos[idx];
+    assignedPhotoIds.add(photo.id);
 
     // Controlled pseudo-random jitter within rotationRange
-    // Based on photo ID hash + seedOffset so it's reproducible yet tweakable
     const minRot = slot.rotationRange[0];
     const maxRot = slot.rotationRange[1];
     const range = maxRot - minRot;
 
-    // Simple deterministic hash
     const charCodeSum = photo.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
     const pseudoRand = ((charCodeSum * 9301 + 49297 + seedOffset * 1013) % 233280) / 233280;
     const rotation = minRot + pseudoRand * range;
@@ -152,6 +158,40 @@ export function assignPhotosToTemplate(
       rotation,
     });
   });
+
+  // 2. Fallback: If user provided more photos than template has slots,
+  // dynamically generate aesthetically pleasing overlay slots so NO PHOTO IS OMITTED!
+  const remainingPhotos = photos.filter((p) => !assignedPhotoIds.has(p.id));
+
+  if (remainingPhotos.length > 0) {
+    const overflowPositions = [
+      { x: 0.10, y: 0.70, w: 0.36, h: 0.26, rot: -4 },
+      { x: 0.54, y: 0.70, w: 0.36, h: 0.26, rot: 5 },
+      { x: 0.30, y: 0.55, w: 0.40, h: 0.30, rot: -2 },
+      { x: 0.05, y: 0.40, w: 0.34, h: 0.28, rot: 6 },
+      { x: 0.58, y: 0.40, w: 0.34, h: 0.28, rot: -5 },
+    ];
+
+    remainingPhotos.forEach((photo, i) => {
+      const pos = overflowPositions[i % overflowPositions.length];
+      const extraSlot: TemplateSlot = {
+        role: "subPhoto",
+        x: pos.x,
+        y: pos.y,
+        width: pos.w,
+        height: pos.h,
+        rotationRange: [pos.rot - 2, pos.rot + 2],
+        zIndex: 10 + i,
+        frameStyle: template.style === "polaroid" ? "polaroid" : "tape",
+      };
+
+      assignments.push({
+        slot: extraSlot,
+        photo,
+        rotation: pos.rot,
+      });
+    });
+  }
 
   return assignments;
 }
