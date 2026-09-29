@@ -17,6 +17,7 @@ import BudgetSummary from "@/components/BudgetSummary";
 import WishCollection from "@/components/WishCollection";
 import OfflineGuideModal from "@/components/OfflineGuideModal";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
+import CollageStudio from "@/components/collage/CollageStudio";
 import {
   Calendar,
   MapPin,
@@ -32,7 +33,7 @@ import {
   PieChart,
   Luggage,
   Sparkles,
-  HelpCircle,
+  HelpCircle, Image,
 } from "lucide-react";
 
 export default function TripDetailPage() {
@@ -42,7 +43,7 @@ export default function TripDetailPage() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "wishes" | "packing" | "budget">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "wishes" | "packing" | "budget" | "collage">("timeline");
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -473,6 +474,18 @@ export default function TripDetailPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("collage")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "collage"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+            }`}
+          >
+            <Image className={`w-4 h-4 ${activeTab === "collage" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>コラージュ</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("packing")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "packing"
@@ -547,6 +560,18 @@ export default function TripDetailPage() {
               packingList={trip.packingList}
               onPackingListChange={handlePackingListChange}
               isOffline={isOfflineMode}
+            />
+          )}
+
+          {activeTab === "collage" && (
+            <CollageStudio
+              tripTitle={trip.title}
+              tripDates={
+                trip.startDate
+                  ? `${formatDate(trip.startDate)}${trip.endDate ? ` 〜 ${formatDate(trip.endDate)}` : ""}`
+                  : undefined
+              }
+              defaultPlaces={trip.places}
             />
           )}
 

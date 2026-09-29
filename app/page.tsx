@@ -10,6 +10,7 @@ import {
   Plane,
   Luggage,
   PieChart,
+  Camera,
 } from "lucide-react";
 
 export default function Home() {
@@ -21,6 +22,13 @@ export default function Home() {
           Marcaderno
         </span>
         <div className="flex items-center gap-3">
+          <Link
+            href="/collage"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 text-[#386641]/80 hover:text-[#386641] hover:bg-[#386641]/5 rounded-xl transition"
+          >
+            <Camera className="w-4 h-4 text-[#C1121F]" />
+            <span>コラージュ</span>
+          </Link>
           <Link
             href="/trips"
             className="text-xs sm:text-sm font-semibold px-4 py-2 text-[#386641]/70 hover:text-[#386641] transition"
@@ -82,7 +90,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Feature 1 */}
           <div className="bg-white/90 border border-[#DDA15E]/30 rounded-3xl p-6 shadow-xs hover:shadow-md transition">
             <div className="w-12 h-12 rounded-2xl bg-[#DDA15E]/20 text-[#386641] flex items-center justify-center mb-4">
@@ -121,6 +129,29 @@ export default function Home() {
               端末内DB（IndexedDB）への自動キャッシュ＆単一HTMLしおり出力。ネットが繋がらない機内や海外でも100%閲覧できます。
             </p>
           </div>
+
+          {/* Feature 4: Collage */}
+          <Link
+            href="/collage"
+            className="group bg-white/90 border border-[#DDA15E]/30 rounded-3xl p-6 shadow-xs hover:shadow-md hover:border-[#DDA15E] transition flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-[#C1121F]/10 text-[#C1121F] flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                <Camera className="w-6 h-6 text-[#C1121F]" />
+              </div>
+              <h3 className="font-bold text-base text-[#386641] mb-2 flex items-center gap-1.5">
+                <span>自動旅行コラージュ</span>
+                <span className="text-[10px] bg-[#C1121F] text-white px-2 py-0.5 rounded-full font-bold">New</span>
+              </h3>
+              <p className="text-[#386641]/70 text-xs sm:text-sm leading-relaxed">
+                旅行中の写真を選ぶだけ。ポラロイドやテープ風など10種のスタイルで、圏外でもスクラップブック画像を自動生成。
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#386641]/10 flex items-center gap-1 text-xs font-bold text-[#C1121F]">
+              <span>試してみる</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+            </div>
+          </Link>
         </div>
 
         {/* Additional highlight banner */}
