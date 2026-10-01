@@ -30,9 +30,20 @@ export interface CollageLayout {
   theme: CollageStyle;
 }
 
+import { PhotoFeatures } from "./collage-template";
+
+export interface SavedCollagePhoto {
+  features: PhotoFeatures;
+  dataUrl: string;
+}
+
 export interface SavedCollage {
   id: string; // uuid
   layout: CollageLayout;
   createdAt: string; // ISO timestamp
   thumbnail: string; // data URL for preview
+  templateId?: string;
+  customTitle?: string;
+  includeDateStamp?: boolean;
+  savedPhotos?: SavedCollagePhoto[];
 }

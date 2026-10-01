@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { PhotoFeatures, CollageTemplate, TemplateMatchScore } from "@/types/collage-template";
-import { SavedCollage } from "@/types/collage";
+import { SavedCollage, SavedCollagePhoto } from "@/types/collage";
 import { batchAnalyzePhotos } from "@/lib/photo-analyzer";
 import { scoreTemplatesForPhotos, assignPhotosToTemplate, MappedSlotAssignment } from "@/lib/template-matcher";
 import { renderTemplateCollageToCanvas } from "@/lib/collage-engine";
@@ -333,6 +333,50 @@ export default function CollageStudio({
     const canvas = canvasRef.current;
     const thumbnail = canvas.toDataURL("image/png", 0.7);
 
+    // Build lightweight image snapshots for full re-editability
+    const savedPhotos: SavedCollagePhoto[] = [];
+    for (const photo of analyzedPhotos) {
+      const img = imagesMap[photo.id];
+      if (!img) continue;
+
+      let dataUrl = "";
+      try {
+        const maxDim = 1200;
+        let w = img.naturalWidth || img.width || 800;
+        let h = img.naturalHeight || img.height || 600;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = w;
+        offCanvas.height = h;
+        const offCtx = offCanvas.getContext("2d");
+        if (offCtx) {
+          offCtx.drawImage(img, 0, 0, w, h);
+          const mimeType = photo.isCutoutSticker || photo.hasTransparency ? "image/png" : "image/jpeg";
+          dataUrl = offCanvas.toDataURL(mimeType, 0.85);
+        }
+      } catch (e) {
+        console.warn("Failed to serialize photo", photo.id, e);
+      }
+
+      if (dataUrl) {
+        savedPhotos.push({
+          features: {
+            ...photo,
+            src: dataUrl,
+          },
+          dataUrl,
+        });
+      }
+    }
+
     // Build SavedCollage
     const saved: SavedCollage = {
       id: crypto.randomUUID(),
@@ -352,6 +396,10 @@ export default function CollageStudio({
         theme: currentTemplate.style as any,
       },
       thumbnail,
+      templateId: currentTemplate.id,
+      customTitle,
+      includeDateStamp,
+      savedPhotos,
       createdAt: new Date().toISOString(),
     };
 
@@ -360,9 +408,88 @@ export default function CollageStudio({
       setSavedCollages((prev) => [saved, ...prev]);
       setIsSavedFeedback(true);
       setTimeout(() => setIsSavedFeedback(false), 2000);
+      showToast("💾 コラージュを保存しました！");
     } catch (err) {
       alert("保存中にエラーが発生しました。");
     }
+  };
+
+  // Re-edit saved collage (Restore canvas, photos, stickers, and template)
+  const handleReEditCollage = async (collage: SavedCollage) => {
+    if (collage.savedPhotos && collage.savedPhotos.length > 0) {
+      setIsAnalyzing(true);
+      try {
+        const newImagesMap: Record<string, HTMLImageElement> = {};
+        const newAnalyzedPhotos: PhotoFeatures[] = [];
+
+        await Promise.all(
+          collage.savedPhotos.map((sp) => {
+            return new Promise<void>((resolve) => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.onload = () => {
+                newImagesMap[sp.features.id] = img;
+                newAnalyzedPhotos.push(sp.features);
+                resolve();
+              };
+              img.onerror = () => {
+                console.warn("Failed to restore image", sp.features.id);
+                resolve();
+              };
+              img.src = sp.dataUrl;
+            });
+          })
+        );
+
+        if (newAnalyzedPhotos.length > 0) {
+          // Revoke any previous object URLs to prevent memory leaks
+          analyzedPhotos.forEach((p) => {
+            if (p.src.startsWith("blob:")) URL.revokeObjectURL(p.src);
+          });
+
+          setAnalyzedPhotos(newAnalyzedPhotos);
+          setImagesMap(newImagesMap);
+          photosRef.current = newAnalyzedPhotos;
+          imagesMapRef.current = newImagesMap;
+
+          if (collage.customTitle !== undefined) {
+            setCustomTitle(collage.customTitle);
+          }
+          if (collage.includeDateStamp !== undefined) {
+            setIncludeDateStamp(collage.includeDateStamp);
+          }
+
+          const targetTemplate =
+            COLLAGE_TEMPLATES.find((t) => t.id === collage.templateId) ||
+            COLLAGE_TEMPLATES.find((t) => t.background === collage.layout.background) ||
+            COLLAGE_TEMPLATES[0];
+
+          const scores = scoreTemplatesForPhotos(newAnalyzedPhotos);
+          setCandidateScores(scores);
+          setCurrentTemplate(targetTemplate);
+
+          const assignments = assignPhotosToTemplate(targetTemplate, newAnalyzedPhotos, jitterSeed);
+          setCurrentAssignments(assignments);
+
+          setShowSavedModal(false);
+          showToast("✨ コラージュをスタジオに復元しました！自由に再編集できます");
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to restore collage photos", e);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+
+    // Fallback if no saved photos (e.g. legacy data)
+    const fallbackTemplate =
+      COLLAGE_TEMPLATES.find((t) => t.id === collage.templateId) ||
+      COLLAGE_TEMPLATES.find((t) => t.background === collage.layout.background) ||
+      COLLAGE_TEMPLATES[0];
+    setCurrentTemplate(fallbackTemplate);
+    setShowSavedModal(false);
+    showToast("⚠️ 旧バージョンのデータのため、テンプレートのみ復元しました");
   };
 
   // Download directly or native share (Mobile/iOS Safari friendly)
@@ -849,13 +976,7 @@ export default function CollageStudio({
           collages={savedCollages}
           onClose={() => setShowSavedModal(false)}
           onDelete={handleDelete}
-          onSelect={(c) => {
-            const tpl =
-              COLLAGE_TEMPLATES.find((t) => t.background === c.layout.background) ||
-              COLLAGE_TEMPLATES[0];
-            setCurrentTemplate(tpl);
-            setShowSavedModal(false);
-          }}
+          onReEdit={handleReEditCollage}
         />
       )}
 
