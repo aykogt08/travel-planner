@@ -21,7 +21,10 @@ import {
   Award,
   Layers,
   ArrowLeftRight,
-  Share2,
+  ChevronDown,
+  ChevronUp,
+  X,
+  SlidersHorizontal,
 } from "lucide-react";
 
 interface CollageStudioProps {
@@ -46,6 +49,10 @@ export default function CollageStudio({
   const [currentTemplate, setCurrentTemplate] = useState<CollageTemplate | null>(null);
   const [currentAssignments, setCurrentAssignments] = useState<MappedSlotAssignment[]>([]);
   const [jitterSeed, setJitterSeed] = useState<number>(0);
+
+  // Accordion UI State for Mobile Optimization
+  const [isTemplateListOpen, setIsTemplateListOpen] = useState(false);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   // Customization Options
   const [customTitle, setCustomTitle] = useState(tripTitle || "");
@@ -128,7 +135,7 @@ export default function CollageStudio({
     );
   }, [currentTemplate, currentAssignments, imagesMap, customTitle, includeDateStamp, tripDates]);
 
-  // "もう一回 / 次の候補" Button: Switch to next scored candidate template & tweak jitter
+  // Switch to next scored candidate template & tweak jitter
   const handleNextCandidate = () => {
     if (candidateScores.length === 0 || analyzedPhotos.length === 0) return;
 
@@ -152,6 +159,49 @@ export default function CollageStudio({
 
     const assignments = assignPhotosToTemplate(tpl, analyzedPhotos, jitterSeed);
     setCurrentAssignments(assignments);
+    setIsTemplateListOpen(false); // Auto close accordion after selection on mobile
+  };
+
+  // Shuffle photos assignment within the current template (same layout, different photo order)
+  const handleShufflePhotosOnly = () => {
+    if (!currentTemplate || analyzedPhotos.length === 0) return;
+
+    // Shuffle the photo order
+    const shuffled = [...analyzedPhotos];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    setAnalyzedPhotos(shuffled);
+    const nextSeed = jitterSeed + 1;
+    setJitterSeed(nextSeed);
+
+    const assignments = assignPhotosToTemplate(currentTemplate, shuffled, nextSeed);
+    setCurrentAssignments(assignments);
+  };
+
+  // Remove a single photo from selection
+  const handleRemovePhoto = (id: string) => {
+    const target = analyzedPhotos.find((p) => p.id === id);
+    if (target) URL.revokeObjectURL(target.src);
+    const updatedPhotos = analyzedPhotos.filter((p) => p.id !== id);
+    const updatedImagesMap = { ...imagesMap };
+    delete updatedImagesMap[id];
+
+    setAnalyzedPhotos(updatedPhotos);
+    setImagesMap(updatedImagesMap);
+
+    if (updatedPhotos.length > 0) {
+      const scores = scoreTemplatesForPhotos(updatedPhotos);
+      setCandidateScores(scores);
+      const best = scores[0].template;
+      setCurrentTemplate(best);
+      const assignments = assignPhotosToTemplate(best, updatedPhotos, jitterSeed);
+      setCurrentAssignments(assignments);
+    } else {
+      handleClearPhotos();
+    }
   };
 
   // Save to IndexedDB
@@ -190,25 +240,6 @@ export default function CollageStudio({
     } catch (err) {
       alert("保存中にエラーが発生しました。");
     }
-  };
-
-  // Shuffle photos assignment within the current template (same layout, different photo order)
-  const handleShufflePhotosOnly = () => {
-    if (!currentTemplate || analyzedPhotos.length === 0) return;
-
-    // Shuffle the photo order
-    const shuffled = [...analyzedPhotos];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    setAnalyzedPhotos(shuffled);
-    const nextSeed = jitterSeed + 1;
-    setJitterSeed(nextSeed);
-
-    const assignments = assignPhotosToTemplate(currentTemplate, shuffled, nextSeed);
-    setCurrentAssignments(assignments);
   };
 
   // Download directly or native share (Mobile/iOS Safari friendly)
@@ -264,7 +295,6 @@ export default function CollageStudio({
               </div>`
             );
           } else {
-            // Last resort: trigger simulated click on dataURL
             const a = document.createElement("a");
             a.href = dataUrl;
             a.download = `Marcaderno_${Date.now()}.png`;
@@ -293,39 +323,40 @@ export default function CollageStudio({
     setCurrentTemplate(null);
     setCurrentAssignments([]);
     setCandidateIndex(0);
+    setIsTemplateListOpen(false);
   };
 
   const currentScoreInfo = candidateScores[candidateIndex];
 
   return (
-    <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-4 sm:p-8 shadow-xs">
+    <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-3 sm:p-8 shadow-xs">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#386641]/10">
+      <div className="flex items-center justify-between gap-2 pb-4 border-b border-[#386641]/10">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">📸</span>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#386641]">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xl sm:text-2xl">📸</span>
+            <h2 className="text-lg sm:text-2xl font-extrabold text-[#386641]">
               自動旅行コラージュ
             </h2>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
-              端末内写真分析・完全オフライン
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
+              完全オフライン
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-[#386641]/70 mt-1">
-            写真を選ぶと、端末上で縦横比・構成を自動分析し、最も似合うテンプレートを自動で選定・スコアリングします。
+          <p className="text-[11px] sm:text-sm text-[#386641]/70 mt-0.5">
+            写真を選ぶと、縦横比や向きを端末内で自動分析して最適なレイアウトを生成します。
           </p>
         </div>
 
         {/* Saved collages quick button */}
-        <div className="flex items-center gap-2">
+        <div className="shrink-0">
           <button
             type="button"
             onClick={() => setShowSavedModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 hover:bg-[#FDF0D5]/80 transition shadow-2xs"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 hover:bg-[#FDF0D5]/80 transition shadow-2xs"
           >
-            <FolderHeart className="w-4 h-4 text-[#C1121F]" />
-            <span>保存済み</span>
-            <span className="bg-[#386641]/10 px-1.5 py-0.5 rounded-full text-[10px]">
+            <FolderHeart className="w-3.5 h-3.5 text-[#C1121F]" />
+            <span className="hidden sm:inline">保存済み</span>
+            <span className="bg-[#386641]/10 px-1.5 py-0.2 rounded-full text-[10px]">
               {savedCollages.length}
             </span>
           </button>
@@ -333,13 +364,13 @@ export default function CollageStudio({
       </div>
 
       {/* Main Studio Controls */}
-      <div className="mt-6 flex flex-col gap-6">
+      <div className="mt-4 flex flex-col gap-4">
         {/* Step 1: Photos Picker & Analysis Feedback */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FDF0D5]/40 p-4 rounded-2xl border border-[#DDA15E]/20">
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
               <Camera className="w-4 h-4" />
-              <span>写真を選ぶ (2〜7枚推奨)</span>
+              <span>写真を追加 (3〜8枚推奨)</span>
               <input
                 type="file"
                 multiple
@@ -351,256 +382,284 @@ export default function CollageStudio({
 
             {isAnalyzing && (
               <span className="text-xs font-bold text-[#386641] animate-pulse">
-                🔍 端末上で写真を分析中...
+                🔍 写真を分析中...
               </span>
             )}
 
             {analyzedPhotos.length > 0 && !isAnalyzing && (
-              <div className="text-xs text-[#386641] flex items-center gap-2">
-                <span className="font-bold">{analyzedPhotos.length}枚を分析完了</span>
-                <span className="text-[#386641]/60">
-                  (縦: {analyzedPhotos.filter((p) => p.orientation === "portrait").length} / 横:{" "}
-                  {analyzedPhotos.filter((p) => p.orientation === "landscape").length})
-                </span>
-              </div>
+              <span className="text-[11px] sm:text-xs text-[#386641] bg-white/70 px-2 py-1 rounded-lg border border-[#386641]/10">
+                <b>{analyzedPhotos.length}枚</b> (横:{analyzedPhotos.filter((p) => p.orientation === "landscape").length} / 縦:{analyzedPhotos.filter((p) => p.orientation === "portrait").length})
+              </span>
             )}
           </div>
 
           {analyzedPhotos.length > 0 && (
             <button
               onClick={handleClearPhotos}
-              className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition"
+              className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition p-1"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> 写真を選び直す
+              <RotateCcw className="w-3.5 h-3.5" /> 選定をクリア
             </button>
           )}
         </div>
 
-        {/* Selected Photos Tray with Orientation Badges */}
+        {/* Selected Photos Tray with remove button (Compact scroll) */}
         {analyzedPhotos.length > 0 && (
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {analyzedPhotos.map((p, idx) => (
               <div
                 key={p.id}
-                className="relative w-18 h-18 sm:w-20 sm:h-20 shrink-0 rounded-xl overflow-hidden border-2 border-[#DDA15E]/50 shadow-2xs group"
+                className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden border border-[#DDA15E]/50 shadow-2xs group"
               >
                 <img src={p.src} alt="" className="w-full h-full object-cover" />
-                <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-md">
-                  #{idx + 1}
-                </span>
-                <span className="absolute top-1 left-1 bg-[#386641]/80 text-[#FDF0D5] text-[9px] font-bold px-1 rounded-sm">
-                  {p.orientation === "portrait" ? "縦" : p.orientation === "landscape" ? "横" : "正"}
+                <button
+                  type="button"
+                  onClick={() => handleRemovePhoto(p.id)}
+                  className="absolute top-0.5 right-0.5 bg-black/60 hover:bg-[#C1121F] text-white rounded-full p-0.5 transition"
+                  title="この写真を外す"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <span className="absolute bottom-0.5 left-0.5 bg-[#386641]/90 text-[#FDF0D5] text-[8px] font-bold px-1 rounded-xs">
+                  {p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"}
                 </span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Step 2: Scoring Recommendation Banner */}
-        {currentTemplate && currentScoreInfo && (
-          <div className="bg-[#386641]/8 border border-[#386641]/15 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#386641] text-[#FDF0D5] flex items-center justify-center shrink-0 shadow-xs">
-                <Award className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-sm sm:text-base text-[#386641]">
-                    候補 {candidateIndex + 1}/{candidateScores.length} : {currentTemplate.name}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-[#C1121F] text-white">
-                    相性スコア: {currentScoreInfo.score}点
+        {/* If no photos selected, show empty prompt */}
+        {analyzedPhotos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 sm:p-14 border-2 border-dashed border-[#DDA15E]/50 rounded-3xl bg-[#FDF0D5]/20 text-center">
+            <div className="w-14 h-14 rounded-full bg-[#DDA15E]/20 flex items-center justify-center mb-2.5">
+              <Camera className="w-7 h-7 text-[#386641]" />
+            </div>
+            <h3 className="font-extrabold text-sm sm:text-base text-[#386641]">
+              旅行の写真を選んでみよう
+            </h3>
+            <p className="text-xs text-[#386641]/70 max-w-xs mt-1">
+              写真を選ぶだけで、横写真・縦写真を自動判別して最適なコラージュを1秒で作成します。
+            </p>
+          </div>
+        ) : (
+          /* Mobile-First Layout: Result Preview at Top! */
+          <div className="flex flex-col gap-3">
+            {/* Step 2: Scoring Recommendation & Quick Action Bar */}
+            {currentTemplate && currentScoreInfo && (
+              <div className="bg-[#386641]/8 border border-[#386641]/15 rounded-2xl p-3 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-[#386641] text-[#FDF0D5] flex items-center justify-center shrink-0 shadow-2xs">
+                      <Award className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-extrabold text-xs sm:text-sm text-[#386641] truncate">
+                          {currentTemplate.name}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-[#C1121F] text-white shrink-0">
+                          相性 {currentScoreInfo.score}点
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-[#386641]/60 shrink-0">
+                    候補 {candidateIndex + 1}/{candidateScores.length}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-[#386641]/80">
+
+                {/* Reasons tags */}
+                <div className="flex flex-wrap items-center gap-1 text-[10px] text-[#386641]/80">
                   {currentScoreInfo.reasons.map((r, i) => (
-                    <span key={i} className="bg-white/80 border border-[#386641]/15 px-2 py-0.5 rounded-md">
+                    <span key={i} className="bg-white/80 border border-[#386641]/15 px-1.5 py-0.5 rounded-md">
                       ✓ {r}
                     </span>
                   ))}
                 </div>
-              </div>
-            </div>
 
-            {/* Quick Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleShufflePhotosOnly}
-                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white border border-[#386641]/20 text-[#386641] hover:bg-[#386641]/5 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95"
-                title="同じデザインのまま写真の順番を入れ替えます"
-              >
-                <ArrowLeftRight className="w-4 h-4 text-[#386641]" />
-                <span>🔀 写真をシャッフル</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleNextCandidate}
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95"
-              >
-                <Shuffle className="w-4 h-4" />
-                <span>🎲 別のデザイン候補</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Template Selector & Options */}
-        {analyzedPhotos.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#386641] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#DDA15E]" />
-                <span>全テンプレートから選択</span>
-              </label>
-              <span className="text-[11px] text-[#386641]/60">
-                スコアの高い順に並んでいます
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {candidateScores.map((scoreItem, idx) => {
-                const tpl = scoreItem.template;
-                const isSelected = currentTemplate?.id === tpl.id;
-                return (
+                {/* Primary Quick Actions for Thumb Operation */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#386641]/10">
                   <button
-                    key={tpl.id}
                     type="button"
-                    onClick={() => handleSelectTemplate(tpl)}
-                    className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition ${
-                      isSelected
-                        ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
-                        : "bg-white text-[#386641] border-[#386641]/10 hover:border-[#DDA15E] hover:bg-[#FDF0D5]/20"
-                    }`}
+                    onClick={handleShufflePhotosOnly}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-[#386641]/20 text-[#386641] hover:bg-[#386641]/5 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95 min-h-[42px]"
+                    title="同じデザインのまま写真の並び順だけを入れ替えます"
                   >
-                    <div className="flex items-center justify-between w-full font-bold text-xs">
-                      <span>{tpl.name.split(" ")[0]}</span>
-                      <span
-                        className={`text-[10px] px-1.5 rounded-sm ${
-                          isSelected ? "bg-white/20 text-white" : "bg-[#386641]/10 text-[#386641]"
-                        }`}
-                      >
-                        {scoreItem.score}点
-                      </span>
-                    </div>
-                    <span
-                      className={`text-[10px] mt-1 line-clamp-1 ${
-                        isSelected ? "text-[#FDF0D5]/80" : "text-[#386641]/60"
-                      }`}
-                    >
-                      {tpl.description}
-                    </span>
+                    <ArrowLeftRight className="w-3.5 h-3.5 text-[#386641]" />
+                    <span>🔀 写真をシャッフル</span>
                   </button>
-                );
-              })}
-            </div>
 
-            {/* Title & Date Customizer */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#386641]">
-                <Layers className="w-3.5 h-3.5 text-[#386641]/60" />
-                <span>タイトル & 日付スタンプ:</span>
+                  <button
+                    type="button"
+                    onClick={handleNextCandidate}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 hover:bg-[#FDF0D5]/80 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95 min-h-[42px]"
+                  >
+                    <Shuffle className="w-3.5 h-3.5 text-[#C1121F]" />
+                    <span>🎲 別の候補デザイン</span>
+                  </button>
+                </div>
               </div>
+            )}
 
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder="タイトル（例: Paris Trip）"
-                  value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] max-w-[160px] sm:max-w-xs"
-                />
-                <label className="flex items-center gap-1.5 text-xs font-bold text-[#386641] cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={includeDateStamp}
-                    onChange={(e) => setIncludeDateStamp(e.target.checked)}
-                    className="rounded text-[#386641] focus:ring-0"
-                  />
-                  <span>日付スタンプを入れる</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Canvas Workspace & Actions */}
-        {analyzedPhotos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 sm:p-16 border-2 border-dashed border-[#DDA15E]/50 rounded-3xl bg-[#FDF0D5]/20 text-center">
-            <div className="w-16 h-16 rounded-full bg-[#DDA15E]/20 flex items-center justify-center mb-3">
-              <Camera className="w-8 h-8 text-[#386641]" />
-            </div>
-            <h3 className="font-extrabold text-base sm:text-lg text-[#386641]">
-              旅の写真を読み込んでみよう
-            </h3>
-            <p className="text-xs sm:text-sm text-[#386641]/70 max-w-sm mt-1">
-              写真を選択すると、端末内で縦横比や明るさを自動分析し、ぴったりのコラージュテンプレートを自動選択します。
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
-            {/* Action Bar */}
-            <div className="w-full flex flex-wrap items-center justify-between gap-2 p-2 bg-[#FDF0D5]/50 border border-[#DDA15E]/30 rounded-2xl">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleShufflePhotosOnly}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-white text-[#386641] border border-[#386641]/20 rounded-xl text-xs font-bold hover:bg-[#386641]/5 transition active:scale-95 shadow-2xs"
-                  title="同じデザインのまま写真の並び順だけを入れ替えます"
-                >
-                  <ArrowLeftRight className="w-3.5 h-3.5 text-[#386641]" />
-                  <span>🔀 写真の配置をシャッフル</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleNextCandidate}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs font-bold hover:bg-[#FDF0D5]/80 transition active:scale-95 shadow-2xs"
-                >
-                  <Shuffle className="w-3.5 h-3.5 text-[#C1121F]" />
-                  <span>🎲 別のデザイン候補</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs active:scale-95 ${
-                    isSavedFeedback
-                      ? "bg-[#386641] text-white"
-                      : "bg-[#003049] text-white hover:bg-[#002235]"
-                  }`}
-                >
-                  {isSavedFeedback ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" /> 保存しました！
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-3.5 h-3.5" /> 端末に保存
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] hover:bg-[#a50f1a] text-white rounded-xl text-xs font-bold transition shadow-xs active:scale-95"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>画像を保存 / 共有</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Canvas Container */}
-            <div className="relative max-w-full overflow-hidden p-3 sm:p-6 bg-[#386641]/5 rounded-3xl border border-[#DDA15E]/30 shadow-inner flex justify-center">
+            {/* Canvas Preview Container (Placed high for immediate viewing) */}
+            <div className="relative max-w-full overflow-hidden p-2 sm:p-5 bg-[#386641]/5 rounded-3xl border border-[#DDA15E]/30 shadow-inner flex justify-center">
               <canvas
                 ref={canvasRef}
-                className="max-h-[68vh] w-auto max-w-full rounded-2xl shadow-xl border border-black/5"
+                className="max-h-[58vh] sm:max-h-[68vh] w-auto max-w-full rounded-2xl shadow-xl border border-black/5"
               />
+            </div>
+
+            {/* Export & Save Action Bar (Prominent Thumb Touch Zone) */}
+            <div className="grid grid-cols-2 gap-2 p-2 bg-[#FDF0D5]/60 border border-[#DDA15E]/30 rounded-2xl">
+              <button
+                type="button"
+                onClick={handleSave}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs active:scale-95 min-h-[44px] ${
+                  isSavedFeedback
+                    ? "bg-[#386641] text-white"
+                    : "bg-[#003049] text-white hover:bg-[#002235]"
+                }`}
+              >
+                {isSavedFeedback ? (
+                  <>
+                    <Check className="w-4 h-4" /> 保存完了！
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" /> 端末に保存
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs active:scale-95 min-h-[44px]"
+              >
+                <Download className="w-4 h-4" />
+                <span>画像を保存 / 共有</span>
+              </button>
+            </div>
+
+            {/* Accordion 1: Collapsible Full Template Selector (Clean & Space Saving) */}
+            <div className="border border-[#DDA15E]/30 rounded-2xl overflow-hidden bg-white/80">
+              <button
+                type="button"
+                onClick={() => setIsTemplateListOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-[#FDF0D5]/30 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#DDA15E]" />
+                  <span className="text-xs font-bold text-[#386641]">
+                    すべてのデザインから選ぶ (全{candidateScores.length}種)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-[#386641]/70 font-semibold">
+                  <span>{isTemplateListOpen ? "閉じる" : "一覧を開く"}</span>
+                  {isTemplateListOpen ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </div>
+              </button>
+
+              {isTemplateListOpen && (
+                <div className="p-3 pt-0 border-t border-[#386641]/10 mt-1 animate-in fade-in duration-200">
+                  <p className="text-[10px] text-[#386641]/60 mb-2">
+                    ※ 写真構成との相性スコアが高い順に並んでいます
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[45vh] overflow-y-auto pr-1">
+                    {candidateScores.map((scoreItem) => {
+                      const tpl = scoreItem.template;
+                      const isSelected = currentTemplate?.id === tpl.id;
+                      return (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => handleSelectTemplate(tpl)}
+                          className={`flex flex-col items-start p-2 rounded-xl border text-left transition ${
+                            isSelected
+                              ? "bg-[#386641] text-[#FDF0D5] border-[#386641] shadow-xs"
+                              : "bg-white text-[#386641] border-[#386641]/10 hover:border-[#DDA15E] hover:bg-[#FDF0D5]/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full font-bold text-[11px]">
+                            <span className="truncate">{tpl.name.split(" ")[0]}</span>
+                            <span
+                              className={`text-[9px] px-1 rounded-xs shrink-0 ${
+                                isSelected
+                                  ? "bg-white/20 text-white"
+                                  : "bg-[#386641]/10 text-[#386641]"
+                              }`}
+                            >
+                              {scoreItem.score}点
+                            </span>
+                          </div>
+                          <span
+                            className={`text-[9px] mt-0.5 line-clamp-1 ${
+                              isSelected ? "text-[#FDF0D5]/80" : "text-[#386641]/60"
+                            }`}
+                          >
+                            {tpl.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 2: Collapsible Title & Date Customizer */}
+            <div className="border border-[#DDA15E]/30 rounded-2xl overflow-hidden bg-white/80">
+              <button
+                type="button"
+                onClick={() => setIsCustomizerOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between p-3 text-left hover:bg-[#FDF0D5]/30 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-[#386641]/60" />
+                  <span className="text-xs font-bold text-[#386641]">
+                    タイトル・日付スタンプを編集
+                  </span>
+                  {customTitle && (
+                    <span className="text-[10px] text-[#386641]/60 bg-[#386641]/5 px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                      {customTitle}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-[#386641]/70 font-semibold">
+                  <span>{isCustomizerOpen ? "閉じる" : "変更"}</span>
+                  {isCustomizerOpen ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </div>
+              </button>
+
+              {isCustomizerOpen && (
+                <div className="p-3 pt-0 border-t border-[#386641]/10 mt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 animate-in fade-in duration-200">
+                  <input
+                    type="text"
+                    placeholder="タイトル（例: Paris Trip）"
+                    value={customTitle}
+                    onChange={(e) => setCustomTitle(e.target.value)}
+                    className="px-3 py-2 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] w-full sm:max-w-xs"
+                  />
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-[#386641] cursor-pointer pt-1 sm:pt-0">
+                    <input
+                      type="checkbox"
+                      checked={includeDateStamp}
+                      onChange={(e) => setIncludeDateStamp(e.target.checked)}
+                      className="rounded text-[#386641] focus:ring-0"
+                    />
+                    <span>日付スタンプをキャンバスに入れる</span>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -613,8 +672,9 @@ export default function CollageStudio({
           onClose={() => setShowSavedModal(false)}
           onDelete={handleDelete}
           onSelect={(c) => {
-            // Find template matching background or default
-            const tpl = COLLAGE_TEMPLATES.find((t) => t.background === c.layout.background) || COLLAGE_TEMPLATES[0];
+            const tpl =
+              COLLAGE_TEMPLATES.find((t) => t.background === c.layout.background) ||
+              COLLAGE_TEMPLATES[0];
             setCurrentTemplate(tpl);
             setShowSavedModal(false);
           }}

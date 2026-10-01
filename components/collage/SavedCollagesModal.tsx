@@ -17,12 +17,32 @@ export default function SavedCollagesModal({
   onDelete,
   onSelect,
 }: SavedCollagesModalProps) {
-  const handleDownload = (collage: SavedCollage, e: React.MouseEvent) => {
+  const handleDownload = async (collage: SavedCollage, e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = document.createElement("a");
-    link.download = `marcaderno-collage-${new Date(collage.createdAt).toISOString().slice(0, 10)}.png`;
-    link.href = collage.thumbnail;
-    link.click();
+    try {
+      const res = await fetch(collage.thumbnail);
+      const blob = await res.blob();
+      const file = new File([blob], `marcaderno-collage-${new Date(collage.createdAt).toISOString().slice(0, 10)}.png`, { type: "image/png" });
+
+      if (typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Marcaderno コラージュ",
+        });
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.download = `marcaderno-collage-${new Date(collage.createdAt).toISOString().slice(0, 10)}.png`;
+      link.href = collage.thumbnail;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      if (err.name !== "AbortError") {
+        window.open(collage.thumbnail);
+      }
+    }
   };
 
   return (
