@@ -121,14 +121,6 @@ export default function TripsPage() {
               保存したプランは自動で端末にキャッシュされ、オフラインでも閲覧できます。
             </p>
           </div>
-
-          <Link
-            href="/collage"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#003049] text-white hover:bg-[#002235] text-xs sm:text-sm font-bold shadow-xs transition shrink-0"
-          >
-            <Camera className="w-4 h-4 text-[#DDA15E]" />
-            <span>写真コラージュを作る</span>
-          </Link>
         </div>
 
         {loading ? (
