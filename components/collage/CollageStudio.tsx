@@ -25,6 +25,7 @@ import {
   ChevronUp,
   X,
   SlidersHorizontal,
+  Scissors,
 } from "lucide-react";
 
 interface CollageStudioProps {
@@ -366,41 +367,49 @@ export default function CollageStudio({
       {/* Main Studio Controls */}
       <div className="mt-4 flex flex-col gap-4">
         {/* Step 1: Photos Picker & Analysis Feedback */}
-        <div className="flex flex-wrap items-center justify-between gap-2 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
-          <div className="flex items-center gap-2 flex-wrap">
-            <label className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
-              <Camera className="w-4 h-4" />
-              <span>写真を追加 (3〜8枚推奨)</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={handleFilesSelected}
-              />
-            </label>
+        <div className="flex flex-col gap-2 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
+                <Camera className="w-4 h-4" />
+                <span>写真・切抜を追加</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
+              </label>
 
-            {isAnalyzing && (
-              <span className="text-xs font-bold text-[#386641] animate-pulse">
-                🔍 写真を分析中...
-              </span>
-            )}
+              {isAnalyzing && (
+                <span className="text-xs font-bold text-[#386641] animate-pulse">
+                  🔍 写真を分析中...
+                </span>
+              )}
 
-            {analyzedPhotos.length > 0 && !isAnalyzing && (
-              <span className="text-[11px] sm:text-xs text-[#386641] bg-white/70 px-2 py-1 rounded-lg border border-[#386641]/10">
-                <b>{analyzedPhotos.length}枚</b> (横:{analyzedPhotos.filter((p) => p.orientation === "landscape").length} / 縦:{analyzedPhotos.filter((p) => p.orientation === "portrait").length})
-              </span>
+              {analyzedPhotos.length > 0 && !isAnalyzing && (
+                <span className="text-[11px] sm:text-xs text-[#386641] bg-white/70 px-2 py-1 rounded-lg border border-[#386641]/10">
+                  <b>{analyzedPhotos.length}枚</b> (横:{analyzedPhotos.filter((p) => p.orientation === "landscape" && !p.isCutoutSticker).length} / 縦:{analyzedPhotos.filter((p) => p.orientation === "portrait" && !p.isCutoutSticker).length}
+                  {analyzedPhotos.some((p) => p.isCutoutSticker) && ` / ✂️切抜:${analyzedPhotos.filter((p) => p.isCutoutSticker).length}`}
+                  )
+                </span>
+              )}
+            </div>
+
+            {analyzedPhotos.length > 0 && (
+              <button
+                onClick={handleClearPhotos}
+                className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition p-1"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> 選定をクリア
+              </button>
             )}
           </div>
-
-          {analyzedPhotos.length > 0 && (
-            <button
-              onClick={handleClearPhotos}
-              className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition p-1"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> 選定をクリア
-            </button>
-          )}
+          <p className="text-[11px] text-[#386641]/75 flex items-center gap-1">
+            <Scissors className="w-3 h-3 text-[#C1121F] shrink-0" />
+            <span>iPhoneの写真アプリで被写体を長押し保存した透過画像（切り抜き）もステッカーとして重ねられます！</span>
+          </p>
         </div>
 
         {/* Selected Photos Tray with remove button (Compact scroll) */}
@@ -409,9 +418,9 @@ export default function CollageStudio({
             {analyzedPhotos.map((p, idx) => (
               <div
                 key={p.id}
-                className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden border border-[#DDA15E]/50 shadow-2xs group"
+                className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden border border-[#DDA15E]/50 shadow-2xs group bg-white/50"
               >
-                <img src={p.src} alt="" className="w-full h-full object-cover" />
+                <img src={p.src} alt="" className="w-full h-full object-contain p-0.5" />
                 <button
                   type="button"
                   onClick={() => handleRemovePhoto(p.id)}
@@ -420,8 +429,17 @@ export default function CollageStudio({
                 >
                   <X className="w-3 h-3" />
                 </button>
-                <span className="absolute bottom-0.5 left-0.5 bg-[#386641]/90 text-[#FDF0D5] text-[8px] font-bold px-1 rounded-xs">
-                  {p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"}
+                <span className={`absolute bottom-0.5 left-0.5 text-[8px] font-bold px-1 rounded-xs flex items-center gap-0.5 ${
+                  p.isCutoutSticker ? "bg-[#C1121F] text-white" : "bg-[#386641]/90 text-[#FDF0D5]"
+                }`}>
+                  {p.isCutoutSticker ? (
+                    <>
+                      <Scissors className="w-2.5 h-2.5" />
+                      <span>切抜</span>
+                    </>
+                  ) : (
+                    p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"
+                  )}
                 </span>
               </div>
             ))}

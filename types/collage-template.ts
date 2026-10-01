@@ -11,6 +11,8 @@ export interface PhotoFeatures {
   orientation: PhotoOrientation;
   brightness: number; // 0.0 (dark) - 1.0 (bright)
   isMainCandidate?: boolean; // high quality / clear aspect
+  hasTransparency?: boolean; // image contains transparent pixels (cutout sticker)
+  isCutoutSticker?: boolean;
 }
 
 export type SlotRole = "mainPhoto" | "secondaryPhoto" | "subPhoto" | "cutout" | "background" | "sticker";

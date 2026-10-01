@@ -153,12 +153,22 @@ export function assignPhotosToTemplate(
   const pickPhotoForSlot = (slot: TemplateSlot): PhotoFeatures => {
     let chosen: PhotoFeatures | undefined;
 
-    if (slot.preferredOrientation === "landscape") {
-      chosen = landscapePool.find((p) => !assignedPhotoIds.has(p.id));
-    } else if (slot.preferredOrientation === "portrait") {
-      chosen = portraitPool.find((p) => !assignedPhotoIds.has(p.id));
-    } else if (slot.preferredOrientation === "square") {
-      chosen = squarePool.find((p) => !assignedPhotoIds.has(p.id));
+    // If slot is designed for cutout sticker, pick sticker first
+    if (slot.role === "cutout") {
+      chosen = pool.find((p) => p.isCutoutSticker && !assignedPhotoIds.has(p.id));
+    }
+
+    if (!chosen && slot.preferredOrientation === "landscape") {
+      chosen = landscapePool.find((p) => !p.isCutoutSticker && !assignedPhotoIds.has(p.id));
+    } else if (!chosen && slot.preferredOrientation === "portrait") {
+      chosen = portraitPool.find((p) => !p.isCutoutSticker && !assignedPhotoIds.has(p.id));
+    } else if (!chosen && slot.preferredOrientation === "square") {
+      chosen = squarePool.find((p) => !p.isCutoutSticker && !assignedPhotoIds.has(p.id));
+    }
+
+    // Fallback: pick any unassigned non-sticker photo
+    if (!chosen) {
+      chosen = pool.find((p) => !p.isCutoutSticker && !assignedPhotoIds.has(p.id));
     }
 
     // Fallback: pick any unassigned photo
@@ -202,25 +212,24 @@ export function assignPhotosToTemplate(
 
   if (remainingPhotos.length > 0) {
     const overflowPositions = [
-      { x: 0.08, y: 0.72, w: 0.44, h: 0.26, rot: -3, pref: "landscape" as const },
-      { x: 0.50, y: 0.72, w: 0.44, h: 0.26, rot: 4, pref: "landscape" as const },
-      { x: 0.28, y: 0.52, w: 0.46, h: 0.30, rot: -2, pref: "landscape" as const },
-      { x: 0.06, y: 0.42, w: 0.44, h: 0.28, rot: 5, pref: "landscape" as const },
-      { x: 0.52, y: 0.42, w: 0.44, h: 0.28, rot: -4, pref: "landscape" as const },
+      { x: 0.05, y: 0.74, w: 0.43, h: 0.22, rot: -1, pref: "landscape" as const },
+      { x: 0.52, y: 0.74, w: 0.43, h: 0.22, rot: 1, pref: "landscape" as const },
+      { x: 0.28, y: 0.74, w: 0.44, h: 0.22, rot: 0, pref: "landscape" as const },
     ];
 
     remainingPhotos.forEach((photo, i) => {
       const pos = overflowPositions[i % overflowPositions.length];
+      const isSticker = photo.isCutoutSticker;
       const extraSlot: TemplateSlot = {
-        role: "subPhoto",
-        x: pos.x,
-        y: pos.y,
-        width: pos.w,
-        height: pos.h,
+        role: isSticker ? "cutout" : "subPhoto",
+        x: isSticker ? 0.35 : pos.x,
+        y: isSticker ? 0.45 : pos.y,
+        width: isSticker ? 0.32 : pos.w,
+        height: isSticker ? 0.32 : pos.h,
         rotationRange: [pos.rot - 2, pos.rot + 2],
-        zIndex: 10 + i,
+        zIndex: isSticker ? 25 : 10 + i,
         preferredOrientation: photo.orientation,
-        frameStyle: template.style === "polaroid" ? "polaroid" : "tape",
+        frameStyle: isSticker ? "none" : template.style === "polaroid" ? "polaroid" : "tape",
       };
 
       assignments.push({

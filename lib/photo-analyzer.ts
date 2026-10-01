@@ -26,8 +26,9 @@ export async function analyzePhoto(
         orientation = "portrait";
       }
 
-      // Analyze brightness via small offscreen canvas sample (32x32)
+      // Analyze brightness and transparency via small offscreen canvas sample (32x32)
       let brightness = 0.5;
+      let hasTransparency = false;
       try {
         const offCanvas = document.createElement("canvas");
         offCanvas.width = 32;
@@ -38,18 +39,25 @@ export async function analyzePhoto(
           const imageData = ctx.getImageData(0, 0, 32, 32);
           const data = imageData.data;
           let totalLuminance = 0;
+          let transparentPixelCount = 0;
           for (let i = 0; i < data.length; i += 4) {
-            // Standard relative luminance calculation
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
+            const a = data[i + 3];
+            if (a < 200) {
+              transparentPixelCount++;
+            }
             const lum = 0.299 * r + 0.587 * g + 0.114 * b;
             totalLuminance += lum;
           }
           brightness = totalLuminance / (data.length / 4) / 255;
+          // If more than 5% of pixels are transparent, it's a cutout sticker (e.g. iOS Subject Cutout PNG)
+          if (transparentPixelCount > (data.length / 4) * 0.05) {
+            hasTransparency = true;
+          }
         }
       } catch (err) {
-        // Fallback for CORS or canvas restriction
         brightness = 0.5;
       }
 
@@ -61,8 +69,9 @@ export async function analyzePhoto(
         aspectRatio,
         orientation,
         brightness,
-        // High resolution and good aspect ratio makes it a strong main candidate
         isMainCandidate: width >= 1200 && height >= 1200,
+        hasTransparency,
+        isCutoutSticker: hasTransparency,
       };
 
       resolve({ features, imgElement: img });

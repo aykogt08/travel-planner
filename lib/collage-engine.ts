@@ -612,8 +612,15 @@ export function renderTemplateCollageToCanvas(
     ctx.rotate((rotation * Math.PI) / 180);
 
     const frameStyle = slot.frameStyle || "clean";
+    const isSticker = photo.isCutoutSticker || frameStyle === "none";
 
-    if (frameStyle === "polaroid") {
+    if (isSticker) {
+      // Cutout Sticker: seamless background-free sticker with natural drop shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 6;
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    } else if (frameStyle === "polaroid") {
       ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
       ctx.shadowBlur = 18;
       ctx.shadowOffsetY = 8;
