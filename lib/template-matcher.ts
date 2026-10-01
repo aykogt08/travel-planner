@@ -217,17 +217,47 @@ export function assignPhotosToTemplate(
       { x: 0.28, y: 0.74, w: 0.44, h: 0.22, rot: 0, pref: "landscape" as const },
     ];
 
+    const stickerPositions = [
+      { x: 0.58, y: 0.52, w: 0.36, h: 0.36, rot: 5 },
+      { x: 0.08, y: 0.28, w: 0.34, h: 0.34, rot: -6 },
+      { x: 0.32, y: 0.60, w: 0.35, h: 0.35, rot: 2 },
+      { x: 0.60, y: 0.12, w: 0.32, h: 0.32, rot: -4 },
+    ];
+    let stickerIndex = 0;
+
     remainingPhotos.forEach((photo, i) => {
-      const pos = overflowPositions[i % overflowPositions.length];
       const isSticker = photo.isCutoutSticker;
+      let slotX: number;
+      let slotY: number;
+      let slotW: number;
+      let slotH: number;
+      let slotRot: number;
+
+      if (isSticker) {
+        const sPos = stickerPositions[stickerIndex % stickerPositions.length];
+        stickerIndex++;
+        slotX = sPos.x;
+        slotY = sPos.y;
+        slotW = sPos.w;
+        slotH = sPos.h;
+        slotRot = sPos.rot;
+      } else {
+        const pos = overflowPositions[i % overflowPositions.length];
+        slotX = pos.x;
+        slotY = pos.y;
+        slotW = pos.w;
+        slotH = pos.h;
+        slotRot = pos.rot;
+      }
+
       const extraSlot: TemplateSlot = {
         role: isSticker ? "cutout" : "subPhoto",
-        x: isSticker ? 0.35 : pos.x,
-        y: isSticker ? 0.45 : pos.y,
-        width: isSticker ? 0.32 : pos.w,
-        height: isSticker ? 0.32 : pos.h,
-        rotationRange: [pos.rot - 2, pos.rot + 2],
-        zIndex: isSticker ? 25 : 10 + i,
+        x: slotX,
+        y: slotY,
+        width: slotW,
+        height: slotH,
+        rotationRange: [slotRot - 2, slotRot + 2],
+        zIndex: isSticker ? 30 + i : 10 + i,
         preferredOrientation: photo.orientation,
         frameStyle: isSticker ? "none" : template.style === "polaroid" ? "polaroid" : "tape",
       };
@@ -235,7 +265,7 @@ export function assignPhotosToTemplate(
       assignments.push({
         slot: extraSlot,
         photo,
-        rotation: pos.rot,
+        rotation: slotRot,
       });
     });
   }

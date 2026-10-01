@@ -26,6 +26,7 @@ import {
   X,
   SlidersHorizontal,
   Scissors,
+  ClipboardPaste,
 } from "lucide-react";
 
 interface CollageStudioProps {
@@ -82,36 +83,137 @@ export default function CollageStudio({
     if (tripTitle) setCustomTitle(tripTitle);
   }, [tripTitle]);
 
-  // Handle Photo Selection & On-Device Analysis
-  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // Fresh ref to avoid stale state in clipboard listeners
+  const stateRef = useRef({ analyzedPhotos, imagesMap, jitterSeed });
+  useEffect(() => {
+    stateRef.current = { analyzedPhotos, imagesMap, jitterSeed };
+  }, [analyzedPhotos, imagesMap, jitterSeed]);
+
+  // Toast feedback for paste/copy actions
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // Add photos or stickers incrementally (up to 12)
+  const handleAddPhotos = async (newFiles: (File | Blob)[], isFromPaste = false) => {
+    if (newFiles.length === 0) return;
 
     setIsAnalyzing(true);
     try {
-      const fileArray = Array.from(files).slice(0, 10);
-      const { featuresList, imagesMap: newImagesMap } = await batchAnalyzePhotos(fileArray);
+      const { featuresList: newFeatures, imagesMap: newMap } = await batchAnalyzePhotos(newFiles);
+      if (newFeatures.length === 0) {
+        setIsAnalyzing(false);
+        return;
+      }
 
-      setAnalyzedPhotos(featuresList);
-      setImagesMap(newImagesMap);
+      const current = stateRef.current;
+      // Merge with existing photos
+      const combinedPhotos = [...current.analyzedPhotos, ...newFeatures].slice(0, 12);
+      const combinedMap = { ...current.imagesMap, ...newMap };
 
-      // Score templates automatically
-      const scores = scoreTemplatesForPhotos(featuresList);
+      setAnalyzedPhotos(combinedPhotos);
+      setImagesMap(combinedMap);
+
+      // Re-score templates
+      const scores = scoreTemplatesForPhotos(combinedPhotos);
       setCandidateScores(scores);
       setCandidateIndex(0);
 
       if (scores.length > 0) {
         const best = scores[0].template;
         setCurrentTemplate(best);
-        const assignments = assignPhotosToTemplate(best, featuresList, 0);
+        const assignments = assignPhotosToTemplate(best, combinedPhotos, current.jitterSeed);
         setCurrentAssignments(assignments);
       }
+
+      if (isFromPaste) {
+        const cutoutCount = newFeatures.filter((f) => f.isCutoutSticker).length;
+        if (cutoutCount > 0) {
+          showToast(`✂️ 切抜ステッカー (${cutoutCount}枚) を貼り付けました！`);
+        } else {
+          showToast(`📋 写真 (${newFeatures.length}枚) を貼り付けました！`);
+        }
+      }
     } catch (err) {
-      console.error("Analysis failed", err);
+      console.error("Analysis or paste failed", err);
     } finally {
       setIsAnalyzing(false);
     }
   };
+
+  // Handle Photo File Picker
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await handleAddPhotos(Array.from(files), false);
+    e.target.value = "";
+  };
+
+  // Handle Paste Directly from Clipboard (e.g. iPhone Subject Cutout)
+  const handlePasteFromClipboard = async () => {
+    if (!navigator.clipboard?.read) {
+      alert("お使いのブラウザではボタンからの直接貼り付けに対応していません。画面長押しまたはキーボード(Cmd+V)からペーストしてください。");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      const files: File[] = [];
+
+      for (const item of clipboardItems) {
+        const imgType = item.types.find((t) => t.startsWith("image/"));
+        if (imgType) {
+          const blob = await item.getType(imgType);
+          const file = new File([blob], `sticker_${Date.now()}.png`, { type: imgType });
+          files.push(file);
+        }
+      }
+
+      if (files.length === 0) {
+        alert("クリップボードに画像が見つかりませんでした。\n\n【使い方】\niPhoneの写真アプリ等で人物や物を長押しして「コピー」してから、もう一度このボタンを押してください。");
+        return;
+      }
+
+      await handleAddPhotos(files, true);
+    } catch (err: any) {
+      console.warn("Clipboard read failed", err);
+      if (err.name === "NotAllowedError") {
+        alert("クリップボードへのアクセスが許可されませんでした。Safariの確認ポップアップで「ペーストを許可」をタップしてください。");
+      } else {
+        alert("貼り付けに失敗しました。iPhoneの写真アプリで被写体を長押し「コピー」してから再度お試しください。");
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Global paste event listener (Cmd+V or Safari context menu paste)
+  useEffect(() => {
+    const handleGlobalPaste = async (e: ClipboardEvent) => {
+      if (!e.clipboardData) return;
+      const items = Array.from(e.clipboardData.items);
+      const imageItems = items.filter((item) => item.type.startsWith("image/"));
+      if (imageItems.length === 0) return;
+
+      e.preventDefault();
+      const files: File[] = [];
+      for (const item of imageItems) {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+      if (files.length > 0) {
+        await handleAddPhotos(files, true);
+      }
+    };
+
+    window.addEventListener("paste", handleGlobalPaste);
+    return () => {
+      window.removeEventListener("paste", handleGlobalPaste);
+    };
+  }, []);
 
   // Re-render Canvas when template or assignments change
   useEffect(() => {
@@ -223,7 +325,7 @@ export default function CollageStudio({
           height: a.slot.height * 100,
           rotation: a.rotation,
           zIndex: a.slot.zIndex,
-          style: currentTemplate.style as any,
+          style: (a.photo.isCutoutSticker || a.slot.frameStyle === "none") ? ("none" as any) : (currentTemplate.style as any),
         })),
         background: currentTemplate.background,
         aspect: currentTemplate.aspect,
@@ -367,12 +469,13 @@ export default function CollageStudio({
       {/* Main Studio Controls */}
       <div className="mt-4 flex flex-col gap-4">
         {/* Step 1: Photos Picker & Analysis Feedback */}
-        <div className="flex flex-col gap-2 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
+        <div className="flex flex-col gap-2.5 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Photo picker */}
               <label className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
                 <Camera className="w-4 h-4" />
-                <span>写真・切抜を追加</span>
+                <span>写真を追加</span>
                 <input
                   type="file"
                   multiple
@@ -382,9 +485,20 @@ export default function CollageStudio({
                 />
               </label>
 
+              {/* Paste from Clipboard Button (iPhone Subject Cutout) */}
+              <button
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95 border border-[#003049]"
+                title="iPhoneの写真アプリで長押しコピーした被写体をペースト"
+              >
+                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
+                <span>📋 コピーした切抜を貼る</span>
+              </button>
+
               {isAnalyzing && (
                 <span className="text-xs font-bold text-[#386641] animate-pulse">
-                  🔍 写真を分析中...
+                  🔍 処理中...
                 </span>
               )}
 
@@ -406,10 +520,14 @@ export default function CollageStudio({
               </button>
             )}
           </div>
-          <p className="text-[11px] text-[#386641]/75 flex items-center gap-1">
-            <Scissors className="w-3 h-3 text-[#C1121F] shrink-0" />
-            <span>iPhoneの写真アプリで被写体を長押し保存した透過画像（切り抜き）もステッカーとして重ねられます！</span>
-          </p>
+
+          {/* Quick guide for iPhone copy-paste */}
+          <div className="flex items-center gap-1.5 text-[11px] text-[#386641]/80 bg-white/60 px-2.5 py-1.5 rounded-xl border border-[#386641]/10">
+            <span className="text-xs">💡</span>
+            <span>
+              <b>iPhone長押しコピペに対応:</b> 「写真」アプリで人物や物を長押しして<b>「コピー」</b>→ ここで<b>「📋 コピーした切抜を貼る」</b>を押すだけで、背景透過ステッカーとしてそのまま重ねられます！
+            </span>
+          </div>
         </div>
 
         {/* Selected Photos Tray with remove button (Compact scroll) */}
@@ -458,6 +576,27 @@ export default function CollageStudio({
             <p className="text-xs text-[#386641]/70 max-w-xs mt-1">
               写真を選ぶだけで、横写真・縦写真を自動判別して最適なコラージュを1秒で作成します。
             </p>
+            <div className="flex items-center gap-2 mt-4 flex-wrap justify-center">
+              <label className="flex items-center gap-1.5 px-3.5 py-2 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
+                <Camera className="w-4 h-4" />
+                <span>写真を選ぶ</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95"
+              >
+                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
+                <span>📋 コピーした切抜を貼る</span>
+              </button>
+            </div>
           </div>
         ) : (
           /* Mobile-First Layout: Result Preview at Top! */
@@ -697,6 +836,14 @@ export default function CollageStudio({
             setShowSavedModal(false);
           }}
         />
+      )}
+
+      {/* Floating Toast Notification for Paste / Actions */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#003049] text-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#DDA15E]/40 text-xs sm:text-sm font-bold flex items-center gap-2 pointer-events-none transition-all animate-bounce">
+          <Sparkles className="w-4 h-4 text-[#DDA15E]" />
+          <span>{toastMessage}</span>
+        </div>
       )}
     </div>
   );

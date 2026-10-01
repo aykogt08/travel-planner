@@ -220,6 +220,25 @@ export function renderCollageToCanvas(
     ctx.translate(x + w / 2, y + h / 2);
     ctx.rotate((el.rotation * Math.PI) / 180);
 
+    // If element is a cutout sticker (style === "none"), render with natural drop shadow and aspect ratio
+    if ((el as any).style === "none") {
+      ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 6;
+      const imgAspect = img.width / (img.height || 1);
+      const boxAspect = w / h;
+      let drawW = w;
+      let drawH = h;
+      if (imgAspect > boxAspect) {
+        drawH = w / imgAspect;
+      } else {
+        drawW = h * imgAspect;
+      }
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+      ctx.restore();
+      return;
+    }
+
     // Apply Style Decoration (Polaroid frame, Shadow, Border, Tape)
     switch (layout.theme) {
       case "polaroid": {
@@ -616,10 +635,20 @@ export function renderTemplateCollageToCanvas(
 
     if (isSticker) {
       // Cutout Sticker: seamless background-free sticker with natural drop shadow
-      ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
-      ctx.shadowBlur = 14;
+      ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+      ctx.shadowBlur = 16;
       ctx.shadowOffsetY = 6;
-      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+
+      const imgAspect = img.width / (img.height || 1);
+      const boxAspect = w / h;
+      let drawW = w;
+      let drawH = h;
+      if (imgAspect > boxAspect) {
+        drawH = w / imgAspect;
+      } else {
+        drawW = h * imgAspect;
+      }
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
     } else if (frameStyle === "polaroid") {
       ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
       ctx.shadowBlur = 18;
