@@ -165,18 +165,28 @@ export default function TimelineView({
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
   // Custom City Legs management (null = using auto-generated)
-  const [customCityLegs, setCustomCityLegs] = useState<CityLegItem[] | null>(null);
-  const [editingCityLeg, setEditingCityLeg] = useState<CityLeg | null>(null);
-  const [isCreatingCityLeg, setIsCreatingCityLeg] = useState<boolean>(false);
-
-  // Load custom city legs from localStorage on mount
-  useEffect(() => {
+  const [customCityLegs, setCustomCityLegs] = useState<CityLegItem[] | null>(() => {
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
         if (stored) {
-          setCustomCityLegs(JSON.parse(stored));
+          return JSON.parse(stored);
         }
+      } catch (e) {
+        console.error("Failed to load custom city legs from localStorage", e);
+      }
+    }
+    return null;
+  });
+  const [editingCityLeg, setEditingCityLeg] = useState<CityLeg | null>(null);
+  const [isCreatingCityLeg, setIsCreatingCityLeg] = useState<boolean>(false);
+
+  // Sync custom city legs if tripId changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
+        setCustomCityLegs(stored ? JSON.parse(stored) : null);
       } catch (e) {
         console.error("Failed to load custom city legs from localStorage", e);
       }
