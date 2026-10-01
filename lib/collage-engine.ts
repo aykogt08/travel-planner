@@ -492,22 +492,32 @@ function drawImageCover(
   w: number,
   h: number
 ) {
-  const imgAspect = img.naturalWidth / (img.naturalHeight || 1);
+  const natW = img.naturalWidth || img.width || 0;
+  const natH = img.naturalHeight || img.height || 0;
+  if (natW <= 0 || natH <= 0 || w <= 0 || h <= 0) return;
+
+  const imgAspect = natW / (natH || 1);
   const targetAspect = w / h;
   let sx = 0,
     sy = 0,
-    sw = img.naturalWidth,
-    sh = img.naturalHeight;
+    sw = natW,
+    sh = natH;
 
   if (imgAspect > targetAspect) {
-    sw = img.naturalHeight * targetAspect;
-    sx = (img.naturalWidth - sw) / 2;
+    sw = natH * targetAspect;
+    sx = (natW - sw) / 2;
   } else {
-    sh = img.naturalWidth / targetAspect;
-    sy = (img.naturalHeight - sh) / 2;
+    sh = natW / targetAspect;
+    sy = (natH - sh) / 2;
   }
 
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  if (sw <= 0 || sh <= 0) return;
+
+  try {
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  } catch (err) {
+    console.warn("drawImageCover failed", err);
+  }
 }
 
 /** Helper for rounded rect */
@@ -620,109 +630,114 @@ export function renderTemplateCollageToCanvas(
 
   // 3. Render Each Slot
   sorted.forEach(({ slot, photo, rotation }) => {
-    const img = imagesMap[photo.id];
-    if (!img) return;
+    try {
+      const img = imagesMap[photo.id];
+      if (!img) return;
 
-    const w = slot.width * targetWidth;
-    const h = slot.height * targetHeight;
-    const x = slot.x * targetWidth;
-    const y = slot.y * targetHeight;
+      const w = slot.width * targetWidth;
+      const h = slot.height * targetHeight;
+      const x = slot.x * targetWidth;
+      const y = slot.y * targetHeight;
 
-    ctx.save();
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
 
-    const frameStyle = slot.frameStyle || "clean";
-    const isSticker = photo.isCutoutSticker || slot.role === "cutout" || frameStyle === "none";
+      const frameStyle = slot.frameStyle || "clean";
+      const isSticker = photo.isCutoutSticker || slot.role === "cutout" || frameStyle === "none";
 
-    if (isSticker) {
-      // Cutout Sticker: seamless background-free sticker with natural drop shadow
-      ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
-      ctx.shadowBlur = 16;
-      ctx.shadowOffsetY = 6;
+      if (isSticker) {
+        // Cutout Sticker: seamless background-free sticker with natural drop shadow
+        ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetY = 6;
 
-      const imgW = img.naturalWidth || img.width || 100;
-      const imgH = img.naturalHeight || img.height || 100;
-      const imgAspect = imgW / (imgH || 1);
-      const boxAspect = w / (h || 1);
-      let drawW = w;
-      let drawH = h;
-      if (imgAspect > boxAspect) {
-        drawH = w / imgAspect;
+        const imgW = img.naturalWidth || img.width || 100;
+        const imgH = img.naturalHeight || img.height || 100;
+        const imgAspect = imgW / (imgH || 1);
+        const boxAspect = w / (h || 1);
+        let drawW = w;
+        let drawH = h;
+        if (imgAspect > boxAspect) {
+          drawH = w / imgAspect;
+        } else {
+          drawW = h * imgAspect;
+        }
+        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+      } else if (frameStyle === "polaroid") {
+        ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 8;
+        ctx.shadowOffsetX = 2;
+
+        const framePad = 12;
+        const bottomPad = 36;
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(-w / 2 - framePad, -h / 2 - framePad, w + framePad * 2, h + framePad + bottomPad);
+        ctx.shadowColor = "transparent";
+
+        drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
+
+        ctx.strokeStyle = "rgba(0,0,0,0.06)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-w / 2, -h / 2, w, h);
+      } else if (frameStyle === "tape") {
+        ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 6;
+
+        drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
+        ctx.shadowColor = "transparent";
+
+        drawWashiTape(ctx, -w / 4, -h / 2 - 8, w / 2, 18, -rotation * 0.5);
+      } else if (frameStyle === "vintage") {
+        ctx.shadowColor = "rgba(56, 30, 10, 0.25)";
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 6;
+
+        const pad = 8;
+        ctx.fillStyle = "#FDF6EC";
+        ctx.fillRect(-w / 2 - pad, -h / 2 - pad, w + pad * 2, h + pad * 2);
+        ctx.shadowColor = "transparent";
+
+        drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
+
+        ctx.fillStyle = "rgba(180, 120, 60, 0.12)";
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+      } else if (frameStyle === "film") {
+        ctx.shadowColor = "rgba(0,0,0,0.35)";
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 6;
+
+        ctx.fillStyle = "#141414";
+        ctx.fillRect(-w / 2 - 6, -h / 2 - 16, w + 12, h + 32);
+        ctx.shadowColor = "transparent";
+
+        ctx.fillStyle = "#FFFFFF";
+        for (let sx = -w / 2; sx < w / 2; sx += 20) {
+          ctx.fillRect(sx, -h / 2 - 12, 10, 6);
+          ctx.fillRect(sx, h / 2 + 6, 10, 6);
+        }
+
+        drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
       } else {
-        drawW = h * imgAspect;
-      }
-      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
-    } else if (frameStyle === "polaroid") {
-      ctx.shadowColor = "rgba(0, 0, 0, 0.22)";
-      ctx.shadowBlur = 18;
-      ctx.shadowOffsetY = 8;
-      ctx.shadowOffsetX = 2;
+        // clean
+        ctx.shadowColor = "rgba(0, 0, 0, 0.12)";
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 5;
 
-      const framePad = 12;
-      const bottomPad = 36;
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(-w / 2 - framePad, -h / 2 - framePad, w + framePad * 2, h + framePad + bottomPad);
-      ctx.shadowColor = "transparent";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
+        ctx.shadowColor = "transparent";
 
-      drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
-
-      ctx.strokeStyle = "rgba(0,0,0,0.06)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-w / 2, -h / 2, w, h);
-    } else if (frameStyle === "tape") {
-      ctx.shadowColor = "rgba(0, 0, 0, 0.18)";
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 6;
-
-      drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
-      ctx.shadowColor = "transparent";
-
-      drawWashiTape(ctx, -w / 4, -h / 2 - 8, w / 2, 18, -rotation * 0.5);
-    } else if (frameStyle === "vintage") {
-      ctx.shadowColor = "rgba(56, 30, 10, 0.25)";
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 6;
-
-      const pad = 8;
-      ctx.fillStyle = "#FDF6EC";
-      ctx.fillRect(-w / 2 - pad, -h / 2 - pad, w + pad * 2, h + pad * 2);
-      ctx.shadowColor = "transparent";
-
-      drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
-
-      ctx.fillStyle = "rgba(180, 120, 60, 0.12)";
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-    } else if (frameStyle === "film") {
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 6;
-
-      ctx.fillStyle = "#141414";
-      ctx.fillRect(-w / 2 - 6, -h / 2 - 16, w + 12, h + 32);
-      ctx.shadowColor = "transparent";
-
-      ctx.fillStyle = "#FFFFFF";
-      for (let sx = -w / 2; sx < w / 2; sx += 20) {
-        ctx.fillRect(sx, -h / 2 - 12, 10, 6);
-        ctx.fillRect(sx, h / 2 + 6, 10, 6);
+        drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
       }
 
-      drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
-    } else {
-      // clean
-      ctx.shadowColor = "rgba(0, 0, 0, 0.12)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 5;
-
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
-      ctx.shadowColor = "transparent";
-
-      drawImageCover(ctx, img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    } catch (err) {
+      console.warn("Failed to render collage slot", slot, err);
+      try { ctx.restore(); } catch (_) {}
     }
-
-    ctx.restore();
   });
 
   // 4. Overlays & Stamps

@@ -119,6 +119,11 @@ export default function CollageStudio({
           f.isCutoutSticker = true;
           f.hasTransparency = true;
         });
+      } else {
+        // Files from photo picker must always be treated as regular photos
+        newFeatures.forEach((f) => {
+          f.isCutoutSticker = false;
+        });
       }
 
       const prevPhotos = photosRef.current;
@@ -136,12 +141,20 @@ export default function CollageStudio({
       // Re-score templates (strictly based on regular photos!)
       const scores = scoreTemplatesForPhotos(combinedPhotos);
       setCandidateScores(scores);
-      setCandidateIndex(0);
 
-      if (scores.length > 0) {
-        const best = scores[0].template;
-        setCurrentTemplate(best);
-        const assignments = assignPhotosToTemplate(best, combinedPhotos, jitterSeed);
+      // Keep the current template if already set, otherwise pick top score
+      let activeTemplate = currentTemplate;
+      if (!activeTemplate && scores.length > 0) {
+        activeTemplate = scores[0].template;
+        setCurrentTemplate(activeTemplate);
+        setCandidateIndex(0);
+      } else if (activeTemplate) {
+        const idx = scores.findIndex((s) => s.template.id === activeTemplate?.id);
+        if (idx !== -1) setCandidateIndex(idx);
+      }
+
+      if (activeTemplate) {
+        const assignments = assignPhotosToTemplate(activeTemplate, combinedPhotos, jitterSeed);
         setCurrentAssignments(assignments);
       }
 

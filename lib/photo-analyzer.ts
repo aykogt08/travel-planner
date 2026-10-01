@@ -74,6 +74,48 @@ export async function analyzePhoto(
         isCutoutSticker: hasTransparency,
       };
 
+      // Generate a persistent downsampled dataUrl (max 1200px)
+      // This completely prevents iOS Safari from invalidating blob URLs or evicting detached image memory!
+      try {
+        const maxDim = 1200;
+        let w = width;
+        let h = height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        const resizeCanvas = document.createElement("canvas");
+        resizeCanvas.width = w;
+        resizeCanvas.height = h;
+        const rCtx = resizeCanvas.getContext("2d");
+        if (rCtx) {
+          rCtx.drawImage(img, 0, 0, w, h);
+          const mimeType = hasTransparency ? "image/png" : "image/jpeg";
+          const persistentDataUrl = resizeCanvas.toDataURL(mimeType, 0.85);
+
+          const persistentImg = new Image();
+          persistentImg.onload = () => {
+            features.src = persistentDataUrl;
+            URL.revokeObjectURL(url);
+            resolve({ features, imgElement: persistentImg });
+          };
+          persistentImg.onerror = () => {
+            // Fallback to original img if persistent creation failed
+            resolve({ features, imgElement: img });
+          };
+          persistentImg.src = persistentDataUrl;
+          return;
+        }
+      } catch (err) {
+        console.warn("Failed to generate persistent dataUrl, keeping blob URL", err);
+      }
+
       resolve({ features, imgElement: img });
     };
 
