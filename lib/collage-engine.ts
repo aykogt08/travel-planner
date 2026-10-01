@@ -225,8 +225,10 @@ export function renderCollageToCanvas(
       ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
       ctx.shadowBlur = 16;
       ctx.shadowOffsetY = 6;
-      const imgAspect = img.width / (img.height || 1);
-      const boxAspect = w / h;
+      const imgW = img.naturalWidth || img.width || 100;
+      const imgH = img.naturalHeight || img.height || 100;
+      const imgAspect = imgW / (imgH || 1);
+      const boxAspect = w / (h || 1);
       let drawW = w;
       let drawH = h;
       if (imgAspect > boxAspect) {
@@ -631,7 +633,7 @@ export function renderTemplateCollageToCanvas(
     ctx.rotate((rotation * Math.PI) / 180);
 
     const frameStyle = slot.frameStyle || "clean";
-    const isSticker = photo.isCutoutSticker || frameStyle === "none";
+    const isSticker = photo.isCutoutSticker || slot.role === "cutout" || frameStyle === "none";
 
     if (isSticker) {
       // Cutout Sticker: seamless background-free sticker with natural drop shadow
@@ -639,8 +641,10 @@ export function renderTemplateCollageToCanvas(
       ctx.shadowBlur = 16;
       ctx.shadowOffsetY = 6;
 
-      const imgAspect = img.width / (img.height || 1);
-      const boxAspect = w / h;
+      const imgW = img.naturalWidth || img.width || 100;
+      const imgH = img.naturalHeight || img.height || 100;
+      const imgAspect = imgW / (imgH || 1);
+      const boxAspect = w / (h || 1);
       let drawW = w;
       let drawH = h;
       if (imgAspect > boxAspect) {

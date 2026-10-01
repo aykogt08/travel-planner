@@ -83,11 +83,16 @@ export default function CollageStudio({
     if (tripTitle) setCustomTitle(tripTitle);
   }, [tripTitle]);
 
-  // Fresh ref to avoid stale state in clipboard listeners
-  const stateRef = useRef({ analyzedPhotos, imagesMap, jitterSeed });
+  // Mutable refs to prevent state loss during rapid consecutive pastes
+  const photosRef = useRef<PhotoFeatures[]>([]);
+  const imagesMapRef = useRef<Record<string, HTMLImageElement>>({});
+
   useEffect(() => {
-    stateRef.current = { analyzedPhotos, imagesMap, jitterSeed };
-  }, [analyzedPhotos, imagesMap, jitterSeed]);
+    photosRef.current = analyzedPhotos;
+  }, [analyzedPhotos]);
+  useEffect(() => {
+    imagesMapRef.current = imagesMap;
+  }, [imagesMap]);
 
   // Toast feedback for paste/copy actions
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -96,7 +101,7 @@ export default function CollageStudio({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Add photos or stickers incrementally (up to 12)
+  // Add photos or stickers incrementally (up to 15)
   const handleAddPhotos = async (newFiles: (File | Blob)[], isFromPaste = false) => {
     if (newFiles.length === 0) return;
 
@@ -108,15 +113,27 @@ export default function CollageStudio({
         return;
       }
 
-      const current = stateRef.current;
-      // Merge with existing photos
-      const combinedPhotos = [...current.analyzedPhotos, ...newFeatures].slice(0, 12);
-      const combinedMap = { ...current.imagesMap, ...newMap };
+      // If added via paste/clipboard button, guarantee it is treated as a cutout sticker
+      if (isFromPaste) {
+        newFeatures.forEach((f) => {
+          f.isCutoutSticker = true;
+          f.hasTransparency = true;
+        });
+      }
+
+      const prevPhotos = photosRef.current;
+      const prevMap = imagesMapRef.current;
+
+      const combinedPhotos = [...prevPhotos, ...newFeatures].slice(0, 15);
+      const combinedMap = { ...prevMap, ...newMap };
+
+      photosRef.current = combinedPhotos;
+      imagesMapRef.current = combinedMap;
 
       setAnalyzedPhotos(combinedPhotos);
       setImagesMap(combinedMap);
 
-      // Re-score templates
+      // Re-score templates (strictly based on regular photos!)
       const scores = scoreTemplatesForPhotos(combinedPhotos);
       setCandidateScores(scores);
       setCandidateIndex(0);
@@ -124,7 +141,7 @@ export default function CollageStudio({
       if (scores.length > 0) {
         const best = scores[0].template;
         setCurrentTemplate(best);
-        const assignments = assignPhotosToTemplate(best, combinedPhotos, current.jitterSeed);
+        const assignments = assignPhotosToTemplate(best, combinedPhotos, jitterSeed);
         setCurrentAssignments(assignments);
       }
 
@@ -286,11 +303,14 @@ export default function CollageStudio({
 
   // Remove a single photo from selection
   const handleRemovePhoto = (id: string) => {
-    const target = analyzedPhotos.find((p) => p.id === id);
+    const target = photosRef.current.find((p) => p.id === id);
     if (target) URL.revokeObjectURL(target.src);
-    const updatedPhotos = analyzedPhotos.filter((p) => p.id !== id);
-    const updatedImagesMap = { ...imagesMap };
+    const updatedPhotos = photosRef.current.filter((p) => p.id !== id);
+    const updatedImagesMap = { ...imagesMapRef.current };
     delete updatedImagesMap[id];
+
+    photosRef.current = updatedPhotos;
+    imagesMapRef.current = updatedImagesMap;
 
     setAnalyzedPhotos(updatedPhotos);
     setImagesMap(updatedImagesMap);
@@ -419,7 +439,9 @@ export default function CollageStudio({
 
   // Reset
   const handleClearPhotos = () => {
-    analyzedPhotos.forEach((p) => URL.revokeObjectURL(p.src));
+    photosRef.current.forEach((p) => URL.revokeObjectURL(p.src));
+    photosRef.current = [];
+    imagesMapRef.current = {};
     setAnalyzedPhotos([]);
     setImagesMap({});
     setCandidateScores([]);
