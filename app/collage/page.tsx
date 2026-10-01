@@ -21,12 +21,21 @@ export default function CollagePage() {
           <span className="text-xs sm:text-sm font-bold text-[#386641] truncate max-w-[140px] sm:max-w-none">コラージュ</span>
         </div>
 
-        <Link
-          href="/trips"
-          className="text-xs sm:text-sm font-semibold px-3 py-1.5 text-[#386641]/70 hover:text-[#386641] transition"
-        >
-          プラン一覧
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/photo-lab"
+            className="text-xs sm:text-sm font-semibold px-2.5 py-1.5 text-[#003049] bg-[#003049]/10 hover:bg-[#003049]/15 rounded-xl transition flex items-center gap-1"
+          >
+            <span>🔬</span>
+            <span>写真AIラボ</span>
+          </Link>
+          <Link
+            href="/trips"
+            className="text-xs sm:text-sm font-semibold px-3 py-1.5 text-[#386641]/70 hover:text-[#386641] transition"
+          >
+            プラン一覧
+          </Link>
+        </div>
       </nav>
 
       {/* Main Studio View */}

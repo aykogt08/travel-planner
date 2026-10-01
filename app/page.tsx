@@ -23,6 +23,13 @@ export default function Home() {
         </span>
         <div className="flex items-center gap-3">
           <Link
+            href="/photo-lab"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3 py-2 text-[#003049] bg-[#003049]/10 hover:bg-[#003049]/15 rounded-xl transition"
+          >
+            <span>🔬</span>
+            <span>写真AIラボ</span>
+          </Link>
+          <Link
             href="/collage"
             className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 text-[#386641]/80 hover:text-[#386641] hover:bg-[#386641]/5 rounded-xl transition"
           >
