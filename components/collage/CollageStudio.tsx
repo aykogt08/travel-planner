@@ -190,6 +190,43 @@ export default function CollageStudio({
     }
   };
 
+  // Dedicated paste box state & handler for iPhone
+  const pasteInputRef = useRef<HTMLDivElement>(null);
+  const [isPasteFocused, setIsPasteFocused] = useState(false);
+
+  const handlePasteInBox = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (pasteInputRef.current) {
+      pasteInputRef.current.innerText = "";
+    }
+    if (!e.clipboardData) return;
+
+    const items = Array.from(e.clipboardData.items);
+    const files: File[] = [];
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+
+    if (files.length === 0 && e.clipboardData.files.length > 0) {
+      for (let i = 0; i < e.clipboardData.files.length; i++) {
+        const file = e.clipboardData.files[i];
+        if (file.type.startsWith("image/")) {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      await handleAddPhotos(files, true);
+    } else {
+      alert("クリップボードに画像が見つかりませんでした。\n\n【使い方】\niPhoneの写真アプリ等で人物や物を長押しして「コピー」してから、この枠にペーストしてください。");
+    }
+  };
+
   // Global paste event listener (Cmd+V or Safari context menu paste)
   useEffect(() => {
     const handleGlobalPaste = async (e: ClipboardEvent) => {
@@ -469,7 +506,7 @@ export default function CollageStudio({
       {/* Main Studio Controls */}
       <div className="mt-4 flex flex-col gap-4">
         {/* Step 1: Photos Picker & Analysis Feedback */}
-        <div className="flex flex-col gap-2.5 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
+        <div className="flex flex-col gap-3 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               {/* Photo picker */}
@@ -484,17 +521,6 @@ export default function CollageStudio({
                   onChange={handleFilesSelected}
                 />
               </label>
-
-              {/* Paste from Clipboard Button (iPhone Subject Cutout) */}
-              <button
-                type="button"
-                onClick={handlePasteFromClipboard}
-                className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95 border border-[#003049]"
-                title="iPhoneの写真アプリで長押しコピーした被写体をペースト"
-              >
-                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
-                <span>📋 コピーした切抜を貼る</span>
-              </button>
 
               {isAnalyzing && (
                 <span className="text-xs font-bold text-[#386641] animate-pulse">
@@ -521,12 +547,49 @@ export default function CollageStudio({
             )}
           </div>
 
-          {/* Quick guide for iPhone copy-paste */}
-          <div className="flex items-center gap-1.5 text-[11px] text-[#386641]/80 bg-white/60 px-2.5 py-1.5 rounded-xl border border-[#386641]/10">
-            <span className="text-xs">💡</span>
-            <span>
-              <b>iPhone長押しコピペに対応:</b> 「写真」アプリで人物や物を長押しして<b>「コピー」</b>→ ここで<b>「📋 コピーした切抜を貼る」</b>を押すだけで、背景透過ステッカーとしてそのまま重ねられます！
-            </span>
+          {/* Dedicated Paste Zone for iPhone Cutout Stickers */}
+          <div className="bg-white/95 rounded-2xl p-3 border-2 border-dashed border-[#003049]/30 flex flex-col gap-2 shadow-2xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Scissors className="w-4 h-4 text-[#C1121F]" />
+                <span className="text-xs font-extrabold text-[#003049]">
+                  ✂️ iPhoneの切抜ステッカーをペーストする場所
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="flex items-center gap-1 px-3 py-1 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-[11px] font-bold rounded-lg shadow-2xs transition active:scale-95"
+                title="クリップボードから直接貼り付け"
+              >
+                <ClipboardPaste className="w-3.5 h-3.5 text-[#DDA15E]" />
+                <span>ワンタップで貼る</span>
+              </button>
+            </div>
+
+            {/* Paste Box Area (Triggers iOS native paste callout menu on long-press or tap) */}
+            <div
+              ref={pasteInputRef}
+              contentEditable
+              suppressContentEditableWarning
+              inputMode="none"
+              onPaste={handlePasteInBox}
+              onFocus={() => setIsPasteFocused(true)}
+              onBlur={() => setIsPasteFocused(false)}
+              className={`w-full py-3 px-3 rounded-xl border-2 text-center text-xs cursor-pointer transition select-all outline-hidden ${
+                isPasteFocused
+                  ? "bg-[#FDF0D5] border-[#C1121F] text-[#C1121F] font-bold ring-2 ring-[#C1121F]/20"
+                  : "bg-[#FDF0D5]/40 border-[#003049]/20 text-[#003049]/80 hover:bg-[#FDF0D5]/70"
+              }`}
+            >
+              {isPasteFocused
+                ? "👉 吹き出しの「ペースト」をタップ！"
+                : "📋 ここを長押し（またはタップ）して「ペースト」"}
+            </div>
+
+            <p className="text-[10px] text-[#386641]/75 leading-relaxed">
+              💡 <b>使い方:</b> iPhoneの写真アプリで人物や物を<b>長押しして「コピー」</b>したあと、上の黄色い枠を<b>長押しして「ペースト」</b>（または右上の「ワンタップで貼る」）を押すと、背景透明ステッカーとして追加されます！
+            </p>
           </div>
         </div>
 
@@ -566,18 +629,20 @@ export default function CollageStudio({
 
         {/* If no photos selected, show empty prompt */}
         {analyzedPhotos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 sm:p-14 border-2 border-dashed border-[#DDA15E]/50 rounded-3xl bg-[#FDF0D5]/20 text-center">
-            <div className="w-14 h-14 rounded-full bg-[#DDA15E]/20 flex items-center justify-center mb-2.5">
+          <div className="flex flex-col items-center justify-center p-6 sm:p-12 border-2 border-dashed border-[#DDA15E]/50 rounded-3xl bg-[#FDF0D5]/20 text-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-[#DDA15E]/20 flex items-center justify-center">
               <Camera className="w-7 h-7 text-[#386641]" />
             </div>
-            <h3 className="font-extrabold text-sm sm:text-base text-[#386641]">
-              旅行の写真を選んでみよう
-            </h3>
-            <p className="text-xs text-[#386641]/70 max-w-xs mt-1">
-              写真を選ぶだけで、横写真・縦写真を自動判別して最適なコラージュを1秒で作成します。
-            </p>
-            <div className="flex items-center gap-2 mt-4 flex-wrap justify-center">
-              <label className="flex items-center gap-1.5 px-3.5 py-2 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-[#386641]">
+                旅行の写真を選んでみよう
+              </h3>
+              <p className="text-xs text-[#386641]/70 max-w-xs mt-1">
+                写真を選ぶだけで、横写真・縦写真を自動判別して最適なコラージュを1秒で作成します。
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap justify-center">
+              <label className="flex items-center gap-1.5 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
                 <Camera className="w-4 h-4" />
                 <span>写真を選ぶ</span>
                 <input
@@ -591,7 +656,7 @@ export default function CollageStudio({
               <button
                 type="button"
                 onClick={handlePasteFromClipboard}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95"
               >
                 <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
                 <span>📋 コピーした切抜を貼る</span>
