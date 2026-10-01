@@ -7,7 +7,9 @@ import { batchAnalyzePhotos } from "@/lib/photo-analyzer";
 import { scoreTemplatesForPhotos, assignPhotosToTemplate, MappedSlotAssignment } from "@/lib/template-matcher";
 import { renderTemplateCollageToCanvas } from "@/lib/collage-engine";
 import { COLLAGE_TEMPLATES } from "@/lib/collage-templates";
-import { saveCollage, getAllCollages, deleteCollage } from "@/lib/collage-storage";
+import { saveCollage, getAllCollages, deleteCollage, syncPendingCollages } from "@/lib/collage-storage";
+import { KNOWN_CITIES, KnownCity } from "@/constants/cities";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import SavedCollagesModal from "./SavedCollagesModal";
 import {
   Camera,
@@ -27,15 +29,21 @@ import {
   SlidersHorizontal,
   Scissors,
   ClipboardPaste,
+  Wifi,
+  WifiOff,
+  MapPin,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 
 interface CollageStudioProps {
+  tripId?: number;
   tripTitle?: string;
   tripDates?: string;
   defaultPlaces?: { name: string }[];
 }
 
 export default function CollageStudio({
+  tripId,
   tripTitle,
   tripDates,
   defaultPlaces = [],
@@ -59,6 +67,13 @@ export default function CollageStudio({
   // Customization Options
   const [customTitle, setCustomTitle] = useState(tripTitle || "");
   const [includeDateStamp, setIncludeDateStamp] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<KnownCity | null>(null);
+  const [visitDate, setVisitDate] = useState<string>(() => {
+    return new Date().toISOString().slice(0, 10);
+  });
+
+  // Online / Offline Status
+  const isOnline = useOnlineStatus();
 
   // Canvas & Storage
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -78,10 +93,42 @@ export default function CollageStudio({
     })();
   }, []);
 
+  // When coming back online, auto-sync any pending collages
+  useEffect(() => {
+    if (isOnline) {
+      (async () => {
+        try {
+          const syncedCount = await syncPendingCollages();
+          if (syncedCount > 0) {
+            const list = await getAllCollages();
+            setSavedCollages(list);
+            showToast(`☁️ ${syncedCount}件のコラージュを同期完了しました！`);
+          }
+        } catch (e) {
+          console.error("Auto sync failed", e);
+        }
+      })();
+    }
+  }, [isOnline]);
+
   // Sync title from prop
   useEffect(() => {
     if (tripTitle) setCustomTitle(tripTitle);
   }, [tripTitle]);
+
+  // Handle City Selection
+  const handleSelectCity = (city: KnownCity) => {
+    if (selectedCity?.name === city.name) {
+      // Toggle off
+      setSelectedCity(null);
+      if (customTitle === `${city.flag} ${city.name}の思い出` || customTitle === `${city.name}の思い出`) {
+        setCustomTitle(tripTitle || "");
+      }
+    } else {
+      setSelectedCity(city);
+      setCustomTitle(`${city.flag} ${city.name}の思い出`);
+    }
+  };
 
   // Mutable refs to prevent state loss during rapid consecutive pastes
   const photosRef = useRef<PhotoFeatures[]>([]);
@@ -411,6 +458,11 @@ export default function CollageStudio({
       thumbnail,
       templateId: currentTemplate.id,
       customTitle,
+      cityName: selectedCity?.name,
+      cityFlag: selectedCity?.flag,
+      visitDate,
+      tripId,
+      syncStatus: isOnline ? "synced" : "pending_sync",
       includeDateStamp,
       savedPhotos,
       createdAt: new Date().toISOString(),
@@ -421,7 +473,11 @@ export default function CollageStudio({
       setSavedCollages((prev) => [saved, ...prev]);
       setIsSavedFeedback(true);
       setTimeout(() => setIsSavedFeedback(false), 2000);
-      showToast("💾 コラージュを保存しました！");
+      if (isOnline) {
+        showToast("💾 コラージュを保存しました！");
+      } else {
+        showToast("📡 オフラインで保存しました（オンライン時に自動同期されます）");
+      }
     } catch (err) {
       alert("保存中にエラーが発生しました。");
     }
@@ -470,6 +526,15 @@ export default function CollageStudio({
           }
           if (collage.includeDateStamp !== undefined) {
             setIncludeDateStamp(collage.includeDateStamp);
+          }
+          if (collage.cityName) {
+            const foundCity = KNOWN_CITIES.find((c) => c.name === collage.cityName);
+            setSelectedCity(foundCity || { name: collage.cityName, flag: collage.cityFlag || "📍", country: "", keywords: [] });
+          } else {
+            setSelectedCity(null);
+          }
+          if (collage.visitDate) {
+            setVisitDate(collage.visitDate);
           }
 
           const targetTemplate =
@@ -603,9 +668,17 @@ export default function CollageStudio({
             <h2 className="text-lg sm:text-2xl font-extrabold text-[#386641]">
               自動旅行コラージュ
             </h2>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
-              完全オフライン
-            </span>
+            {isOnline ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#386641]/10 text-[#386641] border border-[#386641]/20 flex items-center gap-1">
+                <Wifi className="w-3 h-3 text-[#386641]" />
+                オンライン
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C1121F]/10 text-[#C1121F] border border-[#C1121F]/20 flex items-center gap-1">
+                <WifiOff className="w-3 h-3 text-[#C1121F]" />
+                オフライン（端末保存）
+              </span>
+            )}
           </div>
           <p className="text-[11px] sm:text-sm text-[#386641]/70 mt-0.5">
             写真を選ぶと、縦横比や向きを端末内で自動分析して最適なレイアウトを生成します。
@@ -959,23 +1032,67 @@ export default function CollageStudio({
               </button>
 
               {isCustomizerOpen && (
-                <div className="p-3 pt-0 border-t border-[#386641]/10 mt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 animate-in fade-in duration-200">
-                  <input
-                    type="text"
-                    placeholder="タイトル（例: Paris Trip）"
-                    value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
-                    className="px-3 py-2 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] w-full sm:max-w-xs"
-                  />
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-[#386641] cursor-pointer pt-1 sm:pt-0">
+                <div className="p-3 pt-0 border-t border-[#386641]/10 mt-1 flex flex-col gap-3 animate-in fade-in duration-200">
+                  {/* City Selection Chips */}
+                  <div>
+                    <label className="text-[11px] font-bold text-[#386641]/80 flex items-center gap-1 mb-1.5">
+                      <MapPin className="w-3 h-3 text-[#C1121F]" />
+                      <span>都市をタグ付け（ワンタップで選べます）</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                      {KNOWN_CITIES.map((city) => {
+                        const isSelected = selectedCity?.name === city.name;
+                        return (
+                          <button
+                            key={city.name}
+                            type="button"
+                            onClick={() => handleSelectCity(city)}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs ${
+                              isSelected
+                                ? "bg-[#386641] text-white shadow-xs scale-102"
+                                : "bg-[#FDF0D5]/70 hover:bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40"
+                            }`}
+                          >
+                            <span>{city.flag}</span>
+                            <span>{city.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Title & Date Controls */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-[#386641]/10">
                     <input
-                      type="checkbox"
-                      checked={includeDateStamp}
-                      onChange={(e) => setIncludeDateStamp(e.target.checked)}
-                      className="rounded text-[#386641] focus:ring-0"
+                      type="text"
+                      placeholder="タイトル（例: 🇫🇷 パリの思い出）"
+                      value={customTitle}
+                      onChange={(e) => setCustomTitle(e.target.value)}
+                      className="px-3 py-2 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] w-full sm:max-w-xs"
                     />
-                    <span>日付スタンプをキャンバスに入れる</span>
-                  </label>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <CalendarIcon className="w-3.5 h-3.5 text-[#386641]/60" />
+                        <input
+                          type="date"
+                          value={visitDate}
+                          onChange={(e) => setVisitDate(e.target.value)}
+                          className="px-2 py-1 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden text-[#386641] font-semibold"
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-1.5 text-xs font-bold text-[#386641] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={includeDateStamp}
+                          onChange={(e) => setIncludeDateStamp(e.target.checked)}
+                          className="rounded text-[#386641] focus:ring-0"
+                        />
+                        <span>日付スタンプ</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -990,6 +1107,7 @@ export default function CollageStudio({
           onClose={() => setShowSavedModal(false)}
           onDelete={handleDelete}
           onReEdit={handleReEditCollage}
+          tripTitle={tripTitle}
         />
       )}
 

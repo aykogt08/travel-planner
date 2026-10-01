@@ -44,6 +44,12 @@ export interface SavedCollage {
   thumbnail: string; // data URL for preview
   templateId?: string;
   customTitle?: string;
+  cityName?: string;
+  cityFlag?: string;
+  visitDate?: string;
+  tripId?: number;
+  syncStatus?: "synced" | "pending_sync";
   includeDateStamp?: boolean;
   savedPhotos?: SavedCollagePhoto[];
 }
+

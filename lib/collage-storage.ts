@@ -58,3 +58,41 @@ export async function deleteCollage(id: string): Promise<void> {
     req.onerror = () => reject(req.error);
   });
 }
+
+/** Update or mark a collage as synced */
+export async function updateCollage(collage: SavedCollage): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.put(collage);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+/** Mark all pending_sync collages as synced (e.g. when back online) */
+export async function syncPendingCollages(): Promise<number> {
+  const db = await openDB();
+  const all = await getAllCollages();
+  const pending = all.filter((c) => c.syncStatus === "pending_sync");
+  if (pending.length === 0) return 0;
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    pending.forEach((c) => {
+      store.put({ ...c, syncStatus: "synced" });
+    });
+    tx.oncomplete = () => resolve(pending.length);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/** Retrieve all saved collages as lightweight summaries (excludes savedPhotos for performance) */
+export async function getCollagesSummary(): Promise<Omit<SavedCollage, "savedPhotos">[]> {
+  const all = await getAllCollages();
+  return all.map(({ savedPhotos: _sp, ...rest }) => rest);
+}
+
+

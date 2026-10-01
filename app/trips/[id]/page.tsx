@@ -565,6 +565,7 @@ export default function TripDetailPage() {
 
           {activeTab === "collage" && (
             <CollageStudio
+              tripId={trip.id}
               tripTitle={trip.title}
               tripDates={
                 trip.startDate
