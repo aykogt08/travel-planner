@@ -84,6 +84,10 @@ export async function cutoutSubject(
     isMaskInverted = !isMaskInverted;
   }
 
+  // 2. Multi-person bounding box lookup map (if multiple people detected by ObjectDetector)
+  const personBoxes = options?.personBoxes || [];
+  const hasMultiplePersons = personBoxes.length >= 2;
+
   // Build binary/alpha mask and its inverted counterpart
   const maskCanvas = document.createElement("canvas");
   maskCanvas.width = inferW;
@@ -119,8 +123,27 @@ export async function cutoutSubject(
       const maskVal = maskArray[maskIdx];
       const normX = x / inferW;
 
-      // Base foreground test: maskVal > 0 means person in MediaPipe SelfieSegmenter
-      const isPerson = isMaskInverted ? maskVal === 0 : maskVal > 0;
+      // Base raw foreground test
+      let isPerson = isMaskInverted ? maskVal === 0 : maskVal > 0;
+
+      // If multiple people exist and this pixel falls inside any detected Person bounding box
+      // (expanded slightly by 3% for heads/limbs), boost person preservation
+      if (hasMultiplePersons && !isPerson) {
+        for (const box of personBoxes) {
+          const padX = box.width * 0.05;
+          const padY = box.height * 0.05;
+          if (
+            normX >= box.originX - padX &&
+            normX <= box.originX + box.width + padX &&
+            normY >= box.originY - padY &&
+            normY <= box.originY + box.height + padY
+          ) {
+            // Keep if mask has even faint subject affinity or if it's near box center
+            isPerson = true;
+            break;
+          }
+        }
+      }
 
       const pixelIdx = (y * inferW + x) * 4;
 
