@@ -37,7 +37,44 @@ export default function MetadataCard({ item }: MetadataCardProps) {
     ? metadata.cutout.invertedCutoutDataUrl
     : metadata?.cutout?.cutoutDataUrl;
 
-  const handleDownloadCutout = () => {
+  const getPngBlobFromUrl = (url: string): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas context failed"));
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("toBlob failed"));
+          }, "image/png");
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error("Image load failed"));
+      img.src = url;
+    });
+  };
+
+  const handleDownload = () => {
+    if (activeTab === "original") {
+      const a = document.createElement("a");
+      a.href = previewUrl;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
     if (!currentCutoutUrl) return;
     const a = document.createElement("a");
     a.href = currentCutoutUrl;
@@ -47,17 +84,31 @@ export default function MetadataCard({ item }: MetadataCardProps) {
     document.body.removeChild(a);
   };
 
-  const handleCopyCutout = async () => {
-    if (!currentCutoutUrl || !navigator.clipboard?.write) return;
+  const handleCopy = async () => {
+    if (!navigator.clipboard?.write) {
+      alert("お使いのブラウザはクリップボードへの画像コピーに対応していません。ダウンロードをご利用ください。");
+      return;
+    }
     try {
-      const res = await fetch(currentCutoutUrl);
-      const blob = await res.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
-      ]);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      if (activeTab === "original") {
+        const pngBlob = await getPngBlobFromUrl(previewUrl);
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": pngBlob }),
+        ]);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } else {
+        if (!currentCutoutUrl) return;
+        const res = await fetch(currentCutoutUrl);
+        const blob = await res.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }
     } catch (e) {
+      console.error(e);
       alert("クリップボードへのコピーに失敗しました。ダウンロードをご利用ください。");
     }
   };
@@ -163,44 +214,61 @@ export default function MetadataCard({ item }: MetadataCardProps) {
               </button>
             </div>
 
-            {/* Cutout quick actions */}
-            {metadata.cutout?.cutoutDataUrl && (
-              <div className="flex items-center gap-1">
-                {/* Invert button */}
-                {metadata.cutout.invertedCutoutDataUrl && activeTab === "cutout" && (
-                  <button
-                    type="button"
-                    onClick={handleToggleInvert}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition shadow-xs ${
-                      useInvertedCutout
-                        ? "bg-[#003049] text-white"
-                        : "bg-white/90 text-[#386641] hover:bg-white"
-                    }`}
-                    title="背景と人物の切り抜きを反転する"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    <span>{useInvertedCutout ? "反転中" : "反転"}</span>
-                  </button>
-                )}
-
+            {/* Cutout / Original quick actions */}
+            <div className="flex items-center gap-1">
+              {/* Invert button: only on cutout tab when inverted cutout is available */}
+              {activeTab === "cutout" && metadata.cutout?.invertedCutoutDataUrl && (
                 <button
                   type="button"
-                  onClick={handleCopyCutout}
-                  className="p-1.5 rounded-lg bg-white/90 text-[#386641] hover:bg-white transition shadow-xs"
-                  title="切り抜きをクリップボードにコピー"
+                  onClick={handleToggleInvert}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition shadow-xs ${
+                    useInvertedCutout
+                      ? "bg-[#003049] text-white"
+                      : "bg-white/90 text-[#386641] hover:bg-white"
+                  }`}
+                  title="背景と人物の切り抜きを反転する"
                 >
-                  {isCopied ? <Check className="w-3.5 h-3.5 text-[#386641]" /> : <Copy className="w-3.5 h-3.5" />}
+                  <RefreshCw className="w-3 h-3" />
+                  <span>{useInvertedCutout ? "反転中" : "反転"}</span>
                 </button>
+              )}
+
+              {/* Copy button */}
+              {(activeTab === "original" || metadata.cutout?.cutoutDataUrl) && (
                 <button
                   type="button"
-                  onClick={handleDownloadCutout}
+                  onClick={handleCopy}
                   className="p-1.5 rounded-lg bg-white/90 text-[#386641] hover:bg-white transition shadow-xs"
-                  title="透明PNGとして保存"
+                  title={
+                    activeTab === "original"
+                      ? "元画像をクリップボードにコピー"
+                      : "切り抜きをクリップボードにコピー"
+                  }
+                >
+                  {isCopied ? (
+                    <Check className="w-3.5 h-3.5 text-[#386641]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              )}
+
+              {/* Download button */}
+              {(activeTab === "original" || metadata.cutout?.cutoutDataUrl) && (
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="p-1.5 rounded-lg bg-white/90 text-[#386641] hover:bg-white transition shadow-xs"
+                  title={
+                    activeTab === "original"
+                      ? "元画像をダウンロード"
+                      : "透明PNGとして保存"
+                  }
                 >
                   <Download className="w-3.5 h-3.5" />
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

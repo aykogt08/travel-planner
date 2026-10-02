@@ -160,11 +160,16 @@ export default function CollageStudio({
         return;
       }
 
-      // If added via paste/clipboard button, guarantee it is treated as a cutout sticker
+      // If added via paste/clipboard button:
+      // If it has transparency (cutout PNG from iPhone or PhotoLab), treat as a cutout sticker.
+      // If it is an opaque photo (original photo copied from PhotoLab or elsewhere), treat as a regular photo!
       if (isFromPaste) {
         newFeatures.forEach((f) => {
-          f.isCutoutSticker = true;
-          f.hasTransparency = true;
+          if (f.hasTransparency) {
+            f.isCutoutSticker = true;
+          } else {
+            f.isCutoutSticker = false;
+          }
         });
       } else {
         // Files from photo picker must always be treated as regular photos
@@ -218,6 +223,27 @@ export default function CollageStudio({
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Toggle between regular photo slot and floating sticker mode
+  const handleToggleStickerMode = (photoId: string) => {
+    setAnalyzedPhotos((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === photoId) {
+          return {
+            ...p,
+            isCutoutSticker: !p.isCutoutSticker,
+          };
+        }
+        return p;
+      });
+      photosRef.current = updated;
+      if (currentTemplate) {
+        const assignments = assignPhotosToTemplate(currentTemplate, updated, jitterSeed);
+        setCurrentAssignments(assignments);
+      }
+      return updated;
+    });
   };
 
   // Handle Photo File Picker
@@ -779,18 +805,23 @@ export default function CollageStudio({
                 >
                   <X className="w-3 h-3" />
                 </button>
-                <span className={`absolute bottom-0.5 left-0.5 text-[8px] font-bold px-1 rounded-xs flex items-center gap-0.5 ${
-                  p.isCutoutSticker ? "bg-[#C1121F] text-white" : "bg-[#386641]/90 text-[#FDF0D5]"
-                }`}>
+                <button
+                  type="button"
+                  onClick={() => handleToggleStickerMode(p.id)}
+                  className={`absolute bottom-0.5 left-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 transition shadow-2xs hover:scale-105 active:scale-95 ${
+                    p.isCutoutSticker ? "bg-[#C1121F] text-white" : "bg-[#386641]/90 text-[#FDF0D5]"
+                  }`}
+                  title={p.isCutoutSticker ? "クリックして通常の写真枠に変更" : "クリックしてステッカーとして重ねて配置"}
+                >
                   {p.isCutoutSticker ? (
                     <>
                       <Scissors className="w-2.5 h-2.5" />
                       <span>切抜</span>
                     </>
                   ) : (
-                    p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"
+                    <span>{p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"}</span>
                   )}
-                </span>
+                </button>
               </div>
             ))}
           </div>
