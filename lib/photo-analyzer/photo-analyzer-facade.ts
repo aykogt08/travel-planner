@@ -60,26 +60,26 @@ export class PhotoAnalyzer {
     options.onProgress?.("MediaPipe AIで被写体を検出中...");
     let detectedLabels: { label: string; score: number }[] = [];
     let detectedPersonCount = 0;
+    let detectedPersonBoxes: { originX: number; originY: number; width: number; height: number }[] = [];
     try {
       const detectResult = await detectObjects(img);
       detectedLabels = detectResult.labels;
       detectedPersonCount = detectResult.personCount;
+      detectedPersonBoxes = detectResult.personBoxes || [];
     } catch (detErr) {
       console.warn("MediaPipe object detection fallback:", detErr);
     }
 
-    // 4. Person & Subject Cutout (ImageSegmenter)
+    // 4. Person & Subject Cutout (ImageSegmenter with personBoxes assistance)
     let cutoutResult = undefined;
     let hasCutoutSubject = false;
     if (options.enableCutout !== false) {
       options.onProgress?.("人物・被写体を自動切り抜き中...");
       try {
-        cutoutResult = await cutoutSubject(img);
+        cutoutResult = await cutoutSubject(img, {
+          personBoxes: detectedPersonBoxes,
+        });
         hasCutoutSubject = cutoutResult.hasSubject;
-        // If cutout found a dominant subject and personCount was 0, it might be a selfie or solo portrait
-        if (hasCutoutSubject && detectedPersonCount === 0 && cutoutResult.cutoutRatio > 0.1) {
-          detectedPersonCount = 1;
-        }
       } catch (segErr) {
         console.warn("MediaPipe segmentation fallback:", segErr);
       }

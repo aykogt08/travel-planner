@@ -1,9 +1,17 @@
 // lib/mediapipe/detector.ts
 import { getObjectDetector } from "./mediapipe-manager";
 
+export interface DetectionBox {
+  originX: number; // 0..1 relative
+  originY: number;
+  width: number;
+  height: number;
+}
+
 export interface DetectionResult {
   labels: { label: string; score: number }[];
   personCount: number;
+  personBoxes: DetectionBox[];
 }
 
 /**
@@ -43,6 +51,7 @@ export async function detectObjects(
   const result = detector.detect(canvas);
 
   const labels: { label: string; score: number }[] = [];
+  const personBoxes: DetectionBox[] = [];
   let personCount = 0;
 
   if (result.detections) {
@@ -57,10 +66,19 @@ export async function detectObjects(
 
         if (catName === "person" || catName === "human") {
           personCount++;
+          if (detection.boundingBox) {
+            const bb = detection.boundingBox;
+            personBoxes.push({
+              originX: Math.max(0, bb.originX / targetW),
+              originY: Math.max(0, bb.originY / targetH),
+              width: Math.min(1, bb.width / targetW),
+              height: Math.min(1, bb.height / targetH),
+            });
+          }
         }
       }
     }
   }
 
-  return { labels, personCount };
+  return { labels, personCount, personBoxes };
 }

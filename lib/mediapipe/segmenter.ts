@@ -8,8 +8,14 @@ import { CutoutResult } from "@/types/photo-analysis";
  * - Leaves original source image untouched
  * - Returns transparent PNG Data URL + metadata
  */
+export interface CutoutOptions {
+  personBoxes?: { originX: number; originY: number; width: number; height: number }[];
+  forceInvert?: boolean;
+}
+
 export async function cutoutSubject(
-  img: HTMLImageElement | HTMLCanvasElement
+  img: HTMLImageElement | HTMLCanvasElement,
+  options?: CutoutOptions
 ): Promise<CutoutResult> {
   const segmenter = await getImageSegmenter();
 
@@ -39,7 +45,6 @@ export async function cutoutSubject(
   }
 
   ctx.drawImage(img, 0, 0, inferW, inferH);
-  const originalImageData = ctx.getImageData(0, 0, inferW, inferH);
 
   // Run MediaPipe segmentation
   const result = segmenter.segment(canvas);
@@ -57,15 +62,50 @@ export async function cutoutSubject(
   const maskW = categoryMask.width;
   const maskH = categoryMask.height;
 
-  // Build binary/alpha mask on a separate canvas
+  // 1. Analyze corners to detect whether raw mask is inverted (background as 1, person as 0)
+  // Check 4 corner coordinates in mask space
+  const cornerCoords = [
+    [0, 0],
+    [maskW - 1, 0],
+    [0, maskH - 1],
+    [maskW - 1, maskH - 1],
+    [Math.floor(maskW / 2), 0], // top edge middle
+  ];
+  let cornerForegroundCount = 0;
+  for (const [cx, cy] of cornerCoords) {
+    if (maskArray[cy * maskW + cx] > 0) {
+      cornerForegroundCount++;
+    }
+  }
+
+  // If 4 out of 5 outer edge points are "foreground" (>0), it is very likely inverted (meaning 0 is person, 1 is background)
+  let isMaskInverted = cornerForegroundCount >= 4;
+  if (options?.forceInvert) {
+    isMaskInverted = !isMaskInverted;
+  }
+
+  // 2. Multi-person bounding box lookup map (if multiple people detected by ObjectDetector)
+  const personBoxes = options?.personBoxes || [];
+  const hasMultiplePersons = personBoxes.length >= 2;
+
+  // Build binary/alpha mask and its inverted counterpart
   const maskCanvas = document.createElement("canvas");
   maskCanvas.width = inferW;
   maskCanvas.height = inferH;
   const maskCtx = maskCanvas.getContext("2d");
   if (!maskCtx) throw new Error("Could not create mask canvas");
 
+  const invMaskCanvas = document.createElement("canvas");
+  invMaskCanvas.width = inferW;
+  invMaskCanvas.height = inferH;
+  const invMaskCtx = invMaskCanvas.getContext("2d");
+  if (!invMaskCtx) throw new Error("Could not create inverted mask canvas");
+
   const maskImgData = maskCtx.createImageData(inferW, inferH);
   const maskData = maskImgData.data;
+
+  const invMaskImgData = invMaskCtx.createImageData(inferW, inferH);
+  const invMaskData = invMaskImgData.data;
 
   let foregroundCount = 0;
   let minX = inferW;
@@ -75,40 +115,76 @@ export async function cutoutSubject(
 
   for (let y = 0; y < inferH; y++) {
     const maskY = Math.min(Math.floor((y / inferH) * maskH), maskH - 1);
+    const normY = y / inferH;
+
     for (let x = 0; x < inferW; x++) {
       const maskX = Math.min(Math.floor((x / inferW) * maskW), maskW - 1);
       const maskIdx = maskY * maskW + maskX;
-      const maskVal = maskArray[maskIdx]; // 0: background, 1 or >0: foreground person
+      const maskVal = maskArray[maskIdx];
+      const normX = x / inferW;
+
+      // Base raw foreground test
+      let isPerson = isMaskInverted ? maskVal === 0 : maskVal > 0;
+
+      // If multiple people exist and this pixel falls inside any detected Person bounding box
+      // (expanded slightly by 3% for heads/limbs), boost person preservation
+      if (hasMultiplePersons && !isPerson) {
+        for (const box of personBoxes) {
+          const padX = box.width * 0.05;
+          const padY = box.height * 0.05;
+          if (
+            normX >= box.originX - padX &&
+            normX <= box.originX + box.width + padX &&
+            normY >= box.originY - padY &&
+            normY <= box.originY + box.height + padY
+          ) {
+            // Keep if mask has even faint subject affinity or if it's near box center
+            isPerson = true;
+            break;
+          }
+        }
+      }
 
       const pixelIdx = (y * inferW + x) * 4;
-      const isForeground = maskVal > 0;
 
-      if (isForeground) {
+      if (isPerson) {
         foregroundCount++;
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
         if (y < minY) minY = y;
         if (y > maxY) maxY = y;
 
-        // Foreground: Alpha = 255
+        // Primary Mask: Foreground opaque
         maskData[pixelIdx] = 255;
         maskData[pixelIdx + 1] = 255;
         maskData[pixelIdx + 2] = 255;
         maskData[pixelIdx + 3] = 255;
+
+        // Inverted Mask: Background transparent
+        invMaskData[pixelIdx] = 0;
+        invMaskData[pixelIdx + 1] = 0;
+        invMaskData[pixelIdx + 2] = 0;
+        invMaskData[pixelIdx + 3] = 0;
       } else {
-        // Background: Transparent
+        // Primary Mask: Background transparent
         maskData[pixelIdx] = 0;
         maskData[pixelIdx + 1] = 0;
         maskData[pixelIdx + 2] = 0;
         maskData[pixelIdx + 3] = 0;
+
+        // Inverted Mask: Foreground opaque
+        invMaskData[pixelIdx] = 255;
+        invMaskData[pixelIdx + 1] = 255;
+        invMaskData[pixelIdx + 2] = 255;
+        invMaskData[pixelIdx + 3] = 255;
       }
     }
   }
 
-  // Safety check: if detected subject is too tiny (< 1.5% of total image), treat as no subject
+  // Safety check: if detected subject is too tiny (< 0.8% of total image), treat as no subject
   const totalPixels = inferW * inferH;
   const cutoutRatio = foregroundCount / totalPixels;
-  if (cutoutRatio < 0.015) {
+  if (cutoutRatio < 0.008) {
     categoryMask.close();
     return {
       cutoutDataUrl: "",
@@ -118,22 +194,24 @@ export async function cutoutSubject(
   }
 
   maskCtx.putImageData(maskImgData, 0, 0);
+  invMaskCtx.putImageData(invMaskImgData, 0, 0);
 
-  // Apply cutout by composite: original image masked by destination-in
-  const cutoutCanvas = document.createElement("canvas");
-  cutoutCanvas.width = inferW;
-  cutoutCanvas.height = inferH;
-  const cutoutCtx = cutoutCanvas.getContext("2d");
-  if (!cutoutCtx) throw new Error("Could not create cutout canvas");
+  // Helper to render cutout canvas with mask
+  const renderCutout = (mCanvas: HTMLCanvasElement): string => {
+    const cCanvas = document.createElement("canvas");
+    cCanvas.width = inferW;
+    cCanvas.height = inferH;
+    const cCtx = cCanvas.getContext("2d");
+    if (!cCtx) return "";
+    cCtx.drawImage(img, 0, 0, inferW, inferH);
+    cCtx.globalCompositeOperation = "destination-in";
+    cCtx.drawImage(mCanvas, 0, 0);
+    cCtx.globalCompositeOperation = "source-over";
+    return cCanvas.toDataURL("image/png", 0.9);
+  };
 
-  // Draw original image
-  cutoutCtx.drawImage(img, 0, 0, inferW, inferH);
-  // Apply mask with destination-in
-  cutoutCtx.globalCompositeOperation = "destination-in";
-  cutoutCtx.drawImage(maskCanvas, 0, 0);
-  cutoutCtx.globalCompositeOperation = "source-over";
-
-  const cutoutDataUrl = cutoutCanvas.toDataURL("image/png", 0.9);
+  const cutoutDataUrl = renderCutout(maskCanvas);
+  const invertedCutoutDataUrl = renderCutout(invMaskCanvas);
   const maskDataUrl = maskCanvas.toDataURL("image/png", 0.7);
 
   // Clean up WebAssembly memory
@@ -141,9 +219,11 @@ export async function cutoutSubject(
 
   return {
     cutoutDataUrl,
+    invertedCutoutDataUrl,
     maskDataUrl,
     hasSubject: true,
     cutoutRatio,
+    isInverted: isMaskInverted,
     subjectBox: {
       x: minX / inferW,
       y: minY / inferH,
