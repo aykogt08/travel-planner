@@ -255,7 +255,7 @@ export function classifyPhotoByRules(input: RuleClassificationInput): {
   }
 
   // 3. Flags determination
-  const hasPerson = input.personCount > 0 || categoryScores["person"] > 0.6;
+  const hasPerson = input.personCount > 0;
   const hasFood = categoryScores["food"] > 0.5;
   const hasAnimal = categoryScores["animal"] > 0.5;
   const hasBuilding = categoryScores["architecture"] > 0.5;

@@ -76,10 +76,6 @@ export class PhotoAnalyzer {
       try {
         cutoutResult = await cutoutSubject(img);
         hasCutoutSubject = cutoutResult.hasSubject;
-        // If cutout found a dominant subject and personCount was 0, it might be a selfie or solo portrait
-        if (hasCutoutSubject && detectedPersonCount === 0 && cutoutResult.cutoutRatio > 0.1) {
-          detectedPersonCount = 1;
-        }
       } catch (segErr) {
         console.warn("MediaPipe segmentation fallback:", segErr);
       }
