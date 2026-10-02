@@ -9,6 +9,38 @@ export type PlaceCategory =
 
 export type ReservationStatus = "NONE" | "NEED_BOOKING" | "BOOKED";
 
+export const RESERVATION_STATUS_LABELS: Record<ReservationStatus, { label: string; badgeClass: string }> = {
+  NONE: { label: "予約不要 / 未定", badgeClass: "bg-stone-100 text-stone-600" },
+  NEED_BOOKING: { label: "⚠️ 要予約 / 手配前", badgeClass: "bg-[#C1121F]/10 text-[#C1121F] border border-[#C1121F]/20 font-bold" },
+  BOOKED: { label: "✓ 予約済み", badgeClass: "bg-[#386641]/15 text-[#386641] border border-[#386641]/30 font-bold" },
+};
+
+export const PRESET_PAYMENT_METHODS = [
+  "楽天カード",
+  "三井住友VISA",
+  "JCBカード",
+  "エポスカード",
+  "アメックス",
+  "PayPay",
+  "現地決済",
+  "現金",
+  "マイル・ポイント",
+];
+
+export const PRESET_BOOKING_SITES = [
+  "Booking.com",
+  "Agoda",
+  "一休.com",
+  "楽天トラベル",
+  "じゃらん",
+  "Airbnb",
+  "スマートEX",
+  "JAL公式",
+  "ANA公式",
+  "Trip.com",
+  "公式サイト",
+];
+
 export type TransportType =
   | "WALK"
   | "TRAIN"
@@ -49,6 +81,10 @@ export interface Place {
   checkInTime: string | null;
   checkOutTime: string | null;
   reservationStatus: ReservationStatus | string;
+  bookingNumber?: string | null;
+  paymentMethod?: string | null;
+  cancelDeadline?: string | null;
+  bookingSite?: string | null;
   rating: number | null;
   hasBreakfast?: boolean | null;
   visited: boolean;
@@ -72,6 +108,11 @@ export interface Schedule {
   toPlace: string | null;
   cost: number | null;
   memo: string | null;
+  reservationStatus?: ReservationStatus | string | null;
+  bookingNumber?: string | null;
+  paymentMethod?: string | null;
+  cancelDeadline?: string | null;
+  bookingSite?: string | null;
   hasBreakfast?: boolean | null;
   isCompleted: boolean;
   placeId: number | null;

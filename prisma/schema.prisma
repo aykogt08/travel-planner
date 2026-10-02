@@ -39,6 +39,10 @@ model Place {
   checkInTime       String?    // e.g. "15:00"
   checkOutTime      String?    // e.g. "11:00"
   reservationStatus String     @default("NONE") // NONE, NEED_BOOKING, BOOKED
+  bookingNumber     String?    // e.g. "#BK-987654"
+  paymentMethod     String?    // e.g. "楽天カード", "三井住友VISA", "現地払い"
+  cancelDeadline    String?    // e.g. "2026-03-18 23:59"
+  bookingSite       String?    // e.g. "Booking.com", "一休", "公式サイト"
   rating            Int?       @default(0)
   hasBreakfast      Boolean?   @default(false)
   visited           Boolean    @default(false)
@@ -50,28 +54,33 @@ model Place {
 }
 
 model Schedule {
-  id            Int      @id @default(autoincrement())
-  date          DateTime
-  startTime     String?  // e.g. "12:00"
-  endTime       String?  // e.g. "13:30"
-  checkOutDate  String?  // e.g. "2026-03-22" (for hotel multi-day stays)
-  title         String
-  category      String   @default("SIGHTSEEING") // FOOD, SIGHTSEEING, TRANSPORT, HOTEL, ACTIVITY, OTHER
-  transportType String?  // WALK, TRAIN, BUS, CAR, FLIGHT, SHIP, TAXI
-  flightNumber  String?
-  duration      Int?     // in minutes
-  fromPlace     String?
-  toPlace       String?
-  cost          Int?
-  memo          String?
-  hasBreakfast  Boolean? @default(false)
-  isCompleted   Boolean  @default(false)
-  place         Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
-  placeId       Int?
-  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  tripId        Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  date              DateTime
+  startTime         String?  // e.g. "12:00"
+  endTime           String?  // e.g. "13:30"
+  checkOutDate      String?  // e.g. "2026-03-22" (for hotel multi-day stays)
+  title             String
+  category          String   @default("SIGHTSEEING") // FOOD, SIGHTSEEING, TRANSPORT, HOTEL, ACTIVITY, OTHER
+  transportType     String?  // WALK, TRAIN, BUS, CAR, FLIGHT, SHIP, TAXI
+  flightNumber      String?
+  duration          Int?     // in minutes
+  fromPlace         String?
+  toPlace           String?
+  cost              Int?
+  memo              String?
+  reservationStatus String?  @default("NONE") // NONE, NEED_BOOKING, BOOKED
+  bookingNumber     String?  // e.g. "#EX-12345"
+  paymentMethod     String?  // e.g. "楽天カード", "現地払い", "スマートEX"
+  cancelDeadline    String?  // e.g. "2026-03-18 23:59"
+  bookingSite       String?  // e.g. "JAL公式", "スマートEX", "Booking.com"
+  hasBreakfast      Boolean? @default(false)
+  isCompleted       Boolean  @default(false)
+  place             Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  placeId           Int?
+  trip              Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId            Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model PackingItem {

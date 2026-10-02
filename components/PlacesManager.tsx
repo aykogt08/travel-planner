@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Place, PlaceCategory, ReservationStatus, Schedule } from "@/types/trip";
+import { Place, PlaceCategory, ReservationStatus, Schedule, PRESET_PAYMENT_METHODS, PRESET_BOOKING_SITES } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 import {
   Utensils,
@@ -116,6 +116,10 @@ export default function PlacesManager({
     reservationStatus: "NONE" as ReservationStatus,
     rating: 3,
     hasBreakfast: false,
+    bookingNumber: "",
+    paymentMethod: "",
+    cancelDeadline: "",
+    bookingSite: "",
   });
 
   const [splitMode, setSplitMode] = useState(false);
@@ -169,6 +173,10 @@ export default function PlacesManager({
       reservationStatus: "NONE",
       rating: 3,
       hasBreakfast: false,
+      bookingNumber: "",
+      paymentMethod: "",
+      cancelDeadline: "",
+      bookingSite: "",
     });
     setSplitMode(false);
     setSplitPeople("2");
@@ -207,6 +215,10 @@ export default function PlacesManager({
       reservationStatus: (place.reservationStatus as ReservationStatus) || "NONE",
       rating: place.rating || 0,
       hasBreakfast: Boolean(place.hasBreakfast),
+      bookingNumber: place.bookingNumber || "",
+      paymentMethod: place.paymentMethod || "",
+      cancelDeadline: place.cancelDeadline || "",
+      bookingSite: place.bookingSite || "",
     });
     setShowAddModal(true);
   };
@@ -236,6 +248,10 @@ export default function PlacesManager({
       reservationStatus: form.reservationStatus,
       rating: Number(form.rating),
       hasBreakfast: form.category === "HOTEL" ? Boolean(form.hasBreakfast) : false,
+      bookingNumber: form.bookingNumber.trim() || null,
+      paymentMethod: form.paymentMethod.trim() || null,
+      cancelDeadline: form.cancelDeadline || null,
+      bookingSite: form.bookingSite.trim() || null,
       tripId,
     };
 
@@ -557,6 +573,30 @@ export default function PlacesManager({
                     {place.reservationStatus === "NEED_BOOKING" && (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#C1121F]/15 text-[#C1121F] border border-[#C1121F]/30">
                         ⚠️ 要予約
+                      </span>
+                    )}
+
+                    {place.bookingSite && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#386641]/10 text-[#386641]">
+                        🏢 {place.bookingSite}
+                      </span>
+                    )}
+
+                    {place.bookingNumber && (
+                      <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 border border-stone-200">
+                        #{place.bookingNumber}
+                      </span>
+                    )}
+
+                    {place.paymentMethod && (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40">
+                        💳 {place.paymentMethod}
+                      </span>
+                    )}
+
+                    {place.cancelDeadline && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C1121F]/10 text-[#C1121F] border border-[#C1121F]/30">
+                        ⏰ {new Date(place.cancelDeadline).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}までキャンセル無料
                       </span>
                     )}
 
@@ -1017,6 +1057,79 @@ export default function PlacesManager({
                   </select>
                 </div>
               </div>
+
+              {/* Booking Details Section (for HOTEL or when reservation is BOOKED / NEED_BOOKING) */}
+              {(form.category === "HOTEL" || form.reservationStatus !== "NONE") && (
+                <div className="p-3.5 rounded-2xl bg-[#003049]/5 border border-[#003049]/20 flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#003049]">
+                    <span>📋 予約・支払い・キャンセル管理</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                        予約サイト / 手配先
+                      </label>
+                      <input
+                        list="places-booking-sites"
+                        value={form.bookingSite}
+                        onChange={(e) => setForm({ ...form, bookingSite: e.target.value })}
+                        placeholder="例: Booking.com, 一休, じゃらん"
+                        className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                      />
+                      <datalist id="places-booking-sites">
+                        {PRESET_BOOKING_SITES.map((site) => (
+                          <option key={site} value={site} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                        予約番号 / 照会番号
+                      </label>
+                      <input
+                        value={form.bookingNumber}
+                        onChange={(e) => setForm({ ...form, bookingNumber: e.target.value })}
+                        placeholder="例: BK-9876543"
+                        className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                        支払いカード / 方法
+                      </label>
+                      <input
+                        list="places-payment-methods"
+                        value={form.paymentMethod}
+                        onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+                        placeholder="例: 楽天カード, 現地決済"
+                        className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                      />
+                      <datalist id="places-payment-methods">
+                        {PRESET_PAYMENT_METHODS.map((method) => (
+                          <option key={method} value={method} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                        無料キャンセル期限
+                      </label>
+                      <input
+                        type="date"
+                        value={form.cancelDeadline}
+                        onChange={(e) => setForm({ ...form, cancelDeadline: e.target.value })}
+                        className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Business hours & Rating */}
               <div className="grid grid-cols-2 gap-3">

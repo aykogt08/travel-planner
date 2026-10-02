@@ -18,6 +18,7 @@ import WishCollection from "@/components/WishCollection";
 import OfflineGuideModal from "@/components/OfflineGuideModal";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
 import CollageStudio from "@/components/collage/CollageStudio";
+import BookingsManager from "@/components/bookings/BookingsManager";
 import {
   Calendar,
   MapPin,
@@ -34,6 +35,7 @@ import {
   Luggage,
   Sparkles,
   HelpCircle, Image,
+  ClipboardList,
 } from "lucide-react";
 
 export default function TripDetailPage() {
@@ -43,7 +45,7 @@ export default function TripDetailPage() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "wishes" | "packing" | "budget" | "collage">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "bookings" | "wishes" | "packing" | "budget" | "collage">("timeline");
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -474,6 +476,30 @@ export default function TripDetailPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("bookings")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "bookings"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+            }`}
+          >
+            <ClipboardList className={`w-4 h-4 ${activeTab === "bookings" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>予約・手配</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "bookings"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#386641]/10 text-[#386641]/70"
+              }`}
+            >
+              {
+                trip.schedules.filter((s) => s.category === "TRANSPORT" || s.category === "HOTEL" || s.reservationStatus !== "NONE").length +
+                trip.places.filter((p) => p.category === "HOTEL" || p.reservationStatus !== "NONE").length
+              }
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("collage")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "collage"
@@ -550,6 +576,17 @@ export default function TripDetailPage() {
               tripEndDate={trip.endDate}
               onPlacesChange={handlePlacesChange}
               onAddScheduleFromPlace={handleAddScheduleFromPlace}
+              isOffline={isOfflineMode}
+            />
+          )}
+
+          {activeTab === "bookings" && (
+            <BookingsManager
+              tripId={trip.id}
+              schedules={trip.schedules}
+              places={trip.places}
+              onSchedulesChange={handleSchedulesChange}
+              onPlacesChange={handlePlacesChange}
               isOffline={isOfflineMode}
             />
           )}

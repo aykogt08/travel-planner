@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Schedule, Place, TransportType, ScheduleCategory } from "@/types/trip";
+import { Schedule, Place, TransportType, ScheduleCategory, ReservationStatus, PRESET_PAYMENT_METHODS, PRESET_BOOKING_SITES } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 import {
   Clock,
@@ -637,6 +637,11 @@ export default function TimelineView({
     memo: "",
     placeId: "" as string,
     hasBreakfast: false,
+    reservationStatus: "NONE" as ReservationStatus,
+    bookingNumber: "",
+    paymentMethod: "",
+    cancelDeadline: "",
+    bookingSite: "",
   });
 
   const [splitMode, setSplitMode] = useState(false);
@@ -672,6 +677,11 @@ export default function TimelineView({
       memo: "",
       placeId: "",
       hasBreakfast: false,
+      reservationStatus: "NONE",
+      bookingNumber: "",
+      paymentMethod: "",
+      cancelDeadline: "",
+      bookingSite: "",
     });
     setSplitMode(false);
     setSplitPeople("2");
@@ -699,6 +709,7 @@ export default function TimelineView({
       endTime: category === "HOTEL" ? "11:00" : "11:30",
       checkOutDate: defaultOutDate,
       hasBreakfast: false,
+      reservationStatus: category === "HOTEL" || category === "TRANSPORT" ? "NEED_BOOKING" : "NONE",
     }));
     setShowAddModal(true);
   };
@@ -729,6 +740,11 @@ export default function TimelineView({
       memo: schedule.memo || "",
       placeId: schedule.placeId && places.some((p) => p.id === schedule.placeId) ? String(schedule.placeId) : "",
       hasBreakfast: Boolean(schedule.hasBreakfast),
+      reservationStatus: (schedule.reservationStatus as ReservationStatus) || "NONE",
+      bookingNumber: schedule.bookingNumber || "",
+      paymentMethod: schedule.paymentMethod || "",
+      cancelDeadline: schedule.cancelDeadline || "",
+      bookingSite: schedule.bookingSite || "",
     });
     setShowAddModal(true);
   };
@@ -744,6 +760,7 @@ export default function TimelineView({
           startTime: prev.startTime === "10:00" ? "15:00" : prev.startTime || "15:00",
           endTime: prev.endTime === "11:30" ? "11:00" : prev.endTime || "11:00",
           checkOutDate: prev.checkOutDate || nextDay.toISOString().split("T")[0],
+          reservationStatus: prev.reservationStatus === "NONE" ? "NEED_BOOKING" : prev.reservationStatus,
         };
       }
       return {
@@ -780,6 +797,11 @@ export default function TimelineView({
       memo: form.memo.trim() || null,
       hasBreakfast: isHotel ? Boolean(form.hasBreakfast) : false,
       placeId: form.placeId ? Number(form.placeId) : null,
+      reservationStatus: form.reservationStatus,
+      bookingNumber: form.bookingNumber.trim() || null,
+      paymentMethod: form.paymentMethod.trim() || null,
+      cancelDeadline: form.cancelDeadline || null,
+      bookingSite: form.bookingSite.trim() || null,
       tripId,
     };
 
@@ -1510,6 +1532,42 @@ export default function TimelineView({
                           )
                         )}
 
+                        {/* Reservation and Booking Badges */}
+                        {schedule.reservationStatus === "BOOKED" && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#003049]/15 text-[#003049] border border-[#003049]/30">
+                            ✓ 予約済み
+                          </span>
+                        )}
+                        {schedule.reservationStatus === "NEED_BOOKING" && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#C1121F]/15 text-[#C1121F] border border-[#C1121F]/30">
+                            ⚠️ 要予約
+                          </span>
+                        )}
+
+                        {schedule.bookingSite && (
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#386641]/10 text-[#386641]">
+                            🏢 {schedule.bookingSite}
+                          </span>
+                        )}
+
+                        {schedule.bookingNumber && (
+                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-stone-100 text-stone-600 border border-stone-200">
+                            #{schedule.bookingNumber}
+                          </span>
+                        )}
+
+                        {schedule.paymentMethod && (
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40">
+                            💳 {schedule.paymentMethod}
+                          </span>
+                        )}
+
+                        {schedule.cancelDeadline && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#C1121F]/10 text-[#C1121F] border border-[#C1121F]/30">
+                            ⏰ {new Date(schedule.cancelDeadline).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}までキャンセル無料
+                          </span>
+                        )}
+
                         {selectedDateTab === "ALL" && (
                           <span className="text-[11px] text-[#386641]/50 font-medium ml-auto sm:ml-0">
                             {formatDate(item.dateStr)}
@@ -2075,6 +2133,96 @@ export default function TimelineView({
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Booking and Reservation management */}
+              <div className="p-3.5 rounded-2xl bg-[#003049]/5 border border-[#003049]/20 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#003049] flex items-center gap-1.5">
+                    📋 予約・支払い・キャンセル管理
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      予約ステータス
+                    </label>
+                    <select
+                      value={form.reservationStatus}
+                      onChange={(e) =>
+                        setForm({ ...form, reservationStatus: e.target.value as ReservationStatus })
+                      }
+                      className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                    >
+                      <option value="NONE">予約不要</option>
+                      <option value="NEED_BOOKING">⚠️ 要予約</option>
+                      <option value="BOOKED">✓ 予約済み</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      予約サイト / 手配先
+                    </label>
+                    <input
+                      list="timeline-booking-sites"
+                      value={form.bookingSite}
+                      onChange={(e) => setForm({ ...form, bookingSite: e.target.value })}
+                      placeholder="例: スマートEX, Booking.com, JAL"
+                      className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                    />
+                    <datalist id="timeline-booking-sites">
+                      {PRESET_BOOKING_SITES.map((site) => (
+                        <option key={site} value={site} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      予約番号 / 照会番号
+                    </label>
+                    <input
+                      value={form.bookingNumber}
+                      onChange={(e) => setForm({ ...form, bookingNumber: e.target.value })}
+                      placeholder="例: EX-12345"
+                      className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      支払いカード / 方法
+                    </label>
+                    <input
+                      list="timeline-payment-methods"
+                      value={form.paymentMethod}
+                      onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+                      placeholder="例: 楽天カード, 現地払い"
+                      className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                    />
+                    <datalist id="timeline-payment-methods">
+                      {PRESET_PAYMENT_METHODS.map((method) => (
+                        <option key={method} value={method} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#003049]/80 mb-1">
+                      無料キャンセル期日
+                    </label>
+                    <input
+                      type="date"
+                      value={form.cancelDeadline}
+                      onChange={(e) => setForm({ ...form, cancelDeadline: e.target.value })}
+                      className="w-full border border-[#003049]/30 rounded-xl px-3 py-2 text-xs bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#003049]"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Memo */}
