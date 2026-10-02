@@ -80,7 +80,7 @@ export async function getObjectDetector(): Promise<ObjectDetector> {
     },
     runningMode: "IMAGE",
     maxResults: 8,
-    scoreThreshold: 0.48,
+    scoreThreshold: 0.35,
   });
 
   return cachedDetector;

@@ -54,12 +54,10 @@ export interface ExifMetadata {
 
 export interface CutoutResult {
   cutoutDataUrl: string;        // Transparent PNG of detected subject
-  invertedCutoutDataUrl?: string; // Opposite mask cutout for 1-click inversion
   maskDataUrl?: string;         // Binary / grayscale mask
   subjectBox?: { x: number; y: number; width: number; height: number }; // normalized
   hasSubject: boolean;
   cutoutRatio: number;          // Subject area ratio (0.0 - 1.0)
-  isInverted?: boolean;
 }
 
 export interface PhotoMetadata {
