@@ -12,6 +12,7 @@ import {
   Sparkles,
   Info,
   Maximize2,
+  RefreshCw,
 } from "lucide-react";
 
 interface MetadataCardProps {
@@ -28,23 +29,28 @@ interface MetadataCardProps {
 export default function MetadataCard({ item }: MetadataCardProps) {
   const [activeTab, setActiveTab] = useState<"cutout" | "original" | "details">("cutout");
   const [isCopied, setIsCopied] = useState(false);
+  const [useInvertedCutout, setUseInvertedCutout] = useState(false);
 
   const { file, previewUrl, metadata, error, isAnalyzing, progressStep } = item;
 
+  const currentCutoutUrl = useInvertedCutout && metadata?.cutout?.invertedCutoutDataUrl
+    ? metadata.cutout.invertedCutoutDataUrl
+    : metadata?.cutout?.cutoutDataUrl;
+
   const handleDownloadCutout = () => {
-    if (!metadata?.cutout?.cutoutDataUrl) return;
+    if (!currentCutoutUrl) return;
     const a = document.createElement("a");
-    a.href = metadata.cutout.cutoutDataUrl;
-    a.download = `cutout_${metadata.fileName.replace(/\.[^/.]+$/, "")}.png`;
+    a.href = currentCutoutUrl;
+    a.download = `cutout_${metadata?.fileName.replace(/\.[^/.]+$/, "") || "subject"}${useInvertedCutout ? "_inv" : ""}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
   const handleCopyCutout = async () => {
-    if (!metadata?.cutout?.cutoutDataUrl || !navigator.clipboard?.write) return;
+    if (!currentCutoutUrl || !navigator.clipboard?.write) return;
     try {
-      const res = await fetch(metadata.cutout.cutoutDataUrl);
+      const res = await fetch(currentCutoutUrl);
       const blob = await res.blob();
       await navigator.clipboard.write([
         new ClipboardItem({ "image/png": blob }),
@@ -54,6 +60,10 @@ export default function MetadataCard({ item }: MetadataCardProps) {
     } catch (e) {
       alert("クリップボードへのコピーに失敗しました。ダウンロードをご利用ください。");
     }
+  };
+
+  const handleToggleInvert = () => {
+    setUseInvertedCutout((prev) => !prev);
   };
 
   const catInfo = metadata
@@ -111,9 +121,9 @@ export default function MetadataCard({ item }: MetadataCardProps) {
             <span className="text-xs font-bold">解析に失敗しました</span>
             <span className="text-[10px] text-[#C1121F]/70">{error}</span>
           </div>
-        ) : activeTab === "cutout" && metadata?.cutout?.cutoutDataUrl ? (
+        ) : activeTab === "cutout" && currentCutoutUrl ? (
           <img
-            src={metadata.cutout.cutoutDataUrl}
+            src={currentCutoutUrl}
             alt="AI Cutout Subject"
             className="w-full h-full object-contain relative z-10 transition-transform group-hover:scale-102"
           />
@@ -156,6 +166,23 @@ export default function MetadataCard({ item }: MetadataCardProps) {
             {/* Cutout quick actions */}
             {metadata.cutout?.cutoutDataUrl && (
               <div className="flex items-center gap-1">
+                {/* Invert button */}
+                {metadata.cutout.invertedCutoutDataUrl && activeTab === "cutout" && (
+                  <button
+                    type="button"
+                    onClick={handleToggleInvert}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition shadow-xs ${
+                      useInvertedCutout
+                        ? "bg-[#003049] text-white"
+                        : "bg-white/90 text-[#386641] hover:bg-white"
+                    }`}
+                    title="背景と人物の切り抜きを反転する"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>{useInvertedCutout ? "反転中" : "反転"}</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleCopyCutout}

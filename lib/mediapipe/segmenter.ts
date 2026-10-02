@@ -64,8 +64,17 @@ export async function cutoutSubject(
   const maskCtx = maskCanvas.getContext("2d");
   if (!maskCtx) throw new Error("Could not create mask canvas");
 
+  const invMaskCanvas = document.createElement("canvas");
+  invMaskCanvas.width = inferW;
+  invMaskCanvas.height = inferH;
+  const invMaskCtx = invMaskCanvas.getContext("2d");
+  if (!invMaskCtx) throw new Error("Could not create invMask canvas");
+
   const maskImgData = maskCtx.createImageData(inferW, inferH);
   const maskData = maskImgData.data;
+
+  const invMaskImgData = invMaskCtx.createImageData(inferW, inferH);
+  const invMaskData = invMaskImgData.data;
 
   let foregroundCount = 0;
   let minX = inferW;
@@ -95,12 +104,24 @@ export async function cutoutSubject(
         maskData[pixelIdx + 1] = 255;
         maskData[pixelIdx + 2] = 255;
         maskData[pixelIdx + 3] = 255;
+
+        // Inverted: Alpha = 0
+        invMaskData[pixelIdx] = 0;
+        invMaskData[pixelIdx + 1] = 0;
+        invMaskData[pixelIdx + 2] = 0;
+        invMaskData[pixelIdx + 3] = 0;
       } else {
         // Background: Transparent
         maskData[pixelIdx] = 0;
         maskData[pixelIdx + 1] = 0;
         maskData[pixelIdx + 2] = 0;
         maskData[pixelIdx + 3] = 0;
+
+        // Inverted: Alpha = 255
+        invMaskData[pixelIdx] = 255;
+        invMaskData[pixelIdx + 1] = 255;
+        invMaskData[pixelIdx + 2] = 255;
+        invMaskData[pixelIdx + 3] = 255;
       }
     }
   }
@@ -118,22 +139,24 @@ export async function cutoutSubject(
   }
 
   maskCtx.putImageData(maskImgData, 0, 0);
+  invMaskCtx.putImageData(invMaskImgData, 0, 0);
 
   // Apply cutout by composite: original image masked by destination-in
-  const cutoutCanvas = document.createElement("canvas");
-  cutoutCanvas.width = inferW;
-  cutoutCanvas.height = inferH;
-  const cutoutCtx = cutoutCanvas.getContext("2d");
-  if (!cutoutCtx) throw new Error("Could not create cutout canvas");
+  const renderCutout = (mCanvas: HTMLCanvasElement): string => {
+    const cCanvas = document.createElement("canvas");
+    cCanvas.width = inferW;
+    cCanvas.height = inferH;
+    const cCtx = cCanvas.getContext("2d");
+    if (!cCtx) return "";
+    cCtx.drawImage(img, 0, 0, inferW, inferH);
+    cCtx.globalCompositeOperation = "destination-in";
+    cCtx.drawImage(mCanvas, 0, 0);
+    cCtx.globalCompositeOperation = "source-over";
+    return cCanvas.toDataURL("image/png", 0.9);
+  };
 
-  // Draw original image
-  cutoutCtx.drawImage(img, 0, 0, inferW, inferH);
-  // Apply mask with destination-in
-  cutoutCtx.globalCompositeOperation = "destination-in";
-  cutoutCtx.drawImage(maskCanvas, 0, 0);
-  cutoutCtx.globalCompositeOperation = "source-over";
-
-  const cutoutDataUrl = cutoutCanvas.toDataURL("image/png", 0.9);
+  const cutoutDataUrl = renderCutout(maskCanvas);
+  const invertedCutoutDataUrl = renderCutout(invMaskCanvas);
   const maskDataUrl = maskCanvas.toDataURL("image/png", 0.7);
 
   // Clean up WebAssembly memory
@@ -141,6 +164,7 @@ export async function cutoutSubject(
 
   return {
     cutoutDataUrl,
+    invertedCutoutDataUrl,
     maskDataUrl,
     hasSubject: true,
     cutoutRatio,
