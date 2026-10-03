@@ -555,6 +555,7 @@ export default function TripDetailPage() {
               startDate={trip.startDate}
               endDate={trip.endDate}
               onSchedulesChange={handleSchedulesChange}
+              onPlacesChange={handlePlacesChange}
               isOffline={isOfflineMode}
             />
           )}
@@ -585,6 +586,8 @@ export default function TripDetailPage() {
               tripId={trip.id}
               schedules={trip.schedules}
               places={trip.places}
+              tripStartDate={trip.startDate}
+              tripEndDate={trip.endDate}
               onSchedulesChange={handleSchedulesChange}
               onPlacesChange={handlePlacesChange}
               isOffline={isOfflineMode}

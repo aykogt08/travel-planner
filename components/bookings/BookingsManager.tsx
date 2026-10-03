@@ -22,13 +22,18 @@ import {
   DollarSign,
   Info,
   Building,
+  Sparkles,
+  Camera,
 } from "lucide-react";
 import { TRANSPORT_ICONS, TRANSPORT_LABELS } from "@/components/TimelineView";
+import BookingScanModal from "./BookingScanModal";
 
 interface BookingsManagerProps {
   tripId: number;
   schedules: Schedule[];
   places: Place[];
+  tripStartDate?: string | null;
+  tripEndDate?: string | null;
   onSchedulesChange: (schedules: Schedule[]) => void;
   onPlacesChange?: (places: Place[]) => void;
   isOffline?: boolean;
@@ -62,6 +67,8 @@ export default function BookingsManager({
   tripId,
   schedules,
   places,
+  tripStartDate,
+  tripEndDate,
   onSchedulesChange,
   onPlacesChange,
   isOffline = false,
@@ -69,6 +76,16 @@ export default function BookingsManager({
   const [filterType, setFilterType] = useState<"ALL" | "HOTEL" | "TRANSPORT">("ALL");
   const [filterStatus, setFilterStatus] = useState<"ALL" | ReservationStatus>("ALL");
   const [editingItem, setEditingItem] = useState<BookingItem | null>(null);
+  const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+
+  // Handle booking added from AI scanner
+  const handleBookingAdded = (type: "SCHEDULE" | "PLACE", item: any) => {
+    if (type === "SCHEDULE") {
+      onSchedulesChange([...schedules, item]);
+    } else if (type === "PLACE" && onPlacesChange) {
+      onPlacesChange([...places, item]);
+    }
+  };
 
   // Edit Modal form state
   const [editForm, setEditForm] = useState({
@@ -421,30 +438,52 @@ export default function BookingsManager({
           </button>
         </div>
 
-        {/* Status filters */}
-        <div className="flex items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5 text-[#386641]/60" />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="text-xs bg-[#FDF0D5]/60 border border-[#DDA15E]/40 rounded-xl px-2.5 py-1.5 font-bold text-[#386641] focus:outline-none"
+        {/* Status filters & AI Scan button */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsScanModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold transition shadow-xs active:scale-95 cursor-pointer"
+            title="航空券やホテルのスクショから自動入力"
           >
-            <option value="ALL">すべてのステータス</option>
-            <option value="BOOKED">✓ 予約済み</option>
-            <option value="NEED_BOOKING">⚠️ 要予約 / 手配前</option>
-            <option value="NONE">予約不要 / 未定</option>
-          </select>
+            <Sparkles className="w-3.5 h-3.5 text-[#FDF0D5]" />
+            <span>スクショからAI自動入力</span>
+          </button>
+
+          <div className="flex items-center gap-1">
+            <Filter className="w-3.5 h-3.5 text-[#386641]/60" />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="text-xs bg-[#FDF0D5]/60 border border-[#DDA15E]/40 rounded-xl px-2.5 py-1.5 font-bold text-[#386641] focus:outline-none"
+            >
+              <option value="ALL">すべてのステータス</option>
+              <option value="BOOKED">✓ 予約済み</option>
+              <option value="NEED_BOOKING">⚠️ 要予約 / 手配前</option>
+              <option value="NONE">予約不要 / 未定</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Bookings List */}
       {filteredBookings.length === 0 ? (
-        <div className="text-center py-16 bg-white/60 border border-dashed border-[#DDA15E]/50 rounded-3xl p-8">
-          <span className="text-4xl mb-2 block">📋</span>
-          <p className="font-bold text-base text-[#386641]">対象の予約・手配項目がありません</p>
-          <p className="text-xs text-[#386641]/60 mt-1">
-            タイムラインで「宿泊」や「交通（電車・飛行機・バスなど）」を追加すると、自動的にここに集約されます。
-          </p>
+        <div className="text-center py-16 bg-white/60 border border-dashed border-[#DDA15E]/50 rounded-3xl p-8 flex flex-col items-center justify-center gap-3">
+          <span className="text-4xl block">📋</span>
+          <div>
+            <p className="font-bold text-base text-[#386641]">対象の予約・手配項目がありません</p>
+            <p className="text-xs text-[#386641]/60 mt-1 max-w-sm">
+              タイムラインで「宿泊」や「交通」を追加するか、予約完了スクショからAIで一発登録できます。
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsScanModalOpen(true)}
+            className="mt-2 flex items-center gap-1.5 px-4 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-[#FDF0D5]" />
+            <span>予約スクショからAI自動入力する</span>
+          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -745,6 +784,17 @@ export default function BookingsManager({
           </div>
         </div>
       )}
+
+      {/* AI Booking Scanner Modal */}
+      <BookingScanModal
+        isOpen={isScanModalOpen}
+        onClose={() => setIsScanModalOpen(false)}
+        tripId={tripId}
+        tripStartDate={tripStartDate}
+        tripEndDate={tripEndDate}
+        onBookingAdded={handleBookingAdded}
+        isOffline={isOffline}
+      />
     </div>
   );
 }

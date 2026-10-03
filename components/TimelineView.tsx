@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./PlacesManager";
 import { KNOWN_CITIES } from "@/constants/cities";
+import BookingScanModal from "./bookings/BookingScanModal";
 
 interface TimelineViewProps {
   tripId: number;
@@ -47,6 +48,7 @@ interface TimelineViewProps {
   startDate: string | null;
   endDate: string | null;
   onSchedulesChange: (schedules: Schedule[]) => void;
+  onPlacesChange?: (places: Place[]) => void;
   isOffline?: boolean;
 }
 
@@ -141,6 +143,7 @@ export default function TimelineView({
   startDate,
   endDate,
   onSchedulesChange,
+  onPlacesChange,
   isOffline = false,
 }: TimelineViewProps) {
   const [selectedDateTab, setSelectedDateTab] = useState<string>("ALL");
@@ -148,6 +151,16 @@ export default function TimelineView({
   const [timelineViewMode, setTimelineViewMode] = useState<"TIMELINE" | "CITY_SUMMARY">("TIMELINE");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+
+  // Handle booking added from AI scanner
+  const handleBookingAdded = (type: "SCHEDULE" | "PLACE", item: any) => {
+    if (type === "SCHEDULE") {
+      onSchedulesChange([...schedules, item]);
+    } else if (type === "PLACE" && onPlacesChange) {
+      onPlacesChange([...places, item]);
+    }
+  };
 
   // Custom City Legs management (null = using auto-generated)
   const [customCityLegs, setCustomCityLegs] = useState<CityLegItem[] | null>(() => {
@@ -996,6 +1009,16 @@ export default function TimelineView({
             </button>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setIsScanModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/50 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FDF0D5]/80 transition shadow-2xs cursor-pointer"
+            title="航空券やホテルのスクショから自動入力"
+          >
+            <Sparkles className="w-4 h-4 text-[#C1121F]" />
+            <span className="hidden sm:inline">スクショから自動入力</span>
+            <span className="sm:hidden">スクショ</span>
+          </button>
           <button
             onClick={() => handleOpenAddModal(undefined, "HOTEL")}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#DDA15E]/20 text-[#386641] border border-[#DDA15E]/40 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#DDA15E]/30 transition shadow-2xs"
@@ -2280,6 +2303,17 @@ export default function TimelineView({
           datesList={datesList}
         />
       )}
+
+      {/* AI Booking Scanner Modal */}
+      <BookingScanModal
+        isOpen={isScanModalOpen}
+        onClose={() => setIsScanModalOpen(false)}
+        tripId={tripId}
+        tripStartDate={startDate}
+        tripEndDate={endDate}
+        onBookingAdded={handleBookingAdded}
+        isOffline={isOffline}
+      />
     </div>
   );
 }
