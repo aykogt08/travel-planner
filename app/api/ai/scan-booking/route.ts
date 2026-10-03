@@ -3,6 +3,102 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
+interface CachedModels {
+  timestamp: number;
+  models: string[];
+}
+
+// In-memory cache for dynamic models list (1 hour TTL)
+let modelsCache: CachedModels | null = null;
+const CACHE_TTL_MS = 60 * 60 * 1000;
+
+/**
+ * Dynamically queries Google Generative Language API for models currently available to this API key.
+ * Automatically sorts by newest version numbers (e.g. 4.0 > 3.8 > 3.5), excludes deprecated models,
+ * and maintains official latest aliases. Future-proof for all future model releases!
+ */
+async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
+  const now = Date.now();
+  if (modelsCache && now - modelsCache.timestamp < CACHE_TTL_MS && modelsCache.models.length > 0) {
+    return modelsCache.models;
+  }
+
+  // Reliable fallback defaults
+  const fallbackDefaults = [
+    "models/gemini-3.5-flash",
+    "models/gemini-flash-lite-latest",
+    "models/gemini-flash-latest",
+    "models/gemini-3.8-flash",
+  ];
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    if (!res.ok) {
+      console.warn("Dynamic model query returned status:", res.status);
+      return fallbackDefaults;
+    }
+
+    const data = await res.json();
+    const rawList: Array<{ name: string; supportedGenerationMethods?: string[] }> = data.models || [];
+
+    // Filter only models that support content generation
+    const contentModels = rawList.filter((m) =>
+      m.supportedGenerationMethods?.includes("generateContent")
+    );
+
+    // Score and rank models dynamically:
+    // Future models (e.g. gemini-3.9, gemini-4.0, gemini-5.0) will automatically sort to the top!
+    const scored = contentModels
+      .map((m) => {
+        const name = m.name;
+        // Skip audio/tts/transcribe models that are not general multimodal models
+        if (name.includes("tts") || name.includes("transcribe") || name.includes("banana")) {
+          return null;
+        }
+
+        // Only include flash or general multimodal models
+        if (!name.includes("flash") && !name.includes("pro")) {
+          return null;
+        }
+
+        // Extract version: e.g. "3.8" from "gemini-3.8-flash", "4.0" from "gemini-4.0-flash"
+        const match = name.match(/gemini-(\d+(\.\d+)?)/);
+        const version = match ? parseFloat(match[1]) : 0;
+
+        // Automatically filter out deprecated versions (< 3.0 like 2.5 or 1.5)
+        if (match && version < 3.0) {
+          return null;
+        }
+
+        // Dynamic scoring: Higher versions score higher
+        let score = (version || 3.0) * 100;
+        if (name.includes("3.5-flash") && !name.includes("lite")) score += 50; // Proven high stability
+        if (name.includes("flash-lite-latest")) score += 40;
+        if (name.includes("flash-latest")) score += 30;
+        if (name.includes("preview")) score -= 15; // Prefer GA over previews
+
+        return { name, score, version };
+      })
+      .filter((item): item is { name: string; score: number; version: number } => item !== null)
+      .sort((a, b) => b.score - a.score);
+
+    const rankedNames = scored.map((s) => s.name);
+
+    if (rankedNames.length > 0) {
+      modelsCache = { timestamp: now, models: rankedNames };
+      return rankedNames;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch dynamic models from Google:", err);
+  }
+
+  return fallbackDefaults;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -58,20 +154,16 @@ export async function POST(request: Request) {
   "memo": "その他の重要な補足情報（座席番号、部屋タイプ、受託手荷物、集合場所、注意事項など。箇条書きや簡潔な文章で）"
 }`;
 
-    // Active models for this API key in order of reliability
-    const candidateModels = [
-      "models/gemini-3.5-flash",
-      "models/gemini-flash-lite-latest",
-      "models/gemini-flash-latest",
-      "models/gemini-3.8-flash",
-    ];
+    // Get dynamically ranked candidate models (auto-updates as Google updates models!)
+    const candidateModels = await getRankedCandidateModels(apiKey);
 
     let geminiResponse: Response | null = null;
     let successfulModel = "";
     let lastError: any = null;
 
     for (const modelPath of candidateModels) {
-      const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
+      const cleanPath = modelPath.startsWith("models/") ? modelPath : `models/${modelPath}`;
+      const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${cleanPath}:generateContent?key=${apiKey}`;
 
       try {
         const res = await fetch(generateUrl, {
@@ -102,7 +194,7 @@ export async function POST(request: Request) {
 
         if (res.ok) {
           geminiResponse = res;
-          successfulModel = modelPath;
+          successfulModel = cleanPath;
           break;
         } else {
           const errText = await res.text();
@@ -112,8 +204,8 @@ export async function POST(request: Request) {
           } catch {
             errJson = errText;
           }
-          lastError = { status: res.status, model: modelPath, details: errJson };
-          console.warn(`Model ${modelPath} failed (${res.status}):`, errText);
+          lastError = { status: res.status, model: cleanPath, details: errJson };
+          console.warn(`Model ${cleanPath} failed (${res.status}):`, errText);
 
           // If invalid key, stop immediately
           if (res.status === 400 && String(errText).includes("API_KEY_INVALID")) {
@@ -122,11 +214,13 @@ export async function POST(request: Request) {
           }
         }
       } catch (err: any) {
-        lastError = { model: modelPath, message: err.message };
+        lastError = { model: cleanPath, message: err.message };
       }
     }
 
+    // If all cached models failed, invalidate cache so next call re-discovers fresh models
     if (!geminiResponse || !geminiResponse.ok) {
+      modelsCache = null;
       return NextResponse.json(
         {
           error: "GEMINI_API_ERROR",
