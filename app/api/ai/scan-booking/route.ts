@@ -55,43 +55,67 @@ export async function POST(request: Request) {
   "memo": "その他の重要な補足情報（座席番号、部屋タイプ、受託手荷物、集合場所、注意事項など。箇条書きや簡潔な文章で）"
 }`;
 
-    // Call Gemini API (gemini-1.5-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Candidate models to try in order (handles region/API version model availability)
+    const candidateModels = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest"];
+    let geminiResponse: Response | null = null;
+    let lastErrorText = "";
+    let lastStatus = 500;
 
-    const geminiResponse = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
+    for (const model of candidateModels) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      try {
+        const res = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
               {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: cleanBase64,
-                },
+                parts: [
+                  { text: prompt },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: cleanBase64,
+                    },
+                  },
+                ],
               },
             ],
-          },
-        ],
-        generationConfig: {
-          response_mime_type: "application/json",
-          temperature: 0.2,
-        },
-      }),
-    });
+            generationConfig: {
+              response_mime_type: "application/json",
+              temperature: 0.2,
+            },
+          }),
+        });
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      console.error("Gemini API error:", geminiResponse.status, errText);
+        if (res.ok) {
+          geminiResponse = res;
+          break;
+        } else {
+          lastStatus = res.status;
+          lastErrorText = await res.text();
+          console.warn(`Model ${model} failed (${res.status}):`, lastErrorText);
+          // If 404 model not found, try the next model. If 400 or 403, stop.
+          if (res.status !== 404) {
+            break;
+          }
+        }
+      } catch (e: any) {
+        lastErrorText = e.message;
+      }
+    }
+
+    if (!geminiResponse || !geminiResponse.ok) {
       return NextResponse.json(
         {
           error: "GEMINI_API_ERROR",
-          message: `Gemini APIの呼び出しに失敗しました (${geminiResponse.status})。APIキーが有効かご確認ください。`,
-          details: errText,
+          message: `Gemini APIの解析に失敗しました (${lastStatus})。APIキーが有効かご確認ください。`,
+          details: lastErrorText,
         },
-        { status: geminiResponse.status }
+        { status: lastStatus === 404 ? 502 : lastStatus }
       );
     }
 
