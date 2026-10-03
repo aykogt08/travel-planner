@@ -301,7 +301,13 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         if (data.error === "GEMINI_API_KEY_REQUIRED" || data.error === "API_KEY_INVALID") {
           setShowApiKeyInput(true);
         }
-        throw new Error(data.message || data.details || "解析に失敗しました");
+        const errorLines = [
+          data.message,
+          data.modelUsed ? `【使用モデル】: ${data.modelUsed}` : null,
+          data.details ? `【詳細】: ${typeof data.details === "object" ? JSON.stringify(data.details, null, 2) : data.details}` : null,
+          data.discoveryInfo ? `【モデル探索情報】: ${JSON.stringify(data.discoveryInfo, null, 2)}` : null,
+        ].filter(Boolean);
+        throw new Error(errorLines.join("\n\n"));
       }
 
       const extracted: ExtractedBooking = data.result;
@@ -550,11 +556,16 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message with detailed diagnostic box */}
           {errorMessage && (
-            <div className="p-3 rounded-2xl bg-[#C1121F]/10 border border-[#C1121F]/20 text-[#C1121F] text-xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>{errorMessage}</span>
+            <div className="p-3.5 rounded-2xl bg-[#C1121F]/10 border border-[#C1121F]/20 text-[#C1121F] text-xs flex flex-col gap-2">
+              <div className="flex items-center gap-2 font-bold">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>エラーが発生しました</span>
+              </div>
+              <pre className="text-[11px] leading-relaxed whitespace-pre-wrap font-mono bg-white/85 p-3 rounded-xl border border-[#C1121F]/15 overflow-x-auto max-h-56 text-[#C1121F]">
+                {errorMessage}
+              </pre>
             </div>
           )}
 

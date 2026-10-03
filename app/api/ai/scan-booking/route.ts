@@ -60,6 +60,8 @@ export async function POST(request: Request) {
 
     // Step 1: Dynamic Model Discovery (Check models actually available for this key)
     let targetModel = "models/gemini-2.0-flash";
+    let discoveryError: any = null;
+
     try {
       const modelsListRes = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
@@ -69,19 +71,34 @@ export async function POST(request: Request) {
       );
 
       if (!modelsListRes.ok) {
-        const listErr = await modelsListRes.json().catch(() => ({}));
-        const errMessage = listErr?.error?.message || "";
+        const rawText = await modelsListRes.text();
+        let listErr: any;
+        try {
+          listErr = JSON.parse(rawText);
+        } catch {
+          listErr = rawText;
+        }
+
+        const errMessage = listErr?.error?.message || String(rawText);
+        discoveryError = {
+          status: modelsListRes.status,
+          message: errMessage,
+          raw: listErr,
+        };
+
         if (modelsListRes.status === 400 || errMessage.includes("API_KEY_INVALID")) {
           return NextResponse.json(
             {
               error: "API_KEY_INVALID",
               message:
                 "Gemini APIキーが無効です。Google AI Studioで作成したAPIキーをご確認の上、再設定してください。",
+              details: listErr,
             },
             { status: 400 }
           );
         }
-        console.warn("Models discovery request returned:", modelsListRes.status, errMessage);
+
+        console.warn("Models discovery request failed:", modelsListRes.status, errMessage);
       } else {
         const modelsData = await modelsListRes.json();
         const availableModels: Array<{ name: string; supportedGenerationMethods?: string[] }> =
@@ -103,8 +120,9 @@ export async function POST(request: Request) {
           targetModel = preferred.name;
         }
       }
-    } catch (e) {
-      console.warn("Model discovery error, will use default:", e);
+    } catch (e: any) {
+      discoveryError = { message: e.message };
+      console.warn("Model discovery network error:", e);
     }
 
     // Step 2: Call generateContent with discovered model
@@ -122,8 +140,8 @@ export async function POST(request: Request) {
             parts: [
               { text: prompt },
               {
-                inline_data: {
-                  mime_type: mimeType,
+                inlineData: {
+                  mimeType: mimeType,
                   data: cleanBase64,
                 },
               },
@@ -139,12 +157,21 @@ export async function POST(request: Request) {
 
     if (!geminiResponse.ok) {
       const errText = await geminiResponse.text();
+      let errJson;
+      try {
+        errJson = JSON.parse(errText);
+      } catch {
+        errJson = errText;
+      }
       console.error("Gemini generateContent error:", geminiResponse.status, errText);
+
       return NextResponse.json(
         {
           error: "GEMINI_API_ERROR",
-          message: `Gemini APIでの画像解析に失敗しました (${geminiResponse.status})。`,
-          details: errText,
+          message: `Gemini APIエラー (${geminiResponse.status})`,
+          details: errJson,
+          modelUsed: targetModel,
+          discoveryInfo: discoveryError,
         },
         { status: 500 }
       );
