@@ -58,120 +58,81 @@ export async function POST(request: Request) {
   "memo": "その他の重要な補足情報（座席番号、部屋タイプ、受託手荷物、集合場所、注意事項など。箇条書きや簡潔な文章で）"
 }`;
 
-    // Step 1: Dynamic Model Discovery (Check models actually available for this key)
-    let targetModel = "models/gemini-2.0-flash";
-    let discoveryError: any = null;
+    // Active models for this API key in order of reliability
+    const candidateModels = [
+      "models/gemini-3.5-flash",
+      "models/gemini-flash-lite-latest",
+      "models/gemini-flash-latest",
+      "models/gemini-3.8-flash",
+    ];
 
-    try {
-      const modelsListRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+    let geminiResponse: Response | null = null;
+    let successfulModel = "";
+    let lastError: any = null;
 
-      if (!modelsListRes.ok) {
-        const rawText = await modelsListRes.text();
-        let listErr: any;
-        try {
-          listErr = JSON.parse(rawText);
-        } catch {
-          listErr = rawText;
-        }
+    for (const modelPath of candidateModels) {
+      const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
 
-        const errMessage = listErr?.error?.message || String(rawText);
-        discoveryError = {
-          status: modelsListRes.status,
-          message: errMessage,
-          raw: listErr,
-        };
-
-        if (modelsListRes.status === 400 || errMessage.includes("API_KEY_INVALID")) {
-          return NextResponse.json(
-            {
-              error: "API_KEY_INVALID",
-              message:
-                "Gemini APIキーが無効です。Google AI Studioで作成したAPIキーをご確認の上、再設定してください。",
-              details: listErr,
-            },
-            { status: 400 }
-          );
-        }
-
-        console.warn("Models discovery request failed:", modelsListRes.status, errMessage);
-      } else {
-        const modelsData = await modelsListRes.json();
-        const availableModels: Array<{ name: string; supportedGenerationMethods?: string[] }> =
-          modelsData.models || [];
-
-        const contentModels = availableModels.filter((m) =>
-          m.supportedGenerationMethods?.includes("generateContent")
-        );
-
-        // Select best available flash model
-        const preferred =
-          contentModels.find((m) => m.name.includes("2.5-flash")) ||
-          contentModels.find((m) => m.name.includes("2.0-flash")) ||
-          contentModels.find((m) => m.name.includes("1.5-flash")) ||
-          contentModels.find((m) => m.name.toLowerCase().includes("flash")) ||
-          contentModels[0];
-
-        if (preferred) {
-          targetModel = preferred.name;
-        }
-      }
-    } catch (e: any) {
-      discoveryError = { message: e.message };
-      console.warn("Model discovery network error:", e);
-    }
-
-    // Step 2: Call generateContent with discovered model
-    const modelPath = targetModel.startsWith("models/") ? targetModel : `models/${targetModel}`;
-    const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
-
-    const geminiResponse = await fetch(generateUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
+      try {
+        const res = await fetch(generateUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
               {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: cleanBase64,
-                },
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: mimeType,
+                      data: cleanBase64,
+                    },
+                  },
+                ],
               },
             ],
-          },
-        ],
-        generationConfig: {
-          response_mime_type: "application/json",
-          temperature: 0.2,
-        },
-      }),
-    });
+            generationConfig: {
+              response_mime_type: "application/json",
+              temperature: 0.2,
+            },
+          }),
+        });
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
-      let errJson;
-      try {
-        errJson = JSON.parse(errText);
-      } catch {
-        errJson = errText;
+        if (res.ok) {
+          geminiResponse = res;
+          successfulModel = modelPath;
+          break;
+        } else {
+          const errText = await res.text();
+          let errJson;
+          try {
+            errJson = JSON.parse(errText);
+          } catch {
+            errJson = errText;
+          }
+          lastError = { status: res.status, model: modelPath, details: errJson };
+          console.warn(`Model ${modelPath} failed (${res.status}):`, errText);
+
+          // If invalid key, stop immediately
+          if (res.status === 400 && String(errText).includes("API_KEY_INVALID")) {
+            geminiResponse = res;
+            break;
+          }
+        }
+      } catch (err: any) {
+        lastError = { model: modelPath, message: err.message };
       }
-      console.error("Gemini generateContent error:", geminiResponse.status, errText);
+    }
 
+    if (!geminiResponse || !geminiResponse.ok) {
       return NextResponse.json(
         {
           error: "GEMINI_API_ERROR",
-          message: `Gemini APIエラー (${geminiResponse.status})`,
-          details: errJson,
-          modelUsed: targetModel,
-          discoveryInfo: discoveryError,
+          message: `Gemini API画像解析エラー (${lastError?.status || 500})`,
+          details: lastError?.details || lastError,
+          modelUsed: lastError?.model || candidateModels[0],
         },
         { status: 500 }
       );
@@ -192,7 +153,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      modelUsed: targetModel,
+      modelUsed: successfulModel,
       result: parsedResult,
     });
   } catch (error: any) {
