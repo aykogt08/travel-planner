@@ -192,7 +192,7 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const MAX_DIM = 1600;
+        const MAX_DIM = 1200;
         let width = img.naturalWidth || img.width;
         let height = img.naturalHeight || img.height;
 
@@ -219,7 +219,7 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.80);
         const base64 = dataUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
         resolve({ dataUrl, base64 });
       };

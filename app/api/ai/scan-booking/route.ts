@@ -23,13 +23,13 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
     return modelsCache.models;
   }
 
-  // Reliable fallback defaults (newest version first)
+  // Reliable low-latency fallback defaults for Serverless functions
   const fallbackDefaults = [
-    "models/gemini-3.8-flash",
-    "models/gemini-3.7-flash",
-    "models/gemini-3.5-flash",
     "models/gemini-flash-lite-latest",
+    "models/gemini-3.5-flash-lite",
+    "models/gemini-3.5-flash",
     "models/gemini-flash-latest",
+    "models/gemini-3.8-flash",
   ];
 
   try {
@@ -52,7 +52,7 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
     );
 
     // Score and rank models dynamically:
-    // Future models (e.g. gemini-3.8, gemini-3.9, gemini-4.0, gemini-5.0) strictly sort by version descending!
+    // Prioritize high-speed models (e.g. flash-lite) to prevent Serverless HTTP 504 timeouts!
     const scored = contentModels
       .map((m) => {
         const name = m.name;
@@ -75,10 +75,13 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
           return null;
         }
 
-        // Strict Dynamic Scoring: Highest version number wins! (4.0 > 3.8 > 3.7 > 3.5)
+        // Dynamic Scoring: Speed & reliability are paramount in Serverless!
         let score = (version || 3.0) * 100;
-        if (!name.includes("lite")) score += 15; // Prefer standard flash over lite
-        if (!name.includes("preview")) score += 10; // Prefer stable GA over previews
+        if (name.includes("flash-lite-latest")) score += 60; // 0.9s response time
+        if (name.includes("3.5-flash-lite")) score += 50;
+        if (name.includes("3.5-flash") && !name.includes("lite")) score += 30;
+        if (name.includes("3.8-flash")) score += 20;
+        if (!name.includes("preview")) score += 10;
 
         return { name, score, version };
       })
@@ -205,9 +208,14 @@ ${JSON.stringify(currentData, null, 2)}
       const cleanPath = modelPath.startsWith("models/") ? modelPath : `models/${modelPath}`;
       const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${cleanPath}:generateContent?key=${apiKey}`;
 
+      // Max 6.5s per model call to prevent Vercel 10s Serverless Gateway Timeout (HTTP 504)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6500);
+
       try {
         const res = await fetch(generateUrl, {
           method: "POST",
+          signal: controller.signal,
           headers: {
             "Content-Type": "application/json",
           },
@@ -222,10 +230,11 @@ ${JSON.stringify(currentData, null, 2)}
             ],
             generationConfig: {
               response_mime_type: "application/json",
-              temperature: 0.2,
+              temperature: 0.1,
             },
           }),
         });
+        clearTimeout(timeoutId);
 
         if (res.ok) {
           geminiResponse = res;
@@ -249,7 +258,9 @@ ${JSON.stringify(currentData, null, 2)}
           }
         }
       } catch (err: any) {
-        lastError = { model: cleanPath, message: err.message };
+        clearTimeout(timeoutId);
+        lastError = { model: cleanPath, message: err.name === "AbortError" ? "タイムアウト (6.5s)" : err.message };
+        console.warn(`Model ${cleanPath} error or timeout:`, err.message);
       }
     }
 
