@@ -101,9 +101,31 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { imageBase64, mimeType = "image/jpeg", apiKey: clientApiKey } = body;
+    const {
+      images: inputImages,
+      imageBase64,
+      mimeType = "image/jpeg",
+      apiKey: clientApiKey,
+      currentData,
+    } = body;
 
-    if (!imageBase64) {
+    // Normalize image list (supports single image or multiple images)
+    const rawImages: Array<{ data: string; mimeType?: string }> = [];
+    if (Array.isArray(inputImages) && inputImages.length > 0) {
+      for (const item of inputImages) {
+        const d = item?.data || item?.imageBase64;
+        if (d) {
+          rawImages.push({
+            data: d,
+            mimeType: item.mimeType || mimeType,
+          });
+        }
+      }
+    } else if (imageBase64) {
+      rawImages.push({ data: imageBase64, mimeType });
+    }
+
+    if (rawImages.length === 0) {
       return NextResponse.json(
         { error: "INVALID_REQUEST", message: "画像データが見つかりません" },
         { status: 400 }
@@ -123,10 +145,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Clean base64 string if it contains data URI prefix
-    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
+    // Clean base64 strings
+    const imageParts = rawImages.map((img) => ({
+      inlineData: {
+        mimeType: img.mimeType || "image/jpeg",
+        data: img.data.replace(/^data:image\/[a-zA-Z]+;base64,/, ""),
+      },
+    }));
 
-    const prompt = `あなたは旅行の予約確認書やチケットのスクリーンショットから情報を抽出するプロフェッショナルAIです。
+    const basePrompt = `あなたは旅行の予約確認書やチケットのスクリーンショットから情報を抽出するプロフェッショナルAIです。
 画像（航空券のeチケット、新幹線・特急券、長距離バス、ホテル予約確認、ツアー予約、レンタカーなどのスクリーンショット）から、予約情報を正確に抽出してください。
 
 以下のJSONスキーマに従って、純粋なJSONオブジェクトのみを出力してください（Markdownコードブロックや説明文は不要です）：
@@ -153,6 +180,20 @@ export async function POST(request: Request) {
   "memo": "その他の重要な補足情報（座席番号、部屋タイプ、受託手荷物、集合場所、注意事項など。箇条書きや簡潔な文章で）"
 }`;
 
+    let fullPrompt = basePrompt;
+    if (currentData && typeof currentData === "object") {
+      fullPrompt += `\n\n【重要：既存情報とのマージ・補完指示】
+現在、以下の予約情報がすでに記録・入力されています：
+${JSON.stringify(currentData, null, 2)}
+
+今回追加された新しい画像の情報を使って、既存の情報を補完・更新・マージしてください：
+1. 既存の項目が空欄（nullまたは空文字）の場合、新しい画像から読み取った値で埋めてください。
+2. 既存の項目より新しい画像の方が詳細または正確な情報がある場合（便名、予約番号、座席番号、部屋タイプ、キャンセル期限、正確な金額、ターミナルなど）は更新してください。
+3. memo（補足情報）については、既存のmemoの内容を消去せず、新しい画像から得られた重要情報（手荷物規定、集合場所、チェックイン案内など）を自然に追記してください。
+4. 既存情報で既に確定している正しい日付や時刻は、新しい画像に別の明確な情報がない限り維持してください。
+5. 必ず上記のJSONスキーマに従った完全なJSONオブジェクト1つだけを出力してください。`;
+    }
+
     // Get dynamically ranked candidate models (auto-updates as Google updates models!)
     const candidateModels = await getRankedCandidateModels(apiKey);
 
@@ -174,13 +215,8 @@ export async function POST(request: Request) {
             contents: [
               {
                 parts: [
-                  { text: prompt },
-                  {
-                    inlineData: {
-                      mimeType: mimeType,
-                      data: cleanBase64,
-                    },
-                  },
+                  { text: fullPrompt },
+                  ...imageParts,
                 ],
               },
             ],

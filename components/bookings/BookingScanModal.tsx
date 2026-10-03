@@ -21,6 +21,9 @@ import {
   ExternalLink,
   Info,
   CheckCircle2,
+  Plus,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import {
   PRESET_PAYMENT_METHODS,
@@ -128,6 +131,12 @@ export default function BookingScanModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Multi-screenshot merge states
+  const [scannedCount, setScannedCount] = useState<number>(1);
+  const [isMerging, setIsMerging] = useState(false);
+  const [mergeSuccessMessage, setMergeSuccessMessage] = useState<string | null>(null);
+  const additionalFileInputRef = useRef<HTMLInputElement>(null);
+
   // Load saved API Key from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -146,12 +155,15 @@ export default function BookingScanModal({
       setImageBase64(null);
       setErrorMessage(null);
       setUsedModel(null);
+      setScannedCount(1);
+      setIsMerging(false);
+      setMergeSuccessMessage(null);
     }
   }, [isOpen]);
 
-  // Global paste handler when modal is open and on INPUT step
+  // Global paste handler when modal is open (INPUT step or RESULT step)
   useEffect(() => {
-    if (!isOpen || step !== "INPUT") return;
+    if (!isOpen || (step !== "INPUT" && step !== "RESULT")) return;
 
     const handlePaste = async (e: ClipboardEvent) => {
       if (!e.clipboardData) return;
@@ -161,14 +173,18 @@ export default function BookingScanModal({
         e.preventDefault();
         const file = imgItem.getAsFile();
         if (file) {
-          processImageFile(file);
+          if (step === "INPUT") {
+            processImageFile(file);
+          } else if (step === "RESULT") {
+            handleAddAdditionalScreenshot(file);
+          }
         }
       }
     };
 
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [isOpen, step]);
+  }, [isOpen, step, formData, scannedCount]);
 
 const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: string }> => {
   return new Promise((resolve, reject) => {
@@ -259,6 +275,108 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           const blob = await item.getType(imgType);
           const file = new File([blob], `screenshot_${Date.now()}.png`, { type: imgType });
           await processImageFile(file);
+          return;
+        }
+      }
+      alert("クリップボードに画像が見つかりませんでした。スクショをコピーしてからもう一度お試しください。");
+    } catch (err: any) {
+      console.warn("Clipboard read failed:", err);
+      alert("クリップボードからの読み取りが許可されませんでした。キーボードの Cmd+V (Ctrl+V) をお試しください。");
+    }
+  };
+
+  // Add additional screenshot and merge into current formData
+  const handleAddAdditionalScreenshot = async (file: File) => {
+    setIsMerging(true);
+    setErrorMessage(null);
+    setMergeSuccessMessage(null);
+
+    const activeKey =
+      apiKey.trim() ||
+      (typeof window !== "undefined" ? localStorage.getItem("GEMINI_API_KEY") || "" : "");
+
+    try {
+      const { base64 } = await compressImageForAi(file);
+
+      const res = await fetch("/api/ai/scan-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: "image/jpeg",
+          apiKey: activeKey || undefined,
+          currentData: formData, // Send current form state to AI for merging!
+        }),
+      });
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`サーバー通信エラー (HTTP ${res.status})`);
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || data.details || "追加スクショの解析に失敗しました");
+      }
+
+      const merged: ExtractedBooking = data.result;
+      if (data.modelUsed) {
+        setUsedModel(String(data.modelUsed).replace(/^models\//, ""));
+      }
+
+      // Merge into formData (preserve existing values unless new info was found)
+      setFormData((prev) => ({
+        ...prev,
+        bookingType: merged.bookingType || prev.bookingType,
+        title: merged.title || prev.title,
+        date: merged.date || prev.date,
+        startTime: merged.startTime || prev.startTime,
+        endTime: merged.endTime || prev.endTime,
+        checkOutDate: merged.checkOutDate || prev.checkOutDate,
+        flightNumber: merged.flightNumber || prev.flightNumber,
+        fromPlace: merged.fromPlace || prev.fromPlace,
+        toPlace: merged.toPlace || prev.toPlace,
+        bookingNumber: merged.bookingNumber || prev.bookingNumber,
+        bookingSite: merged.bookingSite || prev.bookingSite,
+        paymentMethod: merged.paymentMethod || prev.paymentMethod,
+        cancelDeadline: merged.cancelDeadline || prev.cancelDeadline,
+        cost:
+          merged.cost !== null && merged.cost !== undefined
+            ? String(merged.cost)
+            : prev.cost,
+        hasBreakfast:
+          merged.hasBreakfast !== null && merged.hasBreakfast !== undefined
+            ? merged.hasBreakfast
+            : prev.hasBreakfast,
+        memo: merged.memo || prev.memo,
+      }));
+
+      const newCount = scannedCount + 1;
+      setScannedCount(newCount);
+      setMergeSuccessMessage(`🎉 ${newCount}枚目のスクショを解析し、情報を更新・補完しました！`);
+      setTimeout(() => setMergeSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error("Additional scan failed:", err);
+      setErrorMessage(err.message || "追加スクショの解析に失敗しました。");
+    } finally {
+      setIsMerging(false);
+    }
+  };
+
+  const handlePasteAdditionalFromClipboard = async () => {
+    if (!navigator.clipboard?.read) {
+      alert("お使いのブラウザではボタンからの直接貼り付けに対応していません。Cmd+V (Ctrl+V) キーで貼り付けてください。");
+      return;
+    }
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const imgType = item.types.find((t) => t.startsWith("image/"));
+        if (imgType) {
+          const blob = await item.getType(imgType);
+          const file = new File([blob], `screenshot_add_${Date.now()}.png`, { type: imgType });
+          await handleAddAdditionalScreenshot(file);
           return;
         }
       }
@@ -689,6 +807,80 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                   </div>
                 </div>
               )}
+
+              {/* Merge Success Alert */}
+              {mergeSuccessMessage && (
+                <div className="p-3 rounded-2xl bg-[#386641]/15 border border-[#386641]/30 text-[#386641] text-xs flex items-center gap-2 animate-in fade-in slide-in-from-top-1 font-bold">
+                  <CheckCircle2 className="w-4 h-4 text-[#386641] shrink-0" />
+                  <span>{mergeSuccessMessage}</span>
+                </div>
+              )}
+
+              {/* Hidden file input for additional screenshot */}
+              <input
+                ref={additionalFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleAddAdditionalScreenshot(file);
+                    e.target.value = "";
+                  }
+                }}
+              />
+
+              {/* Additional Screenshot Merge Card */}
+              <div className="p-3.5 rounded-2xl bg-[#FDF0D5]/50 border border-dashed border-[#DDA15E] flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#386641]/10 flex items-center justify-center text-[#386641] shrink-0">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#386641] flex items-center gap-2">
+                      <span>もう1枚スクショを追加して情報を補完</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-[#386641]/15 text-[#386641] rounded-full font-mono font-semibold">
+                        現在 {scannedCount} 枚読込済
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#386641]/70 mt-0.5">
+                      1枚に収まらなかった続き（座席・手荷物・予約番号など）をマージできます (Cmd+Vでも貼付可)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => additionalFileInputRef.current?.click()}
+                    disabled={isMerging}
+                    className="flex-1 sm:flex-initial px-3 py-1.5 bg-[#386641] hover:bg-[#2b5033] text-white text-xs font-bold rounded-xl transition shadow-2xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {isMerging ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>マージ解析中...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>追加スクショを選択</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePasteAdditionalFromClipboard}
+                    disabled={isMerging}
+                    className="px-2.5 py-1.5 bg-white hover:bg-[#FDF0D5] text-[#386641] text-xs font-bold rounded-xl border border-[#386641]/20 transition shadow-2xs flex items-center gap-1 disabled:opacity-50"
+                    title="クリップボードから追加スクショを貼り付け"
+                  >
+                    <ClipboardPaste className="w-3.5 h-3.5" />
+                    <span>貼付</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Top Banner with Type and Target selector */}
               <div className="p-3.5 rounded-2xl bg-[#FDF0D5]/70 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
