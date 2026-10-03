@@ -443,7 +443,7 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
 
       setFormData({
         bookingType: extracted.bookingType || "FLIGHT",
-        targetDestination: isHotel ? "PLACE" : "SCHEDULE",
+        targetDestination: "SCHEDULE",
         title: extracted.title || (isHotel ? "宿泊予約" : "交通予約"),
         date: defaultDate,
         startTime: extracted.startTime || (isHotel ? extracted.checkInTime || "15:00" : ""),
@@ -568,11 +568,49 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         };
 
         let createdSchedule;
+        let linkedPlaceId: number | null = null;
+
         if (!isOffline) {
+          // If Hotel, also create place in /api/places so it appears in spots list too!
+          if (isHotel) {
+            try {
+              const placeRes = await fetch("/api/places", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: formData.title.trim(),
+                  category: "HOTEL",
+                  memo: formData.memo || null,
+                  checkInDate: formData.date || null,
+                  checkOutDate: formData.checkOutDate || null,
+                  checkInTime: formData.startTime || null,
+                  checkOutTime: formData.endTime || null,
+                  cost: costNumber,
+                  reservationStatus: formData.reservationStatus,
+                  bookingNumber: formData.bookingNumber || null,
+                  bookingSite: formData.bookingSite || null,
+                  paymentMethod: formData.paymentMethod || null,
+                  cancelDeadline: formData.cancelDeadline || null,
+                  hasBreakfast: formData.hasBreakfast,
+                  tripId,
+                }),
+              });
+              if (placeRes.ok) {
+                const createdPlace = await placeRes.json();
+                linkedPlaceId = createdPlace.id;
+              }
+            } catch (placeErr) {
+              console.warn("Could not create linked place for hotel:", placeErr);
+            }
+          }
+
           const res = await fetch("/api/schedules", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              ...payload,
+              placeId: linkedPlaceId,
+            }),
           });
           if (res.ok) {
             createdSchedule = await res.json();
@@ -584,7 +622,7 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           ...payload,
           duration: null,
           isCompleted: false,
-          placeId: null,
+          placeId: linkedPlaceId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -899,11 +937,9 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                         key={item.type}
                         type="button"
                         onClick={() => {
-                          const isHotel = item.type === "HOTEL";
                           setFormData({
                             ...formData,
                             bookingType: item.type,
-                            targetDestination: isHotel ? "PLACE" : "SCHEDULE",
                           });
                         }}
                         className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
@@ -931,8 +967,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                     }
                     className="bg-white border border-[#386641]/20 rounded-lg px-2 py-1 text-xs font-bold text-[#386641] focus:outline-none"
                   >
-                    <option value="SCHEDULE">🗓 タイムライン日程</option>
-                    <option value="PLACE">🏨 宿泊スポット一覧</option>
+                    <option value="SCHEDULE">🗓 旅程タイムライン (おすすめ)</option>
+                    <option value="PLACE">📍 スポット一覧のみ</option>
                   </select>
                 </div>
               </div>

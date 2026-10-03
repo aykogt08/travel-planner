@@ -45,6 +45,11 @@ interface PlacesManagerProps {
     cost: number | null;
     memo: string | null;
     hasBreakfast?: boolean | null;
+    reservationStatus?: string | null;
+    bookingNumber?: string | null;
+    bookingSite?: string | null;
+    paymentMethod?: string | null;
+    cancelDeadline?: string | null;
   }) => Promise<void>;
   isOffline?: boolean;
 }
@@ -396,6 +401,11 @@ export default function PlacesManager({
       cost: targetPlaceForSchedule.cost,
       memo: targetPlaceForSchedule.memo,
       hasBreakfast: targetPlaceForSchedule.hasBreakfast,
+      reservationStatus: targetPlaceForSchedule.reservationStatus || (isHotel ? "BOOKED" : "NONE"),
+      bookingNumber: targetPlaceForSchedule.bookingNumber || null,
+      bookingSite: targetPlaceForSchedule.bookingSite || null,
+      paymentMethod: targetPlaceForSchedule.paymentMethod || null,
+      cancelDeadline: targetPlaceForSchedule.cancelDeadline || null,
     });
     setTargetPlaceForSchedule(null);
   };

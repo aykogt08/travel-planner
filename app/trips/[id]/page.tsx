@@ -139,6 +139,11 @@ export default function TripDetailPage() {
     cost: number | null;
     memo: string | null;
     hasBreakfast?: boolean | null;
+    reservationStatus?: string | null;
+    bookingNumber?: string | null;
+    bookingSite?: string | null;
+    paymentMethod?: string | null;
+    cancelDeadline?: string | null;
   }) => {
     if (!trip) return;
     const isOfflineMode = typeof navigator !== "undefined" && !navigator.onLine;
@@ -178,6 +183,11 @@ export default function TripDetailPage() {
       cost: scheduleData.cost,
       memo: scheduleData.memo,
       hasBreakfast: scheduleData.hasBreakfast || false,
+      reservationStatus: scheduleData.reservationStatus || (scheduleData.category === "HOTEL" ? "BOOKED" : "NONE"),
+      bookingNumber: scheduleData.bookingNumber || null,
+      bookingSite: scheduleData.bookingSite || null,
+      paymentMethod: scheduleData.paymentMethod || null,
+      cancelDeadline: scheduleData.cancelDeadline || null,
       isCompleted: false,
       placeId: scheduleData.placeId,
       tripId: trip.id,
