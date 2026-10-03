@@ -23,12 +23,13 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
     return modelsCache.models;
   }
 
-  // Reliable fallback defaults
+  // Reliable fallback defaults (newest version first)
   const fallbackDefaults = [
+    "models/gemini-3.8-flash",
+    "models/gemini-3.7-flash",
     "models/gemini-3.5-flash",
     "models/gemini-flash-lite-latest",
     "models/gemini-flash-latest",
-    "models/gemini-3.8-flash",
   ];
 
   try {
@@ -51,7 +52,7 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
     );
 
     // Score and rank models dynamically:
-    // Future models (e.g. gemini-3.9, gemini-4.0, gemini-5.0) will automatically sort to the top!
+    // Future models (e.g. gemini-3.8, gemini-3.9, gemini-4.0, gemini-5.0) strictly sort by version descending!
     const scored = contentModels
       .map((m) => {
         const name = m.name;
@@ -74,12 +75,10 @@ async function getRankedCandidateModels(apiKey: string): Promise<string[]> {
           return null;
         }
 
-        // Dynamic scoring: Higher versions score higher
+        // Strict Dynamic Scoring: Highest version number wins! (4.0 > 3.8 > 3.7 > 3.5)
         let score = (version || 3.0) * 100;
-        if (name.includes("3.5-flash") && !name.includes("lite")) score += 50; // Proven high stability
-        if (name.includes("flash-lite-latest")) score += 40;
-        if (name.includes("flash-latest")) score += 30;
-        if (name.includes("preview")) score -= 15; // Prefer GA over previews
+        if (!name.includes("lite")) score += 15; // Prefer standard flash over lite
+        if (!name.includes("preview")) score += 10; // Prefer stable GA over previews
 
         return { name, score, version };
       })
