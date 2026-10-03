@@ -22,9 +22,9 @@ export async function POST(request: Request) {
         {
           error: "GEMINI_API_KEY_REQUIRED",
           message:
-            "Gemini APIキーが設定されていません。Google AI Studioで取得したAPIキーを設定してください。",
+            "Gemini APIキーが設定されていません。Vercelの環境変数またはアプリ上の設定画面でAPIキーを入力してください。",
         },
-        { status: 401 }
+        { status: 400 }
       );
     }
 
@@ -58,67 +58,95 @@ export async function POST(request: Request) {
   "memo": "その他の重要な補足情報（座席番号、部屋タイプ、受託手荷物、集合場所、注意事項など。箇条書きや簡潔な文章で）"
 }`;
 
-    // Candidate models to try in order (handles region/API version model availability)
-    const candidateModels = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-flash-latest"];
-    let geminiResponse: Response | null = null;
-    let lastErrorText = "";
-    let lastStatus = 500;
-
-    for (const model of candidateModels) {
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      try {
-        const res = await fetch(geminiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: prompt },
-                  {
-                    inline_data: {
-                      mime_type: mimeType,
-                      data: cleanBase64,
-                    },
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              response_mime_type: "application/json",
-              temperature: 0.2,
-            },
-          }),
-        });
-
-        if (res.ok) {
-          geminiResponse = res;
-          break;
-        } else {
-          lastStatus = res.status;
-          lastErrorText = await res.text();
-          console.warn(`Model ${model} failed (${res.status}):`, lastErrorText);
-          // If 404 model not found, try the next model. If 400 or 403, stop.
-          if (res.status !== 404) {
-            break;
-          }
+    // Step 1: Dynamic Model Discovery (Check models actually available for this key)
+    let targetModel = "models/gemini-2.0-flash";
+    try {
+      const modelsListRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+        {
+          headers: { "Content-Type": "application/json" },
         }
-      } catch (e: any) {
-        lastErrorText = e.message;
+      );
+
+      if (!modelsListRes.ok) {
+        const listErr = await modelsListRes.json().catch(() => ({}));
+        const errMessage = listErr?.error?.message || "";
+        if (modelsListRes.status === 400 || errMessage.includes("API_KEY_INVALID")) {
+          return NextResponse.json(
+            {
+              error: "API_KEY_INVALID",
+              message:
+                "Gemini APIキーが無効です。Google AI Studioで作成したAPIキーをご確認の上、再設定してください。",
+            },
+            { status: 400 }
+          );
+        }
+        console.warn("Models discovery request returned:", modelsListRes.status, errMessage);
+      } else {
+        const modelsData = await modelsListRes.json();
+        const availableModels: Array<{ name: string; supportedGenerationMethods?: string[] }> =
+          modelsData.models || [];
+
+        const contentModels = availableModels.filter((m) =>
+          m.supportedGenerationMethods?.includes("generateContent")
+        );
+
+        // Select best available flash model
+        const preferred =
+          contentModels.find((m) => m.name.includes("2.5-flash")) ||
+          contentModels.find((m) => m.name.includes("2.0-flash")) ||
+          contentModels.find((m) => m.name.includes("1.5-flash")) ||
+          contentModels.find((m) => m.name.toLowerCase().includes("flash")) ||
+          contentModels[0];
+
+        if (preferred) {
+          targetModel = preferred.name;
+        }
       }
+    } catch (e) {
+      console.warn("Model discovery error, will use default:", e);
     }
 
-    if (!geminiResponse || !geminiResponse.ok) {
+    // Step 2: Call generateContent with discovered model
+    const modelPath = targetModel.startsWith("models/") ? targetModel : `models/${targetModel}`;
+    const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
+
+    const geminiResponse = await fetch(generateUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: cleanBase64,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          response_mime_type: "application/json",
+          temperature: 0.2,
+        },
+      }),
+    });
+
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      console.error("Gemini generateContent error:", geminiResponse.status, errText);
       return NextResponse.json(
         {
           error: "GEMINI_API_ERROR",
-          message: `Gemini APIの解析に失敗しました (${lastStatus})。APIキーが有効かご確認ください。`,
-          details: lastErrorText,
+          message: `Gemini APIでの画像解析に失敗しました (${geminiResponse.status})。`,
+          details: errText,
         },
-        { status: lastStatus === 404 ? 502 : lastStatus }
+        { status: 500 }
       );
     }
 
@@ -137,6 +165,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      modelUsed: targetModel,
       result: parsedResult,
     });
   } catch (error: any) {
