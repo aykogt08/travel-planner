@@ -124,6 +124,7 @@ export default function BookingScanModal({
   });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [usedModel, setUsedModel] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -144,6 +145,7 @@ export default function BookingScanModal({
       setImagePreview(null);
       setImageBase64(null);
       setErrorMessage(null);
+      setUsedModel(null);
     }
   }, [isOpen]);
 
@@ -311,6 +313,9 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
       }
 
       const extracted: ExtractedBooking = data.result;
+      if (data.modelUsed) {
+        setUsedModel(String(data.modelUsed).replace(/^models\//, ""));
+      }
 
       // Populate form
       const isHotel = extracted.bookingType === "HOTEL";
@@ -671,6 +676,20 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           {/* STEP 3: Result Preview & Edit Form */}
           {step === "RESULT" && (
             <div className="flex flex-col gap-4">
+              {/* Used Model Badge */}
+              {usedModel && (
+                <div className="flex items-center justify-between px-3.5 py-2 rounded-2xl bg-[#386641]/10 border border-[#386641]/20 text-xs text-[#386641]">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-[#386641]" />
+                    <span>AI解析が完了しました</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-mono text-[11px] bg-white/90 px-2.5 py-0.5 rounded-lg border border-[#386641]/15 font-semibold text-[#386641]">
+                    <span className="text-[10px] text-[#386641]/70 font-sans font-normal">使用モデル:</span>
+                    <span>{usedModel}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Top Banner with Type and Target selector */}
               <div className="p-3.5 rounded-2xl bg-[#FDF0D5]/70 border border-[#DDA15E]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
