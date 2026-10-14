@@ -28,6 +28,7 @@ import {
   Edit,
   Trash2,
   ArrowLeft,
+  ArrowUp,
   CalendarDays,
   Utensils,
   CheckSquare,
@@ -49,6 +50,17 @@ export default function TripDetailPage() {
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Scroll listener for scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Edit trip form state
   const [editForm, setEditForm] = useState({
@@ -750,6 +762,21 @@ export default function TripDetailPage() {
         onManualSync={loadTripData}
         onOpenGuide={() => setIsOfflineModalOpen(true)}
       />
+
+      {/* Scroll to Top Button (for non-timeline tabs) */}
+      {activeTab !== "timeline" && showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-5 sm:bottom-8 sm:right-8 z-40 flex items-center gap-1.5 px-3 py-3 sm:px-4 sm:py-3.5 bg-white/95 text-[#386641] border border-[#386641]/25 hover:border-[#DDA15E] rounded-full shadow-xl hover:bg-[#FDF0D5] hover:text-[#003049] transition-all hover:scale-105 active:scale-95 cursor-pointer animate-in fade-in zoom-in-90 duration-200 backdrop-blur-xs"
+          style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))" }}
+          title="一番上に戻る"
+          aria-label="一番上に戻る"
+        >
+          <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#386641] stroke-[2.5]" />
+          <span className="text-xs font-bold text-[#386641] hidden sm:inline">上へ</span>
+        </button>
+      )}
     </main>
   );
 }

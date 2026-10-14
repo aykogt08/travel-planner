@@ -33,6 +33,7 @@ import {
   ChevronUp,
   Compass,
   ArrowRight,
+  ArrowUp,
   LayoutGrid,
   ListOrdered,
   X,
@@ -154,6 +155,17 @@ export default function TimelineView({
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Monitor window scroll to show/hide scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Handle booking added from AI scanner
   const handleBookingAdded = (type: "SCHEDULE" | "PLACE", item: any) => {
@@ -2317,10 +2329,10 @@ export default function TimelineView({
         isOffline={isOffline}
       />
 
-      {/* Floating Action Button (FAB) for adding schedules */}
+      {/* Floating Action Buttons */}
       {!showAddModal && !editingSchedule && !isScanModalOpen && !editingCityLeg && !isCreatingCityLeg && (
         <div
-          className="fixed bottom-6 right-5 sm:bottom-8 sm:right-8 z-40 flex flex-col items-end gap-2 pointer-events-none"
+          className="fixed bottom-6 right-5 sm:bottom-8 sm:right-8 z-40 flex items-end gap-2.5 pointer-events-none"
           style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))" }}
         >
           {/* Backdrop when FAB menu is open */}
@@ -2331,62 +2343,79 @@ export default function TimelineView({
             />
           )}
 
-          {/* Sub menu options */}
-          {isFabMenuOpen && (
-            <div className="relative z-40 flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-auto">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsScanModalOpen(true);
-                  setIsFabMenuOpen(false);
-                }}
-                className="flex items-center gap-2 px-3.5 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/60 rounded-full shadow-lg text-xs font-bold hover:bg-[#FDF0D5]/90 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#C1121F]" />
-                <span>スクショから自動入力</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined, "HOTEL");
-                  setIsFabMenuOpen(false);
-                }}
-                className="flex items-center gap-2 px-3.5 py-2 bg-white text-[#386641] border border-[#DDA15E]/40 rounded-full shadow-lg text-xs font-bold hover:bg-stone-50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              >
-                <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
-                <span>宿泊を追加</span>
-              </button>
-            </div>
+          {/* Scroll to Top Button */}
+          {showScrollTop && (
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex items-center gap-1.5 px-3 py-3 sm:px-4 sm:py-3.5 bg-white/95 text-[#386641] border border-[#386641]/25 hover:border-[#DDA15E] rounded-full shadow-xl hover:bg-[#FDF0D5] hover:text-[#003049] transition-all hover:scale-105 active:scale-95 pointer-events-auto cursor-pointer animate-in fade-in zoom-in-90 duration-200 backdrop-blur-xs"
+              title="一番上に戻る"
+              aria-label="一番上に戻る"
+            >
+              <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#386641] stroke-[2.5]" />
+              <span className="text-xs font-bold text-[#386641] hidden sm:inline">上へ</span>
+            </button>
           )}
 
-          {/* Main Floating Button */}
-          <div className="relative z-40 flex items-center shadow-xl rounded-full bg-[#C1121F] text-white border border-white/20 hover:shadow-2xl transition-all pointer-events-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setIsFabMenuOpen(false);
-                handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined);
-              }}
-              className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3.5 hover:bg-[#a50f1a] rounded-l-full font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer"
-              title="予定を追加"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-              <span>予定を追加</span>
-            </button>
-            <div className="w-[1px] h-6 bg-white/25" />
-            <button
-              type="button"
-              onClick={() => setIsFabMenuOpen((prev) => !prev)}
-              className="px-2.5 py-3 sm:px-3 sm:py-3.5 hover:bg-[#a50f1a] rounded-r-full font-bold text-xs transition-all cursor-pointer flex items-center justify-center"
-              title="その他の追加オプション（宿泊・スクショ）"
-              aria-label="その他の追加オプション"
-            >
-              <ChevronUp
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isFabMenuOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+          {/* Add Schedule FAB & Dropdown */}
+          <div className="flex flex-col items-end gap-2 pointer-events-none">
+            {/* Sub menu options */}
+            {isFabMenuOpen && (
+              <div className="relative z-40 flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-200 pointer-events-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsScanModalOpen(true);
+                    setIsFabMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/60 rounded-full shadow-lg text-xs font-bold hover:bg-[#FDF0D5]/90 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#C1121F]" />
+                  <span>スクショから自動入力</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined, "HOTEL");
+                    setIsFabMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-white text-[#386641] border border-[#DDA15E]/40 rounded-full shadow-lg text-xs font-bold hover:bg-stone-50 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
+                  <span>宿泊を追加</span>
+                </button>
+              </div>
+            )}
+
+            {/* Main Floating Button */}
+            <div className="relative z-40 flex items-center shadow-xl rounded-full bg-[#C1121F] text-white border border-white/20 hover:shadow-2xl transition-all pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsFabMenuOpen(false);
+                  handleOpenAddModal(selectedDateTab !== "ALL" ? selectedDateTab : undefined);
+                }}
+                className="flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3.5 hover:bg-[#a50f1a] rounded-l-full font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer"
+                title="予定を追加"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+                <span>予定を追加</span>
+              </button>
+              <div className="w-[1px] h-6 bg-white/25" />
+              <button
+                type="button"
+                onClick={() => setIsFabMenuOpen((prev) => !prev)}
+                className="px-2.5 py-3 sm:px-3 sm:py-3.5 hover:bg-[#a50f1a] rounded-r-full font-bold text-xs transition-all cursor-pointer flex items-center justify-center"
+                title="その他の追加オプション（宿泊・スクショ）"
+                aria-label="その他の追加オプション"
+              >
+                <ChevronUp
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isFabMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
       )}
