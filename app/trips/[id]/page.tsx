@@ -48,7 +48,10 @@ export default function TripDetailPage() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "bookings" | "wishes" | "packing" | "souvenirs" | "budget" | "collage">("timeline");
+  const [activeTab, setActiveTab] = useState<
+    "timeline" | "places" | "bookings" | "wishes" | "prep" | "budget" | "collage"
+  >("timeline");
+  const [prepSubTab, setPrepSubTab] = useState<"packing" | "souvenirs">("packing");
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -450,7 +453,7 @@ export default function TripDetailPage() {
         <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 p-1.5 bg-[#386641]/8 border border-[#386641]/10 rounded-2xl overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("timeline")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "timeline"
                 ? "bg-[#C1121F] text-white shadow-xs"
                 : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
@@ -470,8 +473,53 @@ export default function TripDetailPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("places")}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "places"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+            }`}
+          >
+            <Utensils className={`w-4 h-4 ${activeTab === "places" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>スポット</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "places"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#386641]/10 text-[#386641]/70"
+              }`}
+            >
+              {trip.places.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("bookings")}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "bookings"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+            }`}
+          >
+            <ClipboardList className={`w-4 h-4 ${activeTab === "bookings" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>予約</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "bookings"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#386641]/10 text-[#386641]/70"
+              }`}
+            >
+              {
+                trip.schedules.filter((s) => s.category === "TRANSPORT" || s.category === "HOTEL" || s.reservationStatus !== "NONE").length +
+                trip.places.filter((p) => p.category === "HOTEL" || p.reservationStatus !== "NONE").length
+              }
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("wishes")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "wishes"
                 ? "bg-[#C1121F] text-white shadow-xs"
                 : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
@@ -491,53 +539,29 @@ export default function TripDetailPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("places")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
-              activeTab === "places"
+            onClick={() => setActiveTab("prep")}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "prep"
                 ? "bg-[#C1121F] text-white shadow-xs"
                 : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
             }`}
           >
-            <Utensils className={`w-4 h-4 ${activeTab === "places" ? "text-white" : "text-[#386641]/60"}`} />
-            <span>ご飯・観光スポット</span>
+            <Luggage className={`w-4 h-4 ${activeTab === "prep" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>持ち物・お土産</span>
             <span
               className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                activeTab === "places"
+                activeTab === "prep"
                   ? "bg-white/20 text-white"
                   : "bg-[#386641]/10 text-[#386641]/70"
               }`}
             >
-              {trip.places.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("bookings")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
-              activeTab === "bookings"
-                ? "bg-[#C1121F] text-white shadow-xs"
-                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
-            }`}
-          >
-            <ClipboardList className={`w-4 h-4 ${activeTab === "bookings" ? "text-white" : "text-[#386641]/60"}`} />
-            <span>予約・手配</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                activeTab === "bookings"
-                  ? "bg-white/20 text-white"
-                  : "bg-[#386641]/10 text-[#386641]/70"
-              }`}
-            >
-              {
-                trip.schedules.filter((s) => s.category === "TRANSPORT" || s.category === "HOTEL" || s.reservationStatus !== "NONE").length +
-                trip.places.filter((p) => p.category === "HOTEL" || p.reservationStatus !== "NONE").length
-              }
+              {trip.packingList.length + (trip.souvenirs || []).length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab("collage")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "collage"
                 ? "bg-[#C1121F] text-white shadow-xs"
                 : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
@@ -548,57 +572,15 @@ export default function TripDetailPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab("packing")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
-              activeTab === "packing"
-                ? "bg-[#C1121F] text-white shadow-xs"
-                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
-            }`}
-          >
-            <Luggage className={`w-4 h-4 ${activeTab === "packing" ? "text-white" : "text-[#386641]/60"}`} />
-            <span>持ち物リスト</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                activeTab === "packing"
-                  ? "bg-white/20 text-white"
-                  : "bg-[#386641]/10 text-[#386641]/70"
-              }`}
-            >
-              {trip.packingList.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("souvenirs")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
-              activeTab === "souvenirs"
-                ? "bg-[#C1121F] text-white shadow-xs"
-                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
-            }`}
-          >
-            <Gift className={`w-4 h-4 ${activeTab === "souvenirs" ? "text-white" : "text-[#386641]/60"}`} />
-            <span>お土産</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                activeTab === "souvenirs"
-                  ? "bg-white/20 text-white"
-                  : "bg-[#386641]/10 text-[#386641]/70"
-              }`}
-            >
-              {(trip.souvenirs || []).length}
-            </span>
-          </button>
-
-          <button
             onClick={() => setActiveTab("budget")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "budget"
                 ? "bg-[#C1121F] text-white shadow-xs"
                 : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
             }`}
           >
             <PieChart className={`w-4 h-4 ${activeTab === "budget" ? "text-white" : "text-[#386641]/60"}`} />
-            <span>予算サマリー</span>
+            <span>予算</span>
           </button>
         </div>
 
@@ -653,22 +635,72 @@ export default function TripDetailPage() {
             />
           )}
 
-          {activeTab === "packing" && (
-            <PackingManager
-              tripId={trip.id}
-              packingList={trip.packingList}
-              onPackingListChange={handlePackingListChange}
-              isOffline={isOfflineMode}
-            />
-          )}
+          {activeTab === "prep" && (
+            <div className="space-y-4">
+              {/* Sub-tab Switcher: Packing List & Souvenirs */}
+              <div className="flex items-center justify-center">
+                <div className="bg-white/95 p-1 rounded-2xl border border-[#DDA15E]/30 shadow-xs inline-flex gap-1 max-w-full overflow-x-auto scrollbar-none">
+                  <button
+                    onClick={() => setPrepSubTab("packing")}
+                    className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+                      prepSubTab === "packing"
+                        ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
+                        : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+                    }`}
+                  >
+                    <Luggage className="w-4 h-4" />
+                    <span>持ち物リスト</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        prepSubTab === "packing"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#386641]/10 text-[#386641]/70"
+                      }`}
+                    >
+                      {trip.packingList.filter((p) => p.isPacked).length}/{trip.packingList.length}
+                    </span>
+                  </button>
 
-          {activeTab === "souvenirs" && (
-            <SouvenirManager
-              tripId={trip.id}
-              souvenirs={trip.souvenirs || []}
-              onSouvenirsChange={handleSouvenirsChange}
-              isOffline={isOfflineMode}
-            />
+                  <button
+                    onClick={() => setPrepSubTab("souvenirs")}
+                    className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+                      prepSubTab === "souvenirs"
+                        ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
+                        : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+                    }`}
+                  >
+                    <Gift className="w-4 h-4" />
+                    <span>お土産リスト</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        prepSubTab === "souvenirs"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#386641]/10 text-[#386641]/70"
+                      }`}
+                    >
+                      {(trip.souvenirs || []).filter((s) => s.isBought).length}/{(trip.souvenirs || []).length}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-tab Content */}
+              {prepSubTab === "packing" ? (
+                <PackingManager
+                  tripId={trip.id}
+                  packingList={trip.packingList}
+                  onPackingListChange={handlePackingListChange}
+                  isOffline={isOfflineMode}
+                />
+              ) : (
+                <SouvenirManager
+                  tripId={trip.id}
+                  souvenirs={trip.souvenirs || []}
+                  onSouvenirsChange={handleSouvenirsChange}
+                  isOffline={isOfflineMode}
+                />
+              )}
+            </div>
           )}
 
           {activeTab === "collage" && (
