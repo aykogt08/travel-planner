@@ -436,7 +436,7 @@ export default function PlacesManager({
       </div>
 
       {/* Category filter pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="w-full max-w-full min-w-0 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat.key;
           const count =
@@ -490,7 +490,7 @@ export default function PlacesManager({
         </div>
 
         {/* City quick filter pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+        <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
           <span className="text-[11px] font-bold text-[#386641]/60 whitespace-nowrap pl-0.5">都市別:</span>
           {CITY_TAGS.map((tag) => {
             const isTagActive = tag.query === "" ? searchQuery === "" : searchQuery === tag.query;

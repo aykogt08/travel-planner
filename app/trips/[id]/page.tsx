@@ -315,9 +315,9 @@ export default function TripDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-24">
+    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-24 overflow-x-hidden w-full max-w-full">
       {/* Top Navbar */}
-      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-4 sm:px-10 py-3.5 sm:py-4 flex items-center justify-between w-full max-w-full">
         <div className="flex items-center gap-3">
           <Link
             href="/trips"
@@ -371,7 +371,7 @@ export default function TripDetailPage() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 flex flex-col gap-6">
+      <div className="max-w-5xl w-full mx-auto px-3 sm:px-6 pt-6 sm:pt-8 flex flex-col gap-6 min-w-0">
         {/* Header Summary Banner */}
         <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -433,7 +433,7 @@ export default function TripDetailPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-[#386641]/8 border border-[#386641]/10 rounded-2xl overflow-x-auto scrollbar-none">
+        <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 p-1.5 bg-[#386641]/8 border border-[#386641]/10 rounded-2xl overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab("timeline")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
@@ -568,7 +568,7 @@ export default function TripDetailPage() {
         </div>
 
         {/* Tab Contents */}
-        <div className="mt-2">
+        <div className="mt-2 w-full max-w-full min-w-0">
           {activeTab === "timeline" && (
             <TimelineView
               tripId={trip.id}

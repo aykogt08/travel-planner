@@ -979,9 +979,9 @@ export default function TimelineView({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 w-full max-w-full min-w-0">
       {/* Header & View Mode Switcher & Add Buttons */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-2xl border border-[#DDA15E]/30 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/60 p-3.5 sm:p-4 rounded-2xl border border-[#DDA15E]/30 shadow-2xs w-full max-w-full min-w-0">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold tracking-tight text-[#386641] flex items-center gap-2">
@@ -996,12 +996,12 @@ export default function TimelineView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap w-full sm:w-auto">
           {/* View mode toggle */}
-          <div className="flex items-center bg-[#386641]/5 p-1 rounded-xl border border-[#386641]/10">
+          <div className="flex items-center bg-[#386641]/5 p-1 rounded-xl border border-[#386641]/10 max-w-full overflow-x-auto">
             <button
               onClick={() => setTimelineViewMode("TIMELINE")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                 timelineViewMode === "TIMELINE"
                   ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
                   : "text-[#386641]/70 hover:text-[#386641]"
@@ -1012,14 +1012,15 @@ export default function TimelineView({
             </button>
             <button
               onClick={() => setTimelineViewMode("CITY_SUMMARY")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
                 timelineViewMode === "CITY_SUMMARY"
                   ? "bg-[#386641] text-[#FDF0D5] shadow-xs"
                   : "text-[#386641]/70 hover:text-[#386641]"
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              都市・エリア別まとめ ({cityLegs.length})
+              <span className="hidden sm:inline">都市・エリア別まとめ</span>
+              <span className="sm:hidden">都市別まとめ</span> ({cityLegs.length})
             </button>
           </div>
 
@@ -1281,7 +1282,7 @@ export default function TimelineView({
               )}
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               <button
                 onClick={() => setSelectedCityFilter("ALL")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
@@ -1330,7 +1331,7 @@ export default function TimelineView({
           </div>
 
           {/* Date filter tabs (Day 1, Day 2...) */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <div className="w-full max-w-full min-w-0 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button
               onClick={() => setSelectedDateTab("ALL")}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition border ${
@@ -1453,7 +1454,7 @@ export default function TimelineView({
           </div>
         </div>
       ) : (
-        <div className="relative pl-6 md:pl-8 border-l-2 border-[#DDA15E]/40 flex flex-col gap-6 ml-2 my-2">
+        <div className="relative pl-4 sm:pl-6 md:pl-8 border-l-2 border-[#DDA15E]/40 flex flex-col gap-5 sm:gap-6 ml-1.5 sm:ml-2 my-2 w-full max-w-full min-w-0">
           {filteredTimelineItems.map((item) => {
             const schedule = item.schedule;
             const place = places.find((p) => p.id === schedule.placeId);
@@ -1484,19 +1485,19 @@ export default function TimelineView({
             }
 
             return (
-              <div key={item.key} className="relative group">
+              <div key={item.key} className="relative group min-w-0 w-full">
                 {/* Timeline node dot */}
                 <div
-                  className={`absolute -left-[31px] md:-left-[39px] top-4 w-4 h-4 rounded-full border-3 border-white shadow-xs transition-transform group-hover:scale-125 ${dotBgClass}`}
+                  className={`absolute -left-[23px] sm:-left-[31px] md:-left-[39px] top-4 w-4 h-4 rounded-full border-3 border-white shadow-xs transition-transform group-hover:scale-125 ${dotBgClass}`}
                 />
 
                 {/* Timeline Card */}
                 <div
-                  className={`border rounded-2xl p-4 md:p-5 shadow-xs transition hover:shadow-md ${cardClasses}`}
+                  className={`border rounded-2xl p-3.5 sm:p-4 md:p-5 shadow-xs transition hover:shadow-md min-w-0 w-full ${cardClasses}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     {/* Time & Title info */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         {/* Time badge */}
                         {isCheckIn ? (
@@ -1637,10 +1638,10 @@ export default function TimelineView({
 
                       {/* Hotel stay detail sub-banner */}
                       {isCheckIn && (
-                        <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
-                            <Hotel className="w-3.5 h-3.5 text-[#DDA15E]" />
-                            <span>
+                        <div className="my-1.5 pl-0 sm:pl-7">
+                          <div className="inline-flex max-w-full flex-wrap items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-xl bg-[#DDA15E]/15 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
+                            <Hotel className="w-3.5 h-3.5 text-[#DDA15E] shrink-0" />
+                            <span className="break-all sm:break-normal">
                               チェックイン: {item.timeStr} → チェックアウト:{" "}
                               {schedule.checkOutDate ? formatDate(schedule.checkOutDate) : "翌日"}{" "}
                               {schedule.endTime || "11:00"}
@@ -1650,10 +1651,10 @@ export default function TimelineView({
                       )}
 
                       {isCheckOut && (
-                        <div className="my-1.5 pl-7">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
-                            <LogOut className="w-3.5 h-3.5 text-[#DDA15E]" />
-                            <span>
+                        <div className="my-1.5 pl-0 sm:pl-7">
+                          <div className="inline-flex max-w-full flex-wrap items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-xl bg-[#DDA15E]/10 border border-[#DDA15E]/30 text-xs text-[#386641] font-medium">
+                            <LogOut className="w-3.5 h-3.5 text-[#DDA15E] shrink-0" />
+                            <span className="break-all sm:break-normal">
                               👋 チェックアウト・出発 (滞在期間: {item.hotelStayRangeText})
                             </span>
                           </div>
@@ -1662,9 +1663,9 @@ export default function TimelineView({
 
                       {/* Transit Details (From -> To, Duration) */}
                       {(schedule.fromPlace || schedule.toPlace || schedule.duration) && (
-                        <div className="flex items-center gap-2 text-xs text-[#386641]/70 mt-1 pl-7">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-[#386641]/70 mt-1 pl-0 sm:pl-7">
                           {schedule.fromPlace || schedule.toPlace ? (
-                            <span className="font-medium text-[#386641]">
+                            <span className="font-medium text-[#386641] break-all sm:break-normal">
                               {schedule.fromPlace || "出発地"} → {schedule.toPlace || "目的地"}
                             </span>
                           ) : null}
@@ -1676,21 +1677,21 @@ export default function TimelineView({
 
                       {/* Linked Place details if any */}
                       {place && (
-                        <div className="mt-2 pl-7 flex items-center gap-2 text-xs">
+                        <div className="mt-2 pl-0 sm:pl-7 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs min-w-0">
                           <span className="text-[#386641]/60 font-medium">登録スポット:</span>
-                          <span className="text-[#386641] bg-[#386641]/5 px-2 py-0.5 rounded-md font-medium">
+                          <span className="text-[#386641] bg-[#386641]/5 px-2 py-0.5 rounded-md font-medium break-all">
                             {place.name}
                           </span>
                           {place.address && (
-                            <span className="text-[#386641]/50 truncate">({place.address})</span>
+                            <span className="text-[#386641]/50 truncate max-w-xs">({place.address})</span>
                           )}
                         </div>
                       )}
 
                       {/* Memo & Cost */}
-                      <div className="mt-2 pl-7 flex flex-col gap-1">
+                      <div className="mt-2 pl-0 sm:pl-7 flex flex-col gap-1 min-w-0">
                         {schedule.memo && (
-                          <div className="p-2.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs text-[#386641]/80 leading-relaxed">
+                          <div className="p-2.5 rounded-xl bg-[#FDF0D5]/50 border border-[#DDA15E]/30 text-xs text-[#386641]/80 leading-relaxed break-words">
                             {schedule.memo}
                           </div>
                         )}

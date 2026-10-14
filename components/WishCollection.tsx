@@ -598,7 +598,7 @@ export default function WishCollection({
           {/* フィルターバー */}
           <div className="p-3 bg-white/95 rounded-2xl border border-[#DDA15E]/30 shadow-2xs flex flex-col gap-2.5">
             {/* 都市タグフィルター */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <div className="w-full max-w-full min-w-0 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
               <span className="text-[#386641]/60 font-medium text-[11px] shrink-0 flex items-center gap-1 mr-1">
                 <MapPin className="w-3 h-3 text-[#C1121F]" /> 都市:
               </span>

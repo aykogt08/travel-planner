@@ -80,9 +80,9 @@ export default function TripsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-24">
+    <main className="min-h-screen bg-[#FDF0D5] text-[#386641] pb-24 overflow-x-hidden w-full max-w-full">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-6 sm:px-10 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-40 bg-[#FDF0D5]/90 backdrop-blur-md border-b border-[#386641]/10 px-4 sm:px-10 py-3.5 sm:py-4 flex items-center justify-between w-full max-w-full">
         <Link href="/" className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
         </Link>
@@ -104,7 +104,7 @@ export default function TripsPage() {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-10">
+      <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 pt-8 sm:pt-10 min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2">
