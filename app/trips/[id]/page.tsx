@@ -51,6 +51,7 @@ export default function TripDetailPage() {
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [targetTimelineDate, setTargetTimelineDate] = useState<string | null>(null);
 
   // Scroll listener for scroll-to-top button
   useEffect(() => {
@@ -208,6 +209,7 @@ export default function TripDetailPage() {
     };
 
     handleSchedulesChange([...trip.schedules, finalSchedule]);
+    setTargetTimelineDate(scheduleData.date.split("T")[0]);
     setActiveTab("timeline");
   };
 
@@ -579,6 +581,8 @@ export default function TripDetailPage() {
               onSchedulesChange={handleSchedulesChange}
               onPlacesChange={handlePlacesChange}
               isOffline={isOfflineMode}
+              initialDateTab={targetTimelineDate}
+              onInitialDateTabHandled={() => setTargetTimelineDate(null)}
             />
           )}
 
