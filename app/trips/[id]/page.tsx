@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trip, Place, Schedule, PackingItem, WishItem } from "@/types/trip";
+import { Trip, Place, Schedule, PackingItem, WishItem, SouvenirItem } from "@/types/trip";
 import {
   saveTripOffline,
   getTripOffline,
@@ -13,6 +13,7 @@ import { normalizeNumberInput } from "@/lib/utils";
 import TimelineView from "@/components/TimelineView";
 import PlacesManager from "@/components/PlacesManager";
 import PackingManager from "@/components/PackingManager";
+import SouvenirManager from "@/components/SouvenirManager";
 import BudgetSummary from "@/components/BudgetSummary";
 import WishCollection from "@/components/WishCollection";
 import OfflineGuideModal from "@/components/OfflineGuideModal";
@@ -34,6 +35,7 @@ import {
   CheckSquare,
   PieChart,
   Luggage,
+  Gift,
   Sparkles,
   HelpCircle, Image,
   ClipboardList,
@@ -46,7 +48,7 @@ export default function TripDetailPage() {
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "bookings" | "wishes" | "packing" | "budget" | "collage">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "places" | "bookings" | "wishes" | "packing" | "souvenirs" | "budget" | "collage">("timeline");
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -79,7 +81,11 @@ export default function TripDetailPage() {
       const res = await fetch(`/api/trips/${tripId}`);
       if (res.ok) {
         const data: Trip = await res.json();
-        const normalizedData: Trip = { ...data, wishes: data.wishes || [] };
+        const normalizedData: Trip = {
+          ...data,
+          wishes: data.wishes || [],
+          souvenirs: data.souvenirs || [],
+        };
         setTrip(normalizedData);
         // Automatically mirror to offline storage
         await saveTripOffline(normalizedData);
@@ -94,6 +100,7 @@ export default function TripDetailPage() {
         const normalizedOffline: Trip = {
           ...offlineData,
           wishes: offlineData.wishes || [],
+          souvenirs: offlineData.souvenirs || [],
         };
         setTrip(normalizedOffline);
         setIsOfflineMode(true);
@@ -133,6 +140,11 @@ export default function TripDetailPage() {
   const handlePackingListChange = (packingList: PackingItem[]) => {
     if (!trip) return;
     updateTripState({ ...trip, packingList });
+  };
+
+  const handleSouvenirsChange = (souvenirs: SouvenirItem[]) => {
+    if (!trip) return;
+    updateTripState({ ...trip, souvenirs });
   };
 
   const handleWishesChange = (wishes: WishItem[]) => {
@@ -557,6 +569,27 @@ export default function TripDetailPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab("souvenirs")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
+              activeTab === "souvenirs"
+                ? "bg-[#C1121F] text-white shadow-xs"
+                : "text-[#386641]/70 hover:text-[#386641] hover:bg-[#386641]/5"
+            }`}
+          >
+            <Gift className={`w-4 h-4 ${activeTab === "souvenirs" ? "text-white" : "text-[#386641]/60"}`} />
+            <span>お土産</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                activeTab === "souvenirs"
+                  ? "bg-white/20 text-white"
+                  : "bg-[#386641]/10 text-[#386641]/70"
+              }`}
+            >
+              {(trip.souvenirs || []).length}
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("budget")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition ${
               activeTab === "budget"
@@ -625,6 +658,15 @@ export default function TripDetailPage() {
               tripId={trip.id}
               packingList={trip.packingList}
               onPackingListChange={handlePackingListChange}
+              isOffline={isOfflineMode}
+            />
+          )}
+
+          {activeTab === "souvenirs" && (
+            <SouvenirManager
+              tripId={trip.id}
+              souvenirs={trip.souvenirs || []}
+              onSouvenirsChange={handleSouvenirsChange}
               isOffline={isOfflineMode}
             />
           )}

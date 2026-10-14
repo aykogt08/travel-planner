@@ -28,6 +28,9 @@ export async function GET(
         wishes: {
           orderBy: [{ priority: "desc" }, { id: "desc" }],
         },
+        souvenirs: {
+          orderBy: { id: "asc" },
+        },
       },
     });
 

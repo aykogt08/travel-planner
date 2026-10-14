@@ -165,6 +165,20 @@ export interface WishItem {
   updatedAt?: string | Date;
 }
 
+export interface SouvenirItem {
+  id: number;
+  name: string;
+  recipient: string | null;
+  memo: string | null;
+  cost: number | null;
+  currency: string | null;
+  isBought: boolean;
+  city: string | null;
+  tripId: number;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 export interface Trip {
   id: number;
   title: string;
@@ -181,4 +195,5 @@ export interface Trip {
   schedules: Schedule[];
   packingList: PackingItem[];
   wishes: WishItem[];
+  souvenirs?: SouvenirItem[];
 }

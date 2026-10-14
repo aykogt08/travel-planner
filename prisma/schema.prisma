@@ -22,6 +22,7 @@ model Trip {
   schedules   Schedule[]
   packingList PackingItem[]
   wishes      WishItem[]
+  souvenirs   SouvenirItem[]
 }
 
 model Place {
@@ -102,6 +103,21 @@ model WishItem {
   status    String   @default("IDEA") // IDEA, CANDIDATE, DONE, BEST, NORMAL, SKIPPED
   category  String?  // CAFE, SEA, WALK, FOOD, SCENERY, ART, SHOPPING, RELAX, TRANSIT, OTHER
   memo      String?
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  tripId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SouvenirItem {
+  id        Int      @id @default(autoincrement())
+  name      String
+  recipient String?  // e.g. "両親", "友達", "自分", "職場"
+  memo      String?  // e.g. "親に持って帰ってもらった"
+  cost      Int?
+  currency  String?  @default("JPY")
+  isBought  Boolean  @default(false)
+  city      String?  // e.g. "パリ", "ポルト"
   trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId    Int
   createdAt DateTime @default(now())
