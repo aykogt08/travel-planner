@@ -11,49 +11,38 @@ import {
   Luggage,
   PieChart,
   Camera,
+  Compass,
+  Plus,
 } from "lucide-react";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#FDF0D5] text-[#386641] font-sans selection:bg-[#DDA15E]/30">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 sm:px-12 py-5 border-b border-[#386641]/10 bg-[#FDF0D5]/90 backdrop-blur-md sticky top-0 z-50">
-        <span className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
+      <nav className="flex items-center justify-between px-5 sm:px-12 py-4 border-b border-[#386641]/10 bg-[#FDF0D5]/90 backdrop-blur-md sticky top-0 z-50">
+        <Link href="/" className="text-xl sm:text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
-        </span>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/photo-lab"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3 py-2 text-[#003049] bg-[#003049]/10 hover:bg-[#003049]/15 rounded-xl transition"
-          >
-            <span>🔬</span>
-            <span>写真AIラボ</span>
-          </Link>
-          <Link
-            href="/collage"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 text-[#386641]/80 hover:text-[#386641] hover:bg-[#386641]/5 rounded-xl transition"
-          >
-            <Camera className="w-4 h-4 text-[#C1121F]" />
-            <span>コラージュ</span>
-          </Link>
+        </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/trips"
-            className="text-xs sm:text-sm font-semibold px-4 py-2 text-[#386641]/70 hover:text-[#386641] transition"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-bold px-3.5 py-2 text-[#386641] bg-white/80 hover:bg-white border border-[#386641]/15 rounded-xl transition shadow-2xs"
           >
-            プラン一覧
+            <Compass className="w-4 h-4 text-[#386641]" />
+            <span>プラン一覧</span>
           </Link>
           <Link
             href="/trips/new"
-            className="text-xs sm:text-sm font-bold px-5 py-2.5 bg-[#C1121F] text-white rounded-full hover:bg-[#a50f1a] transition shadow-xs flex items-center gap-1.5"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-4 py-2 bg-[#C1121F] text-white rounded-xl hover:bg-[#a50f1a] transition shadow-xs"
           >
-            <Plane className="w-3.5 h-3.5" />
-            + 新しい旅を計画
+            <Plus className="w-3.5 h-3.5" />
+            <span>新しい旅を計画</span>
           </Link>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 max-w-4xl mx-auto">
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-16 max-w-4xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#003049]/10 border border-[#003049]/20 text-[#003049] text-xs font-bold mb-6">
           <HardDrive className="w-3.5 h-3.5 text-[#003049]" />
           <span>電波が届かない場所でも安心・オフライン対応</span>
@@ -69,26 +58,21 @@ export default function Home() {
           飛行機内や旅先の圏外でも、保存したしおりをオフラインで快適に確認できます。
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <Link
-            href="/trips/new"
-            className="w-full sm:w-auto px-6 py-3.5 bg-[#C1121F] text-white rounded-2xl text-sm font-bold hover:bg-[#a50f1a] transition shadow-md flex items-center justify-center gap-2"
-          >
-            <Plane className="w-4 h-4" />
-            旅のプランを作る
-          </Link>
-          <Link
-            href="/collage"
-            className="w-full sm:w-auto px-6 py-3.5 bg-[#003049] text-white rounded-2xl text-sm font-bold hover:bg-[#002235] transition shadow-md flex items-center justify-center gap-2"
-          >
-            <Camera className="w-4 h-4 text-[#DDA15E]" />
-            写真コラージュを作る
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
           <Link
             href="/trips"
-            className="w-full sm:w-auto px-6 py-3.5 bg-white/80 border border-[#386641]/20 text-[#386641] rounded-2xl text-sm font-bold hover:bg-white hover:border-[#386641]/40 transition shadow-xs flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-7 py-3.5 bg-[#386641] text-[#FDF0D5] rounded-2xl text-sm font-bold hover:bg-[#386641]/90 transition shadow-md flex items-center justify-center gap-2"
           >
-            保存したプランを見る <ArrowRight className="w-4 h-4" />
+            <Compass className="w-4 h-4" />
+            <span>保存したプランを見る</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/trips/new"
+            className="w-full sm:w-auto px-6 py-3.5 bg-white/90 border border-[#386641]/20 text-[#386641] rounded-2xl text-sm font-bold hover:bg-white hover:border-[#386641]/40 transition shadow-xs flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4 text-[#C1121F]" />
+            <span>新しい旅を作る</span>
           </Link>
         </div>
       </section>

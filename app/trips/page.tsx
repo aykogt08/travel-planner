@@ -18,7 +18,6 @@ import {
   Trash2,
   Luggage,
   Sparkles,
-  Camera,
 } from "lucide-react";
 
 export default function TripsPage() {
@@ -86,20 +85,13 @@ export default function TripsPage() {
         <Link href="/" className="text-2xl font-bold tracking-wider text-[#386641] font-brand">
           Marcaderno
         </Link>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/collage"
-            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-2 text-[#386641]/80 hover:text-[#386641] hover:bg-[#386641]/5 rounded-xl transition"
-          >
-            <Camera className="w-4 h-4 text-[#C1121F]" />
-            <span>コラージュ</span>
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/trips/new"
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#C1121F] text-white rounded-full text-xs sm:text-sm font-semibold hover:bg-[#a50f1a] transition shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#C1121F] text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-[#a50f1a] transition shadow-xs"
           >
             <Plus className="w-4 h-4" />
-            新しい旅を計画
+            <span>新しい旅を計画</span>
           </Link>
         </div>
       </nav>
