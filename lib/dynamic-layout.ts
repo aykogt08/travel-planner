@@ -175,9 +175,9 @@ export function generateDynamicTemplate(
     gridStyle === "travel_journal" ? "notebook" : gridStyle === "polaroid_grid" ? "craft" : "clean";
 
   const styleNames: Record<DynamicGridStyle, string> = {
-    travel_journal: `スマートモザイク (手帳風)`,
-    modern_clean: `クリーン・マルチグリッド`,
-    polaroid_grid: `ポラロイド・タイル`,
+    travel_journal: `モザイク1`,
+    modern_clean: `モザイク2`,
+    polaroid_grid: `モザイク3`,
   };
 
   const styleDescs: Record<DynamicGridStyle, string> = {
@@ -188,7 +188,7 @@ export function generateDynamicTemplate(
 
   return {
     id: `dynamic_${gridStyle}_${safeCount}_${aspect}`,
-    name: styleNames[gridStyle] || `スマートモザイク (${safeCount}枚)`,
+    name: styleNames[gridStyle] || `モザイク`,
     style: gridStyle === "modern_clean" ? "minimal" : gridStyle === "polaroid_grid" ? "polaroid" : "photo_diary",
     supportedPhotoCount: { min: safeCount, max: safeCount },
     aspect,
@@ -269,7 +269,7 @@ export function generateFeaturedHeaderTemplate(
 
   return {
     id: `dynamic_featured_${safeCount}_${aspect}`,
-    name: `フィーチャー・トップ (主役1枚+タイル)`,
+    name: `トップ主役`,
     style: "scrapbook",
     supportedPhotoCount: { min: safeCount, max: safeCount },
     aspect,

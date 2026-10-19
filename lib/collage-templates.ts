@@ -5,7 +5,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 1. Scrapbook: 旅の思い出をマスキングテープや手書き風ノートでコラージュ (3-5枚)
   {
     id: "scrapbook_001",
-    name: "トラベル・スクラップブック (3-5枚)",
+    name: "スクラップ",
     style: "scrapbook",
     supportedPhotoCount: { min: 3, max: 5 },
     aspect: "4:5",
@@ -75,7 +75,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 1b. Travel Scrapbook 2-1-2: 6枚スクラップから隠れる写真を削除し、上から2-1-2に並べた5枚用スクラップ
   {
     id: "scrapbook_212_001",
-    name: "トラベル・スクラップ 2-1-2 (5枚)",
+    name: "2-1-2",
     style: "scrapbook",
     supportedPhotoCount: { min: 4, max: 5 },
     aspect: "4:5",
@@ -144,7 +144,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 2. Scrapbook Deluxe: たくさんの写真(5-6枚)をしっかり収めるデラックス版 (重なりを抑えた見やすい整列スクラップ)
   {
     id: "scrapbook_deluxe_001",
-    name: "スクラップブック・デラックス (5-6枚)",
+    name: "スタイル1",
     style: "scrapbook",
     supportedPhotoCount: { min: 5, max: 6 },
     aspect: "4:5",
@@ -235,7 +235,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 3. Polaroid Gallery: ポラロイド写真を5〜8枚並べるギャラリー (重ならない2列×3段)
   {
     id: "polaroid_gallery_001",
-    name: "ポラロイド・ギャラリー (5-8枚)",
+    name: "ポラロイド",
     style: "polaroid",
     supportedPhotoCount: { min: 5, max: 8 },
     aspect: "4:5",
@@ -326,7 +326,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 4. Messy Memory: 写真を大胆に重ねて旅のライブ感を演出 (5-8枚)
   {
     id: "messy_many_001",
-    name: "メッシー・メモリー (5-8枚)",
+    name: "メッシー",
     style: "messy",
     supportedPhotoCount: { min: 5, max: 8 },
     aspect: "4:5",
@@ -417,7 +417,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 6. Magazine Grid: 雑誌の特集ページ (4-6枚)
   {
     id: "magazine_grid_001",
-    name: "マガジン・フォト特集 (4-6枚)",
+    name: "マガジン",
     style: "magazine",
     supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
@@ -486,7 +486,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 6. Minimal Multi-Grid: 洗練された整列グリッド (4-5枚)
   {
     id: "minimal_multi_001",
-    name: "ミニマル・マルチグリッド (4-5枚)",
+    name: "ミニマル",
     style: "minimal",
     supportedPhotoCount: { min: 4, max: 5 },
     aspect: "1:1",
@@ -505,7 +505,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 8. Photo Diary Full: 旅日記フルページ (4-6枚)
   {
     id: "photo_diary_full_001",
-    name: "フォト・ダイアリー (4-6枚)",
+    name: "ダイアリー",
     style: "photo_diary",
     supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
@@ -575,7 +575,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 8. Cinema Story: 3枚専用 縦に並ぶシネマティックフィルム (3枚)
   {
     id: "cinema_story_001",
-    name: "シネマ・ストーリー (3枚)",
+    name: "シネマ",
     style: "magazine",
     supportedPhotoCount: { min: 3, max: 3 },
     aspect: "9:16",
@@ -621,7 +621,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 9. Panorama Landscape: 横写真3枚専用のワイド構成 (3枚)
   {
     id: "landscape_panorama_001",
-    name: "パノラマ・ランドスケープ (3枚)",
+    name: "パノラマ",
     style: "scrapbook",
     supportedPhotoCount: { min: 3, max: 3 },
     aspect: "4:5",
@@ -667,7 +667,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 10. Landscape Scrapbook: 横写真専用スクラップブック (4-6枚)
   {
     id: "landscape_scrapbook_001",
-    name: "横写真スクラップ (4-6枚)",
+    name: "横スクラップ",
     style: "scrapbook",
     supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
@@ -736,7 +736,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 12. Landscape Magazine: 横写真主体の雑誌特集 (3-6枚)
   {
     id: "landscape_magazine_001",
-    name: "ホリゾンタル・マガジン (3-6枚)",
+    name: "横マガジン",
     style: "magazine",
     supportedPhotoCount: { min: 3, max: 6 },
     aspect: "4:5",
@@ -794,7 +794,7 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
   // 12. Landscape Photo Wall: 横写真フォトウォール (4-6枚)
   {
     id: "landscape_gallery_001",
-    name: "横写真フォトウォール (4-6枚)",
+    name: "ウォール",
     style: "polaroid",
     supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
