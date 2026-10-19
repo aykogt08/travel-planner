@@ -568,17 +568,21 @@ function drawCollageOverlays(
   ctx.fillText("Marcaderno Travel Memories", w - 24, h - 24);
 
   // Title / Date badge if available
-  if (options?.title) {
+  const hasTitle = !!options?.title;
+  const hasDate = !!options?.date;
+
+  if (hasTitle) {
     ctx.font = "bold 24px sans-serif";
     ctx.fillStyle = isNight ? "#FFFFFF" : "#386641";
     ctx.textAlign = "left";
-    ctx.fillText(options.title, 24, 38);
+    ctx.fillText(options.title!, 24, 38);
+  }
 
-    if (options.date) {
-      ctx.font = "14px sans-serif";
-      ctx.fillStyle = isNight ? "rgba(255, 255, 255, 0.7)" : "rgba(56, 102, 65, 0.7)";
-      ctx.fillText(options.date, 24, 62);
-    }
+  if (hasDate) {
+    ctx.font = "14px sans-serif";
+    ctx.fillStyle = isNight ? "rgba(255, 255, 255, 0.7)" : "rgba(56, 102, 65, 0.7)";
+    ctx.textAlign = "left";
+    ctx.fillText(options.date!, 24, hasTitle ? 62 : 38);
   }
 
   // Stamp badge for journal or vintage
@@ -826,17 +830,21 @@ function drawTemplateOverlays(
   }
 
   // Title / Date (optional)
-  if (options?.showTitle !== false && options?.title) {
+  const hasTitle = options?.showTitle !== false && !!options?.title;
+  const hasDate = !!options?.date;
+
+  if (hasTitle) {
     ctx.font = "bold 24px sans-serif";
     ctx.fillStyle = isDark ? "#FFFFFF" : "#386641";
     ctx.textAlign = "left";
-    ctx.fillText(options.title, 24, 38);
+    ctx.fillText(options.title!, 24, 38);
+  }
 
-    if (options.date) {
-      ctx.font = "14px sans-serif";
-      ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(56, 102, 65, 0.7)";
-      ctx.fillText(options.date, 24, 62);
-    }
+  if (hasDate) {
+    ctx.font = "14px sans-serif";
+    ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(56, 102, 65, 0.7)";
+    ctx.textAlign = "left";
+    ctx.fillText(options.date!, 24, hasTitle ? 62 : 38);
   }
 
   // Stamp badge for scrapbook or photo_diary (optional)

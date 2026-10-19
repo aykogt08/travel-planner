@@ -9,7 +9,6 @@ import {
   Ratio,
   Download,
   Trash2,
-  BringToFront,
   RotateCcw,
   Check,
   ClipboardPaste,
@@ -29,7 +28,7 @@ interface CollageBottomBarProps {
   isSavedFeedback?: boolean;
   selectedSticker: FreeformSticker | null;
   onDeleteSticker: (stickerId: string) => void;
-  onBringStickerToFront: (stickerId: string) => void;
+  onBringStickerToFront?: (stickerId: string) => void;
   onResetStickerRotation: (stickerId: string) => void;
   onDeselectSticker: () => void;
   isDynamicMosaic?: boolean;
@@ -66,16 +65,6 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Bring to Front */}
-            <button
-              onClick={() => onBringStickerToFront(selectedSticker.id)}
-              className="flex items-center justify-center p-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-95 text-stone-200 text-xs gap-1 min-h-[44px] min-w-[44px] transition-all"
-              title="最前面に移動"
-            >
-              <BringToFront className="w-4 h-4 text-blue-400" />
-              <span className="hidden sm:inline">前面へ</span>
-            </button>
-
             {/* Reset Rotation */}
             <button
               onClick={() => onResetStickerRotation(selectedSticker.id)}

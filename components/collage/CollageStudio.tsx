@@ -80,8 +80,31 @@ export default function CollageStudio({
   const [showStamp, setShowStamp] = useState(false);
   const [selectedCity, setSelectedCity] = useState<KnownCity | null>(null);
   const [visitDate, setVisitDate] = useState<string>(() => {
+    if (tripDates) {
+      const match = tripDates.match(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/);
+      if (match) {
+        const parts = match[0].replace(/\//g, "-").replace(/\./g, "-").split("-");
+        if (parts.length === 3) {
+          const y = parts[0];
+          const m = parts[1].padStart(2, "0");
+          const d = parts[2].padStart(2, "0");
+          return `${y}-${m}-${d}`;
+        }
+      }
+    }
     return new Date().toISOString().slice(0, 10);
   });
+
+  // Stamp date formatter: prioritizes user inputted visitDate, falls back to tripDates / today
+  const getStampDate = () => {
+    if (visitDate) {
+      return visitDate.replace(/-/g, ".");
+    }
+    if (tripDates) {
+      return tripDates;
+    }
+    return new Date().toLocaleDateString("ja-JP").replace(/\//g, ".");
+  };
 
 
 
@@ -668,7 +691,7 @@ export default function CollageStudio({
       imagesMap,
       {
         title: customTitle,
-        date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+        date: includeDateStamp ? getStampDate() : undefined,
         freeformStickers,
         selectedStickerId,
         showTitle,
@@ -681,6 +704,7 @@ export default function CollageStudio({
     currentAssignments,
     imagesMap,
     customTitle,
+    visitDate,
     includeDateStamp,
     tripDates,
     freeformStickers,
@@ -777,7 +801,7 @@ export default function CollageStudio({
       imagesMap,
       {
         title: customTitle,
-        date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+        date: includeDateStamp ? getStampDate() : undefined,
         freeformStickers,
         isExporting: true, // Hide selection borders and handles
         showTitle,
@@ -1002,7 +1026,7 @@ export default function CollageStudio({
         imagesMap,
         {
           title: customTitle,
-          date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+          date: includeDateStamp ? getStampDate() : undefined,
           freeformStickers,
           isExporting: true, // Clean export
           showTitle,
