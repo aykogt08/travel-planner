@@ -59,6 +59,7 @@ export function scoreTemplatesForPhotos(
       (tpl.id === "landscape_scrapbook_001" ||
         tpl.id === "landscape_gallery_001" ||
         tpl.id === "scrapbook_001" ||
+        tpl.id === "scrapbook_style2_001" ||
         tpl.id === "scrapbook_212_001" ||
         tpl.id === "scrapbook_deluxe_001") &&
       photoCount > 6
