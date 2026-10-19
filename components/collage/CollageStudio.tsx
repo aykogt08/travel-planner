@@ -188,15 +188,15 @@ export default function CollageStudio({
       setAnalyzedPhotos(combinedPhotos);
       setImagesMap(combinedMap);
 
-      // Separate cutout stickers (transparent) from regular photos
+      // Separate cutout stickers from regular photos
       const newStickers: FreeformSticker[] = [];
       let currentMaxZ = freeformStickers.reduce((m, s) => Math.max(m, s.zIndex), 10);
 
       newFeatures.forEach((f, idx) => {
-        if (isFromPaste && f.hasTransparency) {
+        if (isFromPaste) {
           f.isCutoutSticker = true;
           newStickers.push({
-            id: `st_${Date.now()}_${idx}`,
+            id: `st_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
             photoId: f.id,
             x: 45 + ((idx * 6) % 20),
             y: 45 + ((idx * 6) % 20),
@@ -214,7 +214,7 @@ export default function CollageStudio({
         setSelectedStickerId(newStickers[newStickers.length - 1].id);
       }
 
-      // Re-score templates based on regular photos
+      // Re-score templates strictly based on regular photos (not stickers)
       const regularPhotos = combinedPhotos.filter((p) => !p.isCutoutSticker);
       
       // If 7 or more regular photos, auto-activate dynamic mosaic
@@ -222,10 +222,10 @@ export default function CollageStudio({
         const dynTemplate = generateDynamicTemplate(regularPhotos.length, currentAspect);
         setCurrentTemplate(dynTemplate);
         setIsDynamicMosaicActive(true);
-        const assignments = assignPhotosToTemplate(dynTemplate, combinedPhotos, jitterSeed);
+        const assignments = assignPhotosToTemplate(dynTemplate, regularPhotos, jitterSeed);
         setCurrentAssignments(assignments);
-      } else {
-        const scores = scoreTemplatesForPhotos(combinedPhotos);
+      } else if (regularPhotos.length > 0) {
+        const scores = scoreTemplatesForPhotos(regularPhotos);
         setCandidateScores(scores);
 
         let activeTemplate = currentTemplate;
@@ -239,7 +239,7 @@ export default function CollageStudio({
         }
 
         if (activeTemplate) {
-          const assignments = assignPhotosToTemplate(activeTemplate, combinedPhotos, jitterSeed);
+          const assignments = assignPhotosToTemplate(activeTemplate, regularPhotos, jitterSeed);
           setCurrentAssignments(assignments);
         }
       }
@@ -252,6 +252,7 @@ export default function CollageStudio({
         }
       }
     } catch (err) {
+
       console.error("Analysis or paste failed", err);
     } finally {
       setIsAnalyzing(false);

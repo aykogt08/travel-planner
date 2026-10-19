@@ -179,19 +179,12 @@ export function assignPhotosToTemplate(
 
   // 1. Assign regular photos to defined template slots
   template.slots.forEach((slot) => {
-    // If slot is designed explicitly for a cutout sticker
+    // If slot is designed explicitly for a cutout sticker, skip it
+    // because stickers are now fully managed by the freeform gesture system (Option A).
     if (slot.role === "cutout") {
-      const sticker = cutoutStickers.find((s) => !assignedPhotoIds.has(s.id));
-      if (sticker) {
-        assignedPhotoIds.add(sticker.id);
-        assignments.push({
-          slot,
-          photo: sticker,
-          rotation: slot.rotationRange[0] || 0,
-        });
-      }
       return;
     }
+
 
     // Normal photo slot: only assign regular photos!
     const photo = pickRegularPhotoForSlot(slot);
@@ -245,43 +238,8 @@ export function assignPhotosToTemplate(
     });
   }
 
-  // 3. Dynamic overlay for all remaining cutout stickers (Always top layer, no white box!)
-  const remainingStickers = cutoutStickers.filter((p) => !assignedPhotoIds.has(p.id));
-  if (remainingStickers.length > 0) {
-    const stickerPositions = [
-      { x: 0.68, y: 0.68, w: 0.26, h: 0.26, rot: 5 },   // Bottom right
-      { x: 0.05, y: 0.06, w: 0.25, h: 0.25, rot: -6 },  // Top left
-      { x: 0.68, y: 0.06, w: 0.25, h: 0.25, rot: 4 },   // Top right
-      { x: 0.05, y: 0.68, w: 0.26, h: 0.26, rot: -4 },  // Bottom left
-      { x: 0.38, y: 0.38, w: 0.26, h: 0.26, rot: 3 },   // Center accent
-      { x: 0.72, y: 0.38, w: 0.24, h: 0.24, rot: -5 },  // Middle right
-      { x: 0.04, y: 0.38, w: 0.24, h: 0.24, rot: 6 },   // Middle left
-      { x: 0.38, y: 0.70, w: 0.25, h: 0.25, rot: -2 },  // Bottom center
-      { x: 0.38, y: 0.05, w: 0.25, h: 0.25, rot: 2 },   // Top center
-    ];
-
-    remainingStickers.forEach((photo, i) => {
-      const sPos = stickerPositions[i % stickerPositions.length];
-      const extraSlot: TemplateSlot = {
-        role: "cutout",
-        x: sPos.x,
-        y: sPos.y,
-        width: sPos.w,
-        height: sPos.h,
-        rotationRange: [sPos.rot - 2, sPos.rot + 2],
-        zIndex: 50 + i, // Always above regular photos
-        preferredOrientation: photo.orientation,
-        frameStyle: "none", // Strictly borderless
-      };
-
-      assignments.push({
-        slot: extraSlot,
-        photo,
-        rotation: sPos.rot,
-      });
-      assignedPhotoIds.add(photo.id);
-    });
-  }
-
+  // 3. Cutout stickers are now fully managed by FreeformStickerLayer / Option A freeform layout,
+  // so we no longer generate duplicate fixed-position slots here.
   return assignments;
 }
+
