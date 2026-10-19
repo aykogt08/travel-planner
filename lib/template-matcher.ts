@@ -54,12 +54,28 @@ export function scoreTemplatesForPhotos(
       continue;
     }
 
-    // Rule 3: For 7+ photos, exclude templates whose max photo capacity is less than 7
+    // Rule 3: 横写真スクラップ, 横写真フォトウォール, スクラップブック are strictly for <= 6 photos
+    if (
+      (tpl.id === "landscape_scrapbook_001" ||
+        tpl.id === "landscape_gallery_001" ||
+        tpl.id === "scrapbook_001" ||
+        tpl.id === "scrapbook_deluxe_001") &&
+      photoCount > 6
+    ) {
+      continue;
+    }
+
+    // Rule 4: ミニマル・マルチ is strictly for <= 5 photos
+    if (tpl.id === "minimal_multi_001" && photoCount > 5) {
+      continue;
+    }
+
+    // Rule 5: For 7+ photos, exclude templates whose max photo capacity is less than 7
     if (photoCount >= 7 && tpl.supportedPhotoCount.max < 7) {
       continue;
     }
 
-    // Rule 4: For small photo sets, exclude templates that require significantly more photos
+    // Rule 6: For small photo sets, exclude templates that require significantly more photos
     if (photoCount < tpl.supportedPhotoCount.min && tpl.supportedPhotoCount.min - photoCount >= 2) {
       continue;
     }

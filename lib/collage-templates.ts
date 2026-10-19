@@ -72,12 +72,12 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
     ],
   },
 
-  // 2. Scrapbook Deluxe: たくさんの写真(5-8枚)をしっかり収めるデラックス版 (重なりを抑えた見やすい整列スクラップ)
+  // 2. Scrapbook Deluxe: たくさんの写真(5-6枚)をしっかり収めるデラックス版 (重なりを抑えた見やすい整列スクラップ)
   {
     id: "scrapbook_deluxe_001",
-    name: "スクラップブック・デラックス (5-8枚)",
+    name: "スクラップブック・デラックス (5-6枚)",
     style: "scrapbook",
-    supportedPhotoCount: { min: 5, max: 8 },
+    supportedPhotoCount: { min: 5, max: 6 },
     aspect: "4:5",
     background: "craft",
     description: "5枚以上の写真が隠れず綺麗に見える、すっきりした整列スクラップ",
@@ -414,15 +414,15 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
     ],
   },
 
-  // 7. Minimal Multi-Grid: 洗練された整列グリッド (4-8枚)
+  // 6. Minimal Multi-Grid: 洗練された整列グリッド (4-5枚)
   {
     id: "minimal_multi_001",
-    name: "ミニマル・マルチグリッド (4-8枚)",
+    name: "ミニマル・マルチグリッド (4-5枚)",
     style: "minimal",
-    supportedPhotoCount: { min: 4, max: 8 },
+    supportedPhotoCount: { min: 4, max: 5 },
     aspect: "1:1",
     background: "clean",
-    description: "4枚〜8枚の写真をすっきり均等に並べるモダンな正方形レイアウト",
+    description: "4枚〜5枚の写真をすっきり均等に並べるモダンな正方形レイアウト",
     slots: [
       { role: "mainPhoto", x: 0.05, y: 0.05, width: 0.42, height: 0.42, rotationRange: [0, 0], zIndex: 1, preferredOrientation: "square", frameStyle: "clean" },
       { role: "secondaryPhoto", x: 0.53, y: 0.05, width: 0.42, height: 0.42, rotationRange: [0, 0], zIndex: 1, preferredOrientation: "square", frameStyle: "clean" },
@@ -595,12 +595,12 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
     ],
   },
 
-  // 11. Landscape Scrapbook: 横写真専用スクラップブック (4-7枚)
+  // 10. Landscape Scrapbook: 横写真専用スクラップブック (4-6枚)
   {
     id: "landscape_scrapbook_001",
-    name: "横写真スクラップ (4-7枚)",
+    name: "横写真スクラップ (4-6枚)",
     style: "scrapbook",
-    supportedPhotoCount: { min: 4, max: 7 },
+    supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
     background: "craft",
     description: "横向き写真にぴったり合わせた横長フレームとマスキングテープの重なり",
@@ -722,12 +722,12 @@ export const COLLAGE_TEMPLATES: CollageTemplate[] = [
     ],
   },
 
-  // 13. Landscape Photo Wall: 横写真フォトウォール (4-8枚)
+  // 12. Landscape Photo Wall: 横写真フォトウォール (4-6枚)
   {
     id: "landscape_gallery_001",
-    name: "横写真フォトウォール (4-8枚)",
+    name: "横写真フォトウォール (4-6枚)",
     style: "polaroid",
-    supportedPhotoCount: { min: 4, max: 8 },
+    supportedPhotoCount: { min: 4, max: 6 },
     aspect: "4:5",
     background: "notebook",
     description: "横長ポラロイド風に写真を左右2列で綺麗に敷き詰めるレイアウト",
