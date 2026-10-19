@@ -59,6 +59,7 @@ export function scoreTemplatesForPhotos(
       (tpl.id === "landscape_scrapbook_001" ||
         tpl.id === "landscape_gallery_001" ||
         tpl.id === "scrapbook_001" ||
+        tpl.id === "scrapbook_212_001" ||
         tpl.id === "scrapbook_deluxe_001") &&
       photoCount > 6
     ) {
@@ -108,6 +109,12 @@ export function scoreTemplatesForPhotos(
     if (photoCount === 3 && (tpl.id === "cinema_story_001" || tpl.id === "landscape_panorama_001")) {
       score += 25;
       reasons.push(`3枚写真専用の最適化レイアウト`);
+    }
+
+    // Bonus for 5-photo specialized 2-1-2 scrapbook
+    if (photoCount === 5 && tpl.id === "scrapbook_212_001") {
+      score += 25;
+      reasons.push(`上から2-1-2に整然と並ぶ5枚専用スクラップ`);
     }
 
     // 2. Landscape / Portrait Orientation Alignment (Special Emphasis!)
