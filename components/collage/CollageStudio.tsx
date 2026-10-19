@@ -1076,6 +1076,12 @@ export default function CollageStudio({
     }
   };
 
+  // Save to in-app collection and download/share image in one click
+  const handleSaveAndExport = async () => {
+    await handleSave();
+    await handleDownload();
+  };
+
   const handleDelete = async (id: string) => {
     await deleteCollage(id);
     setSavedCollages((prev) => prev.filter((c) => c.id !== id));
@@ -1142,104 +1148,6 @@ export default function CollageStudio({
 
       {/* Main Studio Controls */}
       <div className="mt-4 flex flex-col gap-4">
-        {/* Step 1: Photos Picker & Analysis Feedback */}
-        <div className="flex flex-col gap-2.5 bg-[#FDF0D5]/40 p-3 sm:p-4 rounded-2xl border border-[#DDA15E]/20">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Photo picker */}
-              <label className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95">
-                <Camera className="w-4 h-4" />
-                <span>写真を追加</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFilesSelected}
-                />
-              </label>
-
-              {/* One-tap paste button */}
-              <button
-                type="button"
-                onClick={handlePasteFromClipboard}
-                className="flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs sm:text-sm font-bold rounded-xl cursor-pointer shadow-xs transition active:scale-95 border border-[#003049]"
-                title="iPhoneの写真アプリで長押しコピーした被写体をワンタップで追加"
-              >
-                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
-                <span>ワンタップで貼る</span>
-              </button>
-
-              {isAnalyzing && (
-                <span className="text-xs font-bold text-[#386641] animate-pulse">
-                  🔍 処理中...
-                </span>
-              )}
-
-              {analyzedPhotos.length > 0 && !isAnalyzing && (
-                <span className="text-[11px] sm:text-xs text-[#386641] bg-white/70 px-2 py-1 rounded-lg border border-[#386641]/10">
-                  <b>{analyzedPhotos.length}枚</b> (横:{analyzedPhotos.filter((p) => p.orientation === "landscape" && !p.isCutoutSticker).length} / 縦:{analyzedPhotos.filter((p) => p.orientation === "portrait" && !p.isCutoutSticker).length}
-                  {analyzedPhotos.some((p) => p.isCutoutSticker) && ` / ✂️切抜:${analyzedPhotos.filter((p) => p.isCutoutSticker).length}`}
-                  )
-                </span>
-              )}
-            </div>
-
-            {analyzedPhotos.length > 0 && (
-              <button
-                onClick={handleClearPhotos}
-                className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition p-1"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> 選定をクリア
-              </button>
-            )}
-          </div>
-
-          <p className="text-[11px] text-[#386641]/80 flex items-center gap-1.5">
-            <span className="text-xs">💡</span>
-            <span>iPhoneの写真アプリで人物や物を長押しして<b>「コピー」</b>→<b>「ワンタップで貼る」</b>を押すだけでステッカーが貼れます！</span>
-          </p>
-        </div>
-
-        {/* Selected Photos Tray with remove button (Compact scroll) */}
-        {analyzedPhotos.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {analyzedPhotos.map((p, idx) => (
-              <div
-                key={p.id}
-                className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl overflow-hidden border border-[#DDA15E]/50 shadow-2xs group bg-white/50"
-              >
-                <img src={p.src} alt="" className="w-full h-full object-contain p-0.5" />
-                <button
-                  type="button"
-                  onClick={() => handleRemovePhoto(p.id)}
-                  className="absolute top-0.5 right-0.5 bg-black/60 hover:bg-[#C1121F] text-white rounded-full p-0.5 transition"
-                  title="この写真を外す"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleStickerMode(p.id)}
-                  className={`absolute bottom-0.5 left-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 transition shadow-2xs hover:scale-105 active:scale-95 ${
-                    p.isCutoutSticker ? "bg-[#C1121F] text-white" : "bg-[#386641]/90 text-[#FDF0D5]"
-                  }`}
-                  title={p.isCutoutSticker ? "クリックして通常の写真枠に変更" : "クリックしてステッカーとして重ねて配置"}
-                >
-                  {p.isCutoutSticker ? (
-                    <>
-                      <Scissors className="w-2.5 h-2.5" />
-                      <span>切抜</span>
-                    </>
-                  ) : (
-                    <span>{p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"}</span>
-                  )}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* If no photos selected, show empty prompt */}
         {analyzedPhotos.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-6 sm:p-12 border-2 border-dashed border-[#DDA15E]/50 rounded-3xl bg-[#FDF0D5]/20 text-center gap-3">
@@ -1275,56 +1183,82 @@ export default function CollageStudio({
                 <span>ワンタップで貼る</span>
               </button>
             </div>
+            <p className="text-[11px] text-[#386641]/80 mt-1">
+              💡 iPhoneの写真アプリで人物や物を長押しして<b>「コピー」</b>→<b>「ワンタップで貼る」</b>を押すだけでステッカーが貼れます！
+            </p>
           </div>
         ) : (
           /* Mobile-First Layout: Result Preview at Top! */
           <div className="flex flex-col gap-3">
-            {/* Compact Top Action Bar with Quick Paste */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            {/* Selected Photos Tray with remove button (Compact scroll) */}
+            <div className="flex items-center justify-between gap-2 bg-[#FDF0D5]/30 p-2 sm:p-2.5 rounded-2xl border border-[#DDA15E]/20">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
+                {analyzedPhotos.map((p) => (
+                  <div
+                    key={p.id}
+                    className="relative w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-xl overflow-hidden border border-[#DDA15E]/50 shadow-2xs group bg-white/50"
+                  >
+                    <img src={p.src} alt="" className="w-full h-full object-contain p-0.5" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(p.id)}
+                      className="absolute top-0.5 right-0.5 bg-black/60 hover:bg-[#C1121F] text-white rounded-full p-0.5 transition"
+                      title="この写真を外す"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStickerMode(p.id)}
+                      className={`absolute bottom-0.5 left-0.5 text-[8px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 transition shadow-2xs hover:scale-105 active:scale-95 ${
+                        p.isCutoutSticker ? "bg-[#C1121F] text-white" : "bg-[#386641]/90 text-[#FDF0D5]"
+                      }`}
+                      title={p.isCutoutSticker ? "クリックして通常の写真枠に変更" : "クリックしてステッカーとして重ねて配置"}
+                    >
+                      {p.isCutoutSticker ? (
+                        <>
+                          <Scissors className="w-2.5 h-2.5" />
+                          <span>切抜</span>
+                        </>
+                      ) : (
+                        <span>{p.orientation === "landscape" ? "横" : p.orientation === "portrait" ? "縦" : "正"}</span>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleClearPhotos}
+                className="text-xs text-[#386641]/60 hover:text-[#C1121F] flex items-center gap-1 transition p-1.5 shrink-0 rounded-lg hover:bg-white/50"
+                title="写真をすべてクリア"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">クリア</span>
+              </button>
+            </div>
+
+            {/* Compact Top Action Bar: Photo count and single Shuffle button */}
+            <div className="flex items-center justify-between gap-2 px-1">
               <div className="flex items-center gap-1.5 text-xs text-[#386641]/80 font-bold">
                 <span>📸 {analyzedPhotos.length}枚</span>
                 <span className="text-stone-300">|</span>
                 <span className="text-[11px] font-semibold text-stone-500">{currentAspect}</span>
               </div>
 
-              {/* Quick Actions (Paste + Shuffle + Next) */}
-              <div className="flex items-center gap-1.5">
-                {/* One-tap paste right above the canvas */}
-                <button
-                  type="button"
-                  onClick={handlePasteFromClipboard}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-lg shadow-xs transition active:scale-95"
-                  title="コピーしたステッカーをワンタップで配置"
-                >
-                  <ClipboardPaste className="w-3.5 h-3.5 text-[#DDA15E]" />
-                  <span>貼る</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleShufflePhotosOnly}
-                  className="flex items-center gap-1 px-2 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
-                  title="同じデザインのまま写真の並び順だけを入れ替えます"
-                >
-                  <ArrowLeftRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span className="hidden sm:inline">並び替え</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleNextCandidate}
-                  className="flex items-center gap-1 px-2 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
-                  title="別のレイアウト候補に切り替えます"
-                >
-                  <Shuffle className="w-3.5 h-3.5 text-stone-600" />
-                  <span className="hidden sm:inline">デザイン切替</span>
-                </button>
-              </div>
+              {/* Only ONE button: Shuffle photos within current template */}
+              <button
+                type="button"
+                onClick={handleShufflePhotosOnly}
+                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
+                title="同じレイアウトのまま写真の並び順を入れ替えます"
+              >
+                <ArrowLeftRight className="w-3.5 h-3.5 text-stone-600" />
+                <span>写真入替</span>
+              </button>
             </div>
 
-
-
-            {/* Canvas Preview Container (Option A: Direct interactive Canvas with WYSIWYG) */}
+            {/* Canvas Preview Container (Interactive Canvas with WYSIWYG) */}
             <div className="relative max-w-full overflow-hidden p-2 sm:p-5 bg-[#386641]/5 rounded-3xl border border-[#DDA15E]/30 shadow-inner flex justify-center">
               <canvas
                 ref={canvasRef}
@@ -1341,51 +1275,6 @@ export default function CollageStudio({
                   <span>👆 1本指で移動 / ✌️ 2本指でピンチ拡大・回転</span>
                 </div>
               )}
-
-              {/* Floating Quick Paste Button on Canvas Preview: No scrolling needed! */}
-              <button
-                type="button"
-                onClick={handlePasteFromClipboard}
-                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-xl shadow-lg border border-[#DDA15E]/40 active:scale-95 transition"
-                title="iPhoneの写真アプリでコピーした被写体をワンタップで追加"
-              >
-                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
-                <span>ワンタップで貼る</span>
-              </button>
-            </div>
-
-
-
-            {/* Export & Save Action Bar (Prominent Thumb Touch Zone) */}
-            <div className="grid grid-cols-2 gap-2 p-2 bg-[#FDF0D5]/60 border border-[#DDA15E]/30 rounded-2xl">
-              <button
-                type="button"
-                onClick={handleSave}
-                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs active:scale-95 min-h-[44px] ${
-                  isSavedFeedback
-                    ? "bg-[#386641] text-white"
-                    : "bg-[#003049] text-white hover:bg-[#002235]"
-                }`}
-              >
-                {isSavedFeedback ? (
-                  <>
-                    <Check className="w-4 h-4" /> 保存完了！
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" /> 端末に保存
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownload}
-                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#C1121F] hover:bg-[#a50f1a] text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs active:scale-95 min-h-[44px]"
-              >
-                <Download className="w-4 h-4" />
-                <span>画像を保存 / 共有</span>
-              </button>
             </div>
 
             {/* Accordion 1: Collapsible Full Template Selector (Clean & Space Saving) */}
@@ -1628,13 +1517,13 @@ export default function CollageStudio({
       {/* Mobile-First Bottom Floating Action Bar */}
       <CollageBottomBar
         onAddPhotosClick={() => photoInputRef.current?.click()}
-        onAddStickerClick={() => stickerInputRef.current?.click()}
         onPasteFromClipboard={handlePasteFromClipboard}
         onNextLayout={handleNextCandidate}
         onToggleAspectRatio={handleToggleAspectRatio}
         currentAspect={currentAspect}
-        onSaveCollage={handleSave}
+        onSaveCollage={handleSaveAndExport}
         isSaving={isAnalyzing}
+        isSavedFeedback={isSavedFeedback}
         selectedSticker={freeformStickers.find((s) => s.id === selectedStickerId) || null}
         onDeleteSticker={handleDeleteSticker}
         onBringStickerToFront={handleBringStickerToFront}

@@ -19,13 +19,14 @@ import { FreeformSticker } from "@/types/collage";
 
 interface CollageBottomBarProps {
   onAddPhotosClick: () => void;
-  onAddStickerClick: () => void;
+  onAddStickerClick?: () => void;
   onPasteFromClipboard: () => void;
   onNextLayout: () => void;
   onToggleAspectRatio: () => void;
   currentAspect: "4:5" | "9:16" | "1:1";
   onSaveCollage: () => void;
   isSaving?: boolean;
+  isSavedFeedback?: boolean;
   selectedSticker: FreeformSticker | null;
   onDeleteSticker: (stickerId: string) => void;
   onBringStickerToFront: (stickerId: string) => void;
@@ -38,13 +39,13 @@ interface CollageBottomBarProps {
 
 export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
   onAddPhotosClick,
-  onAddStickerClick,
   onPasteFromClipboard,
   onNextLayout,
   onToggleAspectRatio,
   currentAspect,
   onSaveCollage,
   isSaving = false,
+  isSavedFeedback = false,
   selectedSticker,
   onDeleteSticker,
   onBringStickerToFront,
@@ -109,31 +110,21 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
     );
   }
 
-  // Standard Action Bar
+  // Standard Action Bar (Clean 5 buttons: 1 button per feature)
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 px-3 py-2 pb-safe shadow-lg transition-all">
       <div className="max-w-xl mx-auto flex items-center justify-between gap-1 sm:gap-2">
-        {/* Add Photo */}
+        {/* 1. Add Photo */}
         <button
           onClick={onAddPhotosClick}
           className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-95 min-h-[46px] transition-colors"
           title="写真を追加"
         >
-          <ImagePlus className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-0.5" />
-          <span className="text-[10px] sm:text-xs font-medium">写真追加</span>
+          <ImagePlus className="w-5 h-5 text-[#386641] dark:text-[#52b788] mb-0.5" />
+          <span className="text-[10px] sm:text-xs font-semibold">写真追加</span>
         </button>
 
-        {/* Add Sticker (Sticker picker or paste) */}
-        <button
-          onClick={onAddStickerClick}
-          className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-95 min-h-[46px] transition-colors"
-          title="ステッカーを追加"
-        >
-          <Sticker className="w-5 h-5 text-amber-500 mb-0.5" />
-          <span className="text-[10px] sm:text-xs font-medium">ステッカー</span>
-        </button>
-
-        {/* Clipboard Paste Quick Button - Highlighted for thumb operation */}
+        {/* 2. One-tap Paste from Clipboard */}
         <button
           onClick={onPasteFromClipboard}
           className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 active:scale-95 min-h-[46px] transition-all font-bold shadow-2xs"
@@ -143,8 +134,7 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
           <span className="text-[10px] sm:text-xs">貼る</span>
         </button>
 
-
-        {/* Dynamic Mosaic / Next Layout */}
+        {/* 3. Layout / Mosaic */}
         {totalPhotosCount >= 7 && onToggleDynamicMosaic ? (
           <button
             onClick={onToggleDynamicMosaic}
@@ -156,7 +146,7 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
             title="7枚以上のスマートモザイク切替"
           >
             <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 mb-0.5" />
-            <span className="text-[10px] sm:text-xs font-medium">モザイク</span>
+            <span className="text-[10px] sm:text-xs font-semibold">モザイク</span>
           </button>
         ) : (
           <button
@@ -165,29 +155,42 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
             title="レイアウトを変更"
           >
             <Layers className="w-5 h-5 text-stone-600 dark:text-stone-400 mb-0.5" />
-            <span className="text-[10px] sm:text-xs font-medium">切替</span>
+            <span className="text-[10px] sm:text-xs font-semibold">レイアウト</span>
           </button>
         )}
 
-        {/* Aspect Ratio */}
+        {/* 4. Aspect Ratio */}
         <button
           onClick={onToggleAspectRatio}
           className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-95 min-h-[46px] transition-colors"
-          title="比率を変更"
+          title="比率を変更 (4:5 / 9:16 / 1:1)"
         >
           <Ratio className="w-5 h-5 text-stone-600 dark:text-stone-400 mb-0.5" />
-          <span className="text-[10px] sm:text-xs font-medium">{currentAspect}</span>
+          <span className="text-[10px] sm:text-xs font-semibold">{currentAspect}</span>
         </button>
 
-        {/* Save / Export */}
+        {/* 5. Save & Export */}
         <button
           onClick={onSaveCollage}
           disabled={isSaving}
-          className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 active:scale-95 min-h-[46px] font-medium shadow-sm transition-all disabled:opacity-50"
-          title="コラージュを保存"
+          className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl active:scale-95 min-h-[46px] font-semibold shadow-xs transition-all disabled:opacity-50 ${
+            isSavedFeedback
+              ? "bg-[#386641] text-white"
+              : "bg-[#003049] text-white hover:bg-[#002235]"
+          }`}
+          title="コラージュを保存・画像共有"
         >
-          <Download className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] sm:text-xs">{isSaving ? "保存中" : "保存"}</span>
+          {isSavedFeedback ? (
+            <>
+              <Check className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] sm:text-xs font-bold">完了!</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] sm:text-xs">{isSaving ? "保存中" : "保存"}</span>
+            </>
+          )}
         </button>
       </div>
     </div>
