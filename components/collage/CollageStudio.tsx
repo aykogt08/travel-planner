@@ -1278,37 +1278,49 @@ export default function CollageStudio({
         ) : (
           /* Mobile-First Layout: Result Preview at Top! */
           <div className="flex flex-col gap-3">
-            {/* Compact Top Action Bar: Replaces bulky template/score card */}
-            <div className="flex items-center justify-between gap-2 px-1">
+            {/* Compact Top Action Bar with Quick Paste */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
               <div className="flex items-center gap-1.5 text-xs text-[#386641]/80 font-bold">
                 <span>📸 {analyzedPhotos.length}枚</span>
                 <span className="text-stone-300">|</span>
                 <span className="text-[11px] font-semibold text-stone-500">{currentAspect}</span>
               </div>
 
-              {/* Compact Quick Actions */}
+              {/* Quick Actions (Paste + Shuffle + Next) */}
               <div className="flex items-center gap-1.5">
+                {/* One-tap paste right above the canvas */}
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-lg shadow-xs transition active:scale-95"
+                  title="コピーしたステッカーをワンタップで配置"
+                >
+                  <ClipboardPaste className="w-3.5 h-3.5 text-[#DDA15E]" />
+                  <span>貼る</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleShufflePhotosOnly}
-                  className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
+                  className="flex items-center gap-1 px-2 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
                   title="同じデザインのまま写真の並び順だけを入れ替えます"
                 >
                   <ArrowLeftRight className="w-3.5 h-3.5 text-stone-600" />
-                  <span>並び替え</span>
+                  <span className="hidden sm:inline">並び替え</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleNextCandidate}
-                  className="flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
+                  className="flex items-center gap-1 px-2 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
                   title="別のレイアウト候補に切り替えます"
                 >
                   <Shuffle className="w-3.5 h-3.5 text-stone-600" />
-                  <span>デザイン切替</span>
+                  <span className="hidden sm:inline">デザイン切替</span>
                 </button>
               </div>
             </div>
+
 
 
             {/* Canvas Preview Container (Option A: Direct interactive Canvas with WYSIWYG) */}
@@ -1328,7 +1340,19 @@ export default function CollageStudio({
                   <span>👆 1本指で移動 / ✌️ 2本指でピンチ拡大・回転</span>
                 </div>
               )}
+
+              {/* Floating Quick Paste Button on Canvas Preview: No scrolling needed! */}
+              <button
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#003049] hover:bg-[#002233] text-[#FDF0D5] text-xs font-bold rounded-xl shadow-lg border border-[#DDA15E]/40 active:scale-95 transition"
+                title="iPhoneの写真アプリでコピーした被写体をワンタップで追加"
+              >
+                <ClipboardPaste className="w-4 h-4 text-[#DDA15E]" />
+                <span>ワンタップで貼る</span>
+              </button>
             </div>
+
 
 
             {/* Export & Save Action Bar (Prominent Thumb Touch Zone) */}

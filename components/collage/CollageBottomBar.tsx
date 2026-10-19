@@ -133,15 +133,16 @@ export const CollageBottomBar: React.FC<CollageBottomBarProps> = ({
           <span className="text-[10px] sm:text-xs font-medium">ステッカー</span>
         </button>
 
-        {/* Clipboard Paste Quick Button */}
+        {/* Clipboard Paste Quick Button - Highlighted for thumb operation */}
         <button
           onClick={onPasteFromClipboard}
-          className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 active:scale-95 min-h-[46px] transition-colors"
-          title="クリップボードから貼り付け"
+          className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-700/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 active:scale-95 min-h-[46px] transition-all font-bold shadow-2xs"
+          title="コピーしたステッカーをワンタップで貼る"
         >
-          <ClipboardPaste className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mb-0.5" />
-          <span className="text-[10px] sm:text-xs font-medium">貼付</span>
+          <ClipboardPaste className="w-5 h-5 text-amber-600 dark:text-amber-400 mb-0.5" />
+          <span className="text-[10px] sm:text-xs">貼る</span>
         </button>
+
 
         {/* Dynamic Mosaic / Next Layout */}
         {totalPhotosCount >= 7 && onToggleDynamicMosaic ? (
