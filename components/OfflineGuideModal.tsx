@@ -215,10 +215,17 @@ export default function OfflineGuideModal({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="w-full py-2.5 text-[#386641]/60 hover:text-[#386641] text-xs font-semibold text-center"
+            className="w-full py-2.5 text-[#386641]/60 hover:text-[#386641] text-xs font-semibold text-center transition cursor-pointer"
           >
             閉じる
           </button>
+
+          {/* Discreet update timestamp (for creator verification) */}
+          <div className="text-center pt-1 pb-1">
+            <span className="text-[10px] font-mono text-[#386641]/40 tracking-wider">
+              最新更新: {process.env.NEXT_PUBLIC_BUILD_TIME || "2026/10/19 22:15"}
+            </span>
+          </div>
         </div>
       </div>
     </div>
