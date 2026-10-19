@@ -2,15 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { PhotoFeatures, CollageTemplate, TemplateMatchScore } from "@/types/collage-template";
-import { SavedCollage, SavedCollagePhoto } from "@/types/collage";
+import { SavedCollage, SavedCollagePhoto, FreeformSticker } from "@/types/collage";
 import { batchAnalyzePhotos } from "@/lib/photo-analyzer";
 import { scoreTemplatesForPhotos, assignPhotosToTemplate, MappedSlotAssignment } from "@/lib/template-matcher";
-import { renderTemplateCollageToCanvas } from "@/lib/collage-engine";
+import { renderTemplateCollageToCanvas, hitTestFreeformStickers } from "@/lib/collage-engine";
 import { COLLAGE_TEMPLATES } from "@/lib/collage-templates";
+import { generateDynamicTemplate } from "@/lib/dynamic-layout";
 import { saveCollage, getAllCollages, deleteCollage, syncPendingCollages } from "@/lib/collage-storage";
 import { KNOWN_CITIES, KnownCity } from "@/constants/cities";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import SavedCollagesModal from "./SavedCollagesModal";
+import { CollageBottomBar } from "./CollageBottomBar";
 import {
   Camera,
   Shuffle,
@@ -53,6 +55,12 @@ export default function CollageStudio({
   const [imagesMap, setImagesMap] = useState<Record<string, HTMLImageElement>>({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Freeform Stickers State (Option A: Direct Canvas 2D Hit-Testing & Gestures)
+  const [freeformStickers, setFreeformStickers] = useState<FreeformSticker[]>([]);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [currentAspect, setCurrentAspect] = useState<"4:5" | "9:16" | "1:1">("4:5");
+  const [isDynamicMosaicActive, setIsDynamicMosaicActive] = useState<boolean>(false);
+
   // Template Scoring & Candidate State
   const [candidateScores, setCandidateScores] = useState<TemplateMatchScore[]>([]);
   const [candidateIndex, setCandidateIndex] = useState<number>(0);
@@ -66,19 +74,27 @@ export default function CollageStudio({
 
   // Customization Options
   const [customTitle, setCustomTitle] = useState(tripTitle || "");
+  const [showTitle, setShowTitle] = useState(true);
   const [includeDateStamp, setIncludeDateStamp] = useState(true);
+  const [showWatermark, setShowWatermark] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
   const [selectedCity, setSelectedCity] = useState<KnownCity | null>(null);
   const [visitDate, setVisitDate] = useState<string>(() => {
     return new Date().toISOString().slice(0, 10);
   });
+
+
 
   // Online / Offline Status
   const isOnline = useOnlineStatus();
 
   // Canvas & Storage
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const stickerInputRef = useRef<HTMLInputElement>(null);
   const [savedCollages, setSavedCollages] = useState<SavedCollage[]>([]);
   const [showSavedModal, setShowSavedModal] = useState(false);
+
   const [isSavedFeedback, setIsSavedFeedback] = useState(false);
 
   // Load saved collages on mount
@@ -160,24 +176,6 @@ export default function CollageStudio({
         return;
       }
 
-      // If added via paste/clipboard button:
-      // If it has transparency (cutout PNG from iPhone or PhotoLab), treat as a cutout sticker.
-      // If it is an opaque photo (original photo copied from PhotoLab or elsewhere), treat as a regular photo!
-      if (isFromPaste) {
-        newFeatures.forEach((f) => {
-          if (f.hasTransparency) {
-            f.isCutoutSticker = true;
-          } else {
-            f.isCutoutSticker = false;
-          }
-        });
-      } else {
-        // Files from photo picker must always be treated as regular photos
-        newFeatures.forEach((f) => {
-          f.isCutoutSticker = false;
-        });
-      }
-
       const prevPhotos = photosRef.current;
       const prevMap = imagesMapRef.current;
 
@@ -190,30 +188,65 @@ export default function CollageStudio({
       setAnalyzedPhotos(combinedPhotos);
       setImagesMap(combinedMap);
 
-      // Re-score templates (strictly based on regular photos!)
-      const scores = scoreTemplatesForPhotos(combinedPhotos);
-      setCandidateScores(scores);
+      // Separate cutout stickers (transparent) from regular photos
+      const newStickers: FreeformSticker[] = [];
+      let currentMaxZ = freeformStickers.reduce((m, s) => Math.max(m, s.zIndex), 10);
 
-      // Keep the current template if already set, otherwise pick top score
-      let activeTemplate = currentTemplate;
-      if (!activeTemplate && scores.length > 0) {
-        activeTemplate = scores[0].template;
-        setCurrentTemplate(activeTemplate);
-        setCandidateIndex(0);
-      } else if (activeTemplate) {
-        const idx = scores.findIndex((s) => s.template.id === activeTemplate?.id);
-        if (idx !== -1) setCandidateIndex(idx);
+      newFeatures.forEach((f, idx) => {
+        if (isFromPaste && f.hasTransparency) {
+          f.isCutoutSticker = true;
+          newStickers.push({
+            id: `st_${Date.now()}_${idx}`,
+            photoId: f.id,
+            x: 45 + ((idx * 6) % 20),
+            y: 45 + ((idx * 6) % 20),
+            scale: 1.0,
+            rotation: 0,
+            width: 28,
+            height: 28,
+            zIndex: ++currentMaxZ,
+          });
+        }
+      });
+
+      if (newStickers.length > 0) {
+        setFreeformStickers((prev) => [...prev, ...newStickers]);
+        setSelectedStickerId(newStickers[newStickers.length - 1].id);
       }
 
-      if (activeTemplate) {
-        const assignments = assignPhotosToTemplate(activeTemplate, combinedPhotos, jitterSeed);
+      // Re-score templates based on regular photos
+      const regularPhotos = combinedPhotos.filter((p) => !p.isCutoutSticker);
+      
+      // If 7 or more regular photos, auto-activate dynamic mosaic
+      if (regularPhotos.length >= 7) {
+        const dynTemplate = generateDynamicTemplate(regularPhotos.length, currentAspect);
+        setCurrentTemplate(dynTemplate);
+        setIsDynamicMosaicActive(true);
+        const assignments = assignPhotosToTemplate(dynTemplate, combinedPhotos, jitterSeed);
         setCurrentAssignments(assignments);
+      } else {
+        const scores = scoreTemplatesForPhotos(combinedPhotos);
+        setCandidateScores(scores);
+
+        let activeTemplate = currentTemplate;
+        if (!activeTemplate && scores.length > 0) {
+          activeTemplate = scores[0].template;
+          setCurrentTemplate(activeTemplate);
+          setCandidateIndex(0);
+        } else if (activeTemplate) {
+          const idx = scores.findIndex((s) => s.template.id === activeTemplate?.id);
+          if (idx !== -1) setCandidateIndex(idx);
+        }
+
+        if (activeTemplate) {
+          const assignments = assignPhotosToTemplate(activeTemplate, combinedPhotos, jitterSeed);
+          setCurrentAssignments(assignments);
+        }
       }
 
       if (isFromPaste) {
-        const cutoutCount = newFeatures.filter((f) => f.isCutoutSticker).length;
-        if (cutoutCount > 0) {
-          showToast(`✂️ 切抜ステッカー (${cutoutCount}枚) を貼り付けました！`);
+        if (newStickers.length > 0) {
+          showToast(`✂️ 切抜ステッカー (${newStickers.length}枚) を追加しました！`);
         } else {
           showToast(`📋 写真 (${newFeatures.length}枚) を貼り付けました！`);
         }
@@ -225,14 +258,40 @@ export default function CollageStudio({
     }
   };
 
-  // Toggle between regular photo slot and floating sticker mode
+  // Toggle between regular photo slot and freeform sticker mode
   const handleToggleStickerMode = (photoId: string) => {
     setAnalyzedPhotos((prev) => {
       const updated = prev.map((p) => {
         if (p.id === photoId) {
+          const nextIsSticker = !p.isCutoutSticker;
+          if (nextIsSticker) {
+            // Add to freeform stickers
+            const maxZ = freeformStickers.reduce((m, s) => Math.max(m, s.zIndex), 10);
+            setFreeformStickers((stList) => [
+              ...stList.filter((s) => s.photoId !== photoId),
+              {
+                id: `st_${Date.now()}`,
+                photoId: photoId,
+                x: 50,
+                y: 50,
+                scale: 1.0,
+                rotation: 0,
+                width: 28,
+                height: 28,
+                zIndex: maxZ + 1,
+              },
+            ]);
+            setSelectedStickerId(`st_${Date.now()}`);
+          } else {
+            // Remove from freeform stickers
+            setFreeformStickers((stList) => stList.filter((s) => s.photoId !== photoId));
+            if (selectedStickerId && freeformStickers.some((s) => s.id === selectedStickerId && s.photoId === photoId)) {
+              setSelectedStickerId(null);
+            }
+          }
           return {
             ...p,
-            isCutoutSticker: !p.isCutoutSticker,
+            isCutoutSticker: nextIsSticker,
           };
         }
         return p;
@@ -246,6 +305,74 @@ export default function CollageStudio({
     });
   };
 
+  // Freeform Sticker controls
+  const handleDeleteSticker = (stickerId: string) => {
+    setFreeformStickers((prev) => prev.filter((s) => s.id !== stickerId));
+    if (selectedStickerId === stickerId) setSelectedStickerId(null);
+    showToast("🗑️ ステッカーを削除しました");
+  };
+
+  const handleBringStickerToFront = (stickerId: string) => {
+    setFreeformStickers((prev) => {
+      const maxZ = prev.reduce((m, s) => Math.max(m, s.zIndex), 10);
+      return prev.map((s) => (s.id === stickerId ? { ...s, zIndex: maxZ + 1 } : s));
+    });
+    showToast("🔝 最前面に移動しました");
+  };
+
+  const handleResetStickerRotation = (stickerId: string) => {
+    setFreeformStickers((prev) =>
+      prev.map((s) => (s.id === stickerId ? { ...s, rotation: 0 } : s))
+    );
+  };
+
+  const handleDeselectSticker = () => {
+    setSelectedStickerId(null);
+  };
+
+  // Dynamic Mosaic Toggle for 7+ photos
+  const handleToggleDynamicMosaic = () => {
+    const regularPhotos = analyzedPhotos.filter((p) => !p.isCutoutSticker);
+    if (isDynamicMosaicActive) {
+      // Revert to standard template candidate
+      setIsDynamicMosaicActive(false);
+      if (candidateScores.length > 0) {
+        const tpl = candidateScores[candidateIndex]?.template || candidateScores[0].template;
+        setCurrentTemplate(tpl);
+        const assignments = assignPhotosToTemplate(tpl, analyzedPhotos, jitterSeed);
+        setCurrentAssignments(assignments);
+      }
+    } else {
+      // Activate dynamic mosaic
+      setIsDynamicMosaicActive(true);
+      const dynTemplate = generateDynamicTemplate(regularPhotos.length, currentAspect);
+      setCurrentTemplate(dynTemplate);
+      const assignments = assignPhotosToTemplate(dynTemplate, analyzedPhotos, jitterSeed);
+      setCurrentAssignments(assignments);
+      showToast(`✨ ${regularPhotos.length}枚のスマートモザイクを適用しました！`);
+    }
+  };
+
+  // Toggle Aspect Ratio (4:5 -> 9:16 -> 1:1)
+  const handleToggleAspectRatio = () => {
+    const aspects: ("4:5" | "9:16" | "1:1")[] = ["4:5", "9:16", "1:1"];
+    const nextAspect = aspects[(aspects.indexOf(currentAspect) + 1) % aspects.length];
+    setCurrentAspect(nextAspect);
+
+    if (isDynamicMosaicActive) {
+      const regularPhotos = analyzedPhotos.filter((p) => !p.isCutoutSticker);
+      const dynTemplate = generateDynamicTemplate(regularPhotos.length, nextAspect);
+      setCurrentTemplate(dynTemplate);
+      const assignments = assignPhotosToTemplate(dynTemplate, analyzedPhotos, jitterSeed);
+      setCurrentAssignments(assignments);
+    } else if (currentTemplate) {
+      // Update template aspect
+      setCurrentTemplate({ ...currentTemplate, aspect: nextAspect });
+    }
+    showToast(`📐 アスペクト比を ${nextAspect} に変更しました`);
+  };
+
+
   // Handle Photo File Picker
   const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -253,6 +380,15 @@ export default function CollageStudio({
     await handleAddPhotos(Array.from(files), false);
     e.target.value = "";
   };
+
+  // Handle Sticker File Picker (Forces cutout sticker mode)
+  const handleStickersSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await handleAddPhotos(Array.from(files), true);
+    e.target.value = "";
+  };
+
 
   // Handle Paste Directly from Clipboard (e.g. iPhone Subject Cutout)
   const handlePasteFromClipboard = async () => {
@@ -318,7 +454,202 @@ export default function CollageStudio({
     };
   }, []);
 
-  // Re-render Canvas when template or assignments change
+  // Gesture tracking refs
+  const activePointersRef = useRef<Map<number, { clientX: number; clientY: number; canvasX: number; canvasY: number }>>(new Map());
+  const gestureStateRef = useRef<{
+    type: "drag" | "pinch" | null;
+    stickerId: string | null;
+    initialDist: number;
+    initialScale: number;
+    initialAngle: number;
+    initialRotation: number;
+    lastCanvasX: number;
+    lastCanvasY: number;
+  }>({
+    type: null,
+    stickerId: null,
+    initialDist: 1,
+    initialScale: 1,
+    initialAngle: 0,
+    initialRotation: 0,
+    lastCanvasX: 0,
+    lastCanvasY: 0,
+  });
+
+  const getCanvasCoords = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  };
+
+  const handleCanvasPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch (_) {}
+
+    const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+    activePointersRef.current.set(e.pointerId, {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      canvasX: x,
+      canvasY: y,
+    });
+
+    const pointerCount = activePointersRef.current.size;
+
+    if (pointerCount === 1) {
+      // Hit test freeform stickers
+      const hit = hitTestFreeformStickers(x, y, canvas.width, canvas.height, freeformStickers, imagesMap);
+      if (hit) {
+        setSelectedStickerId(hit.id);
+        // Bring to front
+        const maxZ = freeformStickers.reduce((m, s) => Math.max(m, s.zIndex), 10);
+        setFreeformStickers((prev) =>
+          prev.map((s) => (s.id === hit.id ? { ...s, zIndex: maxZ + 1 } : s))
+        );
+
+        gestureStateRef.current = {
+          type: "drag",
+          stickerId: hit.id,
+          initialDist: 1,
+          initialScale: hit.scale,
+          initialAngle: 0,
+          initialRotation: hit.rotation,
+          lastCanvasX: x,
+          lastCanvasY: y,
+        };
+      } else {
+        // Deselect if background clicked
+        setSelectedStickerId(null);
+        gestureStateRef.current = {
+          type: null,
+          stickerId: null,
+          initialDist: 1,
+          initialScale: 1,
+          initialAngle: 0,
+          initialRotation: 0,
+          lastCanvasX: 0,
+          lastCanvasY: 0,
+        };
+      }
+    } else if (pointerCount === 2) {
+      // 2 fingers: pinch & rotate
+      const targetId = selectedStickerId || gestureStateRef.current.stickerId;
+      if (targetId) {
+        const targetSticker = freeformStickers.find((s) => s.id === targetId);
+        if (targetSticker) {
+          const pts = Array.from(activePointersRef.current.values());
+          const p1 = pts[0];
+          const p2 = pts[1];
+          const dist = Math.hypot(p2.canvasX - p1.canvasX, p2.canvasY - p1.canvasY);
+          const angle = (Math.atan2(p2.canvasY - p1.canvasY, p2.canvasX - p1.canvasX) * 180) / Math.PI;
+
+          gestureStateRef.current = {
+            type: "pinch",
+            stickerId: targetId,
+            initialDist: Math.max(dist, 1),
+            initialScale: targetSticker.scale,
+            initialAngle: angle,
+            initialRotation: targetSticker.rotation,
+            lastCanvasX: (p1.canvasX + p2.canvasX) / 2,
+            lastCanvasY: (p1.canvasY + p2.canvasY) / 2,
+          };
+        }
+      }
+    }
+  };
+
+  const handleCanvasPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !activePointersRef.current.has(e.pointerId)) return;
+
+    const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+    activePointersRef.current.set(e.pointerId, {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      canvasX: x,
+      canvasY: y,
+    });
+
+    const { type, stickerId } = gestureStateRef.current;
+    if (!type || !stickerId) return;
+
+    if (type === "pinch" && activePointersRef.current.size >= 2) {
+      const pts = Array.from(activePointersRef.current.values());
+      const p1 = pts[0];
+      const p2 = pts[1];
+      const dist = Math.hypot(p2.canvasX - p1.canvasX, p2.canvasY - p1.canvasY);
+      const angle = (Math.atan2(p2.canvasY - p1.canvasY, p2.canvasX - p1.canvasX) * 180) / Math.PI;
+
+      const scaleRatio = dist / gestureStateRef.current.initialDist;
+      const newScale = Math.min(Math.max(gestureStateRef.current.initialScale * scaleRatio, 0.3), 3.5);
+      const angleDelta = angle - gestureStateRef.current.initialAngle;
+      const newRotation = Math.round((gestureStateRef.current.initialRotation + angleDelta) % 360);
+
+      // Midpoint movement
+      const midX = (p1.canvasX + p2.canvasX) / 2;
+      const midY = (p1.canvasY + p2.canvasY) / 2;
+      const dxPercent = ((midX - gestureStateRef.current.lastCanvasX) / canvas.width) * 100;
+      const dyPercent = ((midY - gestureStateRef.current.lastCanvasY) / canvas.height) * 100;
+      gestureStateRef.current.lastCanvasX = midX;
+      gestureStateRef.current.lastCanvasY = midY;
+
+      setFreeformStickers((prev) =>
+        prev.map((s) =>
+          s.id === stickerId
+            ? {
+                ...s,
+                scale: Number(newScale.toFixed(3)),
+                rotation: newRotation,
+                x: Math.min(Math.max(s.x + dxPercent, -10), 110),
+                y: Math.min(Math.max(s.y + dyPercent, -10), 110),
+              }
+            : s
+        )
+      );
+    } else if (type === "drag" && activePointersRef.current.size === 1) {
+      const dx = x - gestureStateRef.current.lastCanvasX;
+      const dy = y - gestureStateRef.current.lastCanvasY;
+      const dxPercent = (dx / canvas.width) * 100;
+      const dyPercent = (dy / canvas.height) * 100;
+
+      gestureStateRef.current.lastCanvasX = x;
+      gestureStateRef.current.lastCanvasY = y;
+
+      setFreeformStickers((prev) =>
+        prev.map((s) =>
+          s.id === stickerId
+            ? {
+                ...s,
+                x: Math.min(Math.max(s.x + dxPercent, -10), 110),
+                y: Math.min(Math.max(s.y + dyPercent, -10), 110),
+              }
+            : s
+        )
+      );
+    }
+  };
+
+  const handleCanvasPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size === 0) {
+      gestureStateRef.current.type = null;
+    }
+  };
+
+  // Re-render Canvas when template, assignments, or freeform stickers change
   useEffect(() => {
     if (
       !currentTemplate ||
@@ -337,9 +668,28 @@ export default function CollageStudio({
       {
         title: customTitle,
         date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+        freeformStickers,
+        selectedStickerId,
+        showTitle,
+        showWatermark,
+        showStamp,
       }
     );
-  }, [currentTemplate, currentAssignments, imagesMap, customTitle, includeDateStamp, tripDates]);
+  }, [
+    currentTemplate,
+    currentAssignments,
+    imagesMap,
+    customTitle,
+    includeDateStamp,
+    tripDates,
+    freeformStickers,
+    selectedStickerId,
+    showTitle,
+    showWatermark,
+    showStamp,
+  ]);
+
+
 
   // Switch to next scored candidate template & tweak jitter
   const handleNextCandidate = () => {
@@ -413,11 +763,28 @@ export default function CollageStudio({
     }
   };
 
-  // Save to IndexedDB
+  // Save to IndexedDB (Clean render without selection box)
   const handleSave = async () => {
-    if (!currentTemplate || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const thumbnail = canvas.toDataURL("image/png", 0.7);
+    if (!currentTemplate || Object.keys(imagesMap).length === 0) return;
+
+    // Render clean offscreen canvas for thumbnail
+    const thumbCanvas = document.createElement("canvas");
+    renderTemplateCollageToCanvas(
+      thumbCanvas,
+      currentTemplate,
+      currentAssignments,
+      imagesMap,
+      {
+        title: customTitle,
+        date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+        freeformStickers,
+        isExporting: true, // Hide selection borders and handles
+        showTitle,
+        showWatermark,
+        showStamp,
+      }
+    );
+    const thumbnail = thumbCanvas.toDataURL("image/png", 0.7);
 
     // Build lightweight image snapshots for full re-editability
     const savedPhotos: SavedCollagePhoto[] = [];
@@ -467,7 +834,7 @@ export default function CollageStudio({
     const saved: SavedCollage = {
       id: crypto.randomUUID(),
       layout: {
-        elements: currentAssignments.map((a, i) => ({
+        elements: currentAssignments.map((a) => ({
           photoId: a.photo.id,
           x: a.slot.x * 100,
           y: a.slot.y * 100,
@@ -490,9 +857,14 @@ export default function CollageStudio({
       tripId,
       syncStatus: isOnline ? "synced" : "pending_sync",
       includeDateStamp,
+      showTitle,
+      showWatermark,
+      showStamp,
       savedPhotos,
+      freeformStickers, // Persist freeform sticker positions, scale, rotation, zIndex
       createdAt: new Date().toISOString(),
     };
+
 
     try {
       await saveCollage(saved);
@@ -547,6 +919,25 @@ export default function CollageStudio({
           photosRef.current = newAnalyzedPhotos;
           imagesMapRef.current = newImagesMap;
 
+          // Restore freeform stickers
+          if (collage.freeformStickers) {
+            setFreeformStickers(collage.freeformStickers);
+            setSelectedStickerId(null);
+          }
+
+          if (collage.layout.aspect) {
+            setCurrentAspect(collage.layout.aspect);
+          }
+
+          if (collage.showTitle !== undefined) {
+            setShowTitle(collage.showTitle);
+          }
+          if (collage.showWatermark !== undefined) {
+            setShowWatermark(collage.showWatermark);
+          }
+          if (collage.showStamp !== undefined) {
+            setShowStamp(collage.showStamp);
+          }
           if (collage.customTitle !== undefined) {
             setCustomTitle(collage.customTitle);
           }
@@ -596,15 +987,32 @@ export default function CollageStudio({
     showToast("⚠️ 旧バージョンのデータのため、テンプレートのみ復元しました");
   };
 
-  // Download directly or native share (Mobile/iOS Safari friendly)
+  // Download directly or native share (Clean render without selection box)
   const handleDownload = async () => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
+    if (!currentTemplate || Object.keys(imagesMap).length === 0) return;
 
     try {
-      // 1. Convert Canvas to Blob
+      // 1. Render clean offscreen canvas without selection outlines
+      const offCanvas = document.createElement("canvas");
+      renderTemplateCollageToCanvas(
+        offCanvas,
+        currentTemplate,
+        currentAssignments,
+        imagesMap,
+        {
+          title: customTitle,
+          date: includeDateStamp ? tripDates || new Date().toLocaleDateString("ja-JP") : undefined,
+          freeformStickers,
+          isExporting: true, // Clean export
+          showTitle,
+          showWatermark,
+          showStamp,
+        }
+      );
+
+
       const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png", 0.95)
+        offCanvas.toBlob(resolve, "image/png", 0.95)
       );
       if (!blob) throw new Error("Canvas blob conversion failed");
 
@@ -625,6 +1033,7 @@ export default function CollageStudio({
         return;
       }
 
+
       // 3. Desktop / Standard Download fallback
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -639,8 +1048,11 @@ export default function CollageStudio({
         console.warn("Native share cancelled or failed, falling back to data URL open", err);
         // Direct open fallback for older iOS
         try {
-          const dataUrl = canvas.toDataURL("image/png");
+          const currentCanvas = canvasRef.current;
+          if (!currentCanvas) return;
+          const dataUrl = currentCanvas.toDataURL("image/png");
           const win = window.open();
+
           if (win) {
             win.document.write(
               `<div style="display:flex;flex-direction:column;align-items:center;padding:16px;background:#fdf0d5;min-height:100vh;">
@@ -685,7 +1097,7 @@ export default function CollageStudio({
   const currentScoreInfo = candidateScores[candidateIndex];
 
   return (
-    <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-3 sm:p-8 shadow-xs">
+    <div className="bg-white/95 border border-[#DDA15E]/30 rounded-3xl p-3 sm:p-8 pb-24 sm:pb-8 shadow-xs">
       {/* Header Bar */}
       <div className="flex items-center justify-between gap-2 pb-4 border-b border-[#386641]/10">
         <div>
@@ -866,71 +1278,58 @@ export default function CollageStudio({
         ) : (
           /* Mobile-First Layout: Result Preview at Top! */
           <div className="flex flex-col gap-3">
-            {/* Step 2: Scoring Recommendation & Quick Action Bar */}
-            {currentTemplate && currentScoreInfo && (
-              <div className="bg-[#386641]/8 border border-[#386641]/15 rounded-2xl p-3 flex flex-col gap-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-[#386641] text-[#FDF0D5] flex items-center justify-center shrink-0 shadow-2xs">
-                      <Award className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-extrabold text-xs sm:text-sm text-[#386641] truncate">
-                          {currentTemplate.name}
-                        </span>
-                        <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-[#C1121F] text-white shrink-0">
-                          相性 {currentScoreInfo.score}点
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <span className="text-[10px] text-[#386641]/60 shrink-0">
-                    候補 {candidateIndex + 1}/{candidateScores.length}
-                  </span>
-                </div>
-
-                {/* Reasons tags */}
-                <div className="flex flex-wrap items-center gap-1 text-[10px] text-[#386641]/80">
-                  {currentScoreInfo.reasons.map((r, i) => (
-                    <span key={i} className="bg-white/80 border border-[#386641]/15 px-1.5 py-0.5 rounded-md">
-                      ✓ {r}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Primary Quick Actions for Thumb Operation */}
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#386641]/10">
-                  <button
-                    type="button"
-                    onClick={handleShufflePhotosOnly}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-[#386641]/20 text-[#386641] hover:bg-[#386641]/5 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95 min-h-[42px]"
-                    title="同じデザインのまま写真の並び順だけを入れ替えます"
-                  >
-                    <ArrowLeftRight className="w-3.5 h-3.5 text-[#386641]" />
-                    <span>🔀 写真をシャッフル</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleNextCandidate}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/40 hover:bg-[#FDF0D5]/80 text-xs font-bold rounded-xl shadow-2xs transition active:scale-95 min-h-[42px]"
-                  >
-                    <Shuffle className="w-3.5 h-3.5 text-[#C1121F]" />
-                    <span>🎲 別の候補デザイン</span>
-                  </button>
-                </div>
+            {/* Compact Top Action Bar: Replaces bulky template/score card */}
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="flex items-center gap-1.5 text-xs text-[#386641]/80 font-bold">
+                <span>📸 {analyzedPhotos.length}枚</span>
+                <span className="text-stone-300">|</span>
+                <span className="text-[11px] font-semibold text-stone-500">{currentAspect}</span>
               </div>
-            )}
 
-            {/* Canvas Preview Container (Placed high for immediate viewing) */}
+              {/* Compact Quick Actions */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleShufflePhotosOnly}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
+                  title="同じデザインのまま写真の並び順だけを入れ替えます"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-stone-600" />
+                  <span>並び替え</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextCandidate}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95"
+                  title="別のレイアウト候補に切り替えます"
+                >
+                  <Shuffle className="w-3.5 h-3.5 text-stone-600" />
+                  <span>デザイン切替</span>
+                </button>
+              </div>
+            </div>
+
+
+            {/* Canvas Preview Container (Option A: Direct interactive Canvas with WYSIWYG) */}
             <div className="relative max-w-full overflow-hidden p-2 sm:p-5 bg-[#386641]/5 rounded-3xl border border-[#DDA15E]/30 shadow-inner flex justify-center">
               <canvas
                 ref={canvasRef}
-                className="max-h-[58vh] sm:max-h-[68vh] w-auto max-w-full rounded-2xl shadow-xl border border-black/5"
+                onPointerDown={handleCanvasPointerDown}
+                onPointerMove={handleCanvasPointerMove}
+                onPointerUp={handleCanvasPointerUp}
+                onPointerCancel={handleCanvasPointerUp}
+                className="max-h-[58vh] sm:max-h-[68vh] w-auto max-w-full rounded-2xl shadow-xl border border-black/5 touch-none cursor-pointer"
               />
+
+              {/* Gesture Hint Badge when a sticker is active */}
+              {selectedStickerId && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-stone-900/85 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-xs flex items-center gap-1.5 shadow-lg pointer-events-none transition-all animate-in fade-in">
+                  <span>👆 1本指で移動 / ✌️ 2本指でピンチ拡大・回転</span>
+                </div>
+              )}
             </div>
+
 
             {/* Export & Save Action Bar (Prominent Thumb Touch Zone) */}
             <div className="grid grid-cols-2 gap-2 p-2 bg-[#FDF0D5]/60 border border-[#DDA15E]/30 rounded-2xl">
@@ -1092,18 +1491,17 @@ export default function CollageStudio({
                     </div>
                   </div>
 
-                  {/* Title & Date Controls */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-[#386641]/10">
-                    <input
-                      type="text"
-                      placeholder="タイトル（例: 🇫🇷 パリの思い出）"
-                      value={customTitle}
-                      onChange={(e) => setCustomTitle(e.target.value)}
-                      className="px-3 py-2 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] w-full sm:max-w-xs"
-                    />
-
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <div className="flex items-center gap-1.5">
+                  {/* Title & Date & Overlays Controls */}
+                  <div className="flex flex-col gap-2.5 pt-2 border-t border-[#386641]/10">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="タイトル（例: 🇫🇷 パリの思い出）"
+                        value={customTitle}
+                        onChange={(e) => setCustomTitle(e.target.value)}
+                        className="px-3 py-2 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden focus:border-[#386641] flex-1"
+                      />
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <CalendarIcon className="w-3.5 h-3.5 text-[#386641]/60" />
                         <input
                           type="date"
@@ -1112,24 +1510,76 @@ export default function CollageStudio({
                           className="px-2 py-1 text-xs rounded-xl border border-[#386641]/20 focus:outline-hidden text-[#386641] font-semibold"
                         />
                       </div>
+                    </div>
 
-                      <label className="flex items-center gap-1.5 text-xs font-bold text-[#386641] cursor-pointer">
+                    {/* Display Toggle Options: Optional Title, Stamp, Watermark */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-200/60 text-xs">
+                      <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={showTitle}
+                          onChange={(e) => setShowTitle(e.target.checked)}
+                          className="rounded text-[#386641] focus:ring-0"
+                        />
+                        <span>🔤 タイトルを表示</span>
+                      </label>
+
+                      <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={includeDateStamp}
                           onChange={(e) => setIncludeDateStamp(e.target.checked)}
                           className="rounded text-[#386641] focus:ring-0"
                         />
-                        <span>日付スタンプ</span>
+                        <span>📅 日付スタンプを表示</span>
+                      </label>
+
+                      <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={showStamp}
+                          onChange={(e) => setShowStamp(e.target.checked)}
+                          className="rounded text-[#386641] focus:ring-0"
+                        />
+                        <span>📮 スタンプ (VOYAGE)</span>
+                      </label>
+
+                      <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={showWatermark}
+                          onChange={(e) => setShowWatermark(e.target.checked)}
+                          className="rounded text-[#386641] focus:ring-0"
+                        />
+                        <span>🏷️ 透かし (Marcaderno)</span>
                       </label>
                     </div>
                   </div>
+
                 </div>
               )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Hidden File Inputs for Bottom Bar */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={handleFilesSelected}
+      />
+      <input
+        ref={stickerInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={handleStickersSelected}
+      />
 
       {/* Saved Collages Modal */}
       {showSavedModal && (
@@ -1144,11 +1594,32 @@ export default function CollageStudio({
 
       {/* Floating Toast Notification for Paste / Actions */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#003049] text-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#DDA15E]/40 text-xs sm:text-sm font-bold flex items-center gap-2 pointer-events-none transition-all animate-bounce">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#003049] text-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#DDA15E]/40 text-xs sm:text-sm font-bold flex items-center gap-2 pointer-events-none transition-all animate-bounce">
           <Sparkles className="w-4 h-4 text-[#DDA15E]" />
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Mobile-First Bottom Floating Action Bar */}
+      <CollageBottomBar
+        onAddPhotosClick={() => photoInputRef.current?.click()}
+        onAddStickerClick={() => stickerInputRef.current?.click()}
+        onPasteFromClipboard={handlePasteFromClipboard}
+        onNextLayout={handleNextCandidate}
+        onToggleAspectRatio={handleToggleAspectRatio}
+        currentAspect={currentAspect}
+        onSaveCollage={handleSave}
+        isSaving={isAnalyzing}
+        selectedSticker={freeformStickers.find((s) => s.id === selectedStickerId) || null}
+        onDeleteSticker={handleDeleteSticker}
+        onBringStickerToFront={handleBringStickerToFront}
+        onResetStickerRotation={handleResetStickerRotation}
+        onDeselectSticker={handleDeselectSticker}
+        isDynamicMosaic={isDynamicMosaicActive}
+        onToggleDynamicMosaic={handleToggleDynamicMosaic}
+        totalPhotosCount={analyzedPhotos.filter((p) => !p.isCutoutSticker).length}
+      />
     </div>
   );
 }
+

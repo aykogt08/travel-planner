@@ -1,5 +1,5 @@
 // lib/collage-engine.ts
-import { CollageLayout, CollageStyle, PhotoItem, CollageElement } from "@/types/collage";
+import { CollageLayout, CollageStyle, PhotoItem, CollageElement, FreeformSticker } from "@/types/collage";
 
 /** Helper to generate a random number within a range. */
 const randBetween = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -179,7 +179,15 @@ export interface RenderOptions {
   title?: string;
   date?: string;
   subtitle?: string;
+  freeformStickers?: FreeformSticker[];
+  selectedStickerId?: string | null;
+  isExporting?: boolean;
+  showTitle?: boolean;
+  showWatermark?: boolean;
+  showStamp?: boolean;
 }
+
+
 
 /** Render a CollageLayout onto an HTMLCanvasElement with styles, shadows, tapes, and labels */
 export function renderCollageToCanvas(
@@ -742,7 +750,21 @@ export function renderTemplateCollageToCanvas(
 
   // 4. Overlays & Stamps
   drawTemplateOverlays(ctx, template, targetWidth, targetHeight, options);
+
+  // 5. Freeform Stickers (Option A: Render directly on canvas above all photos)
+  if (options?.freeformStickers && options.freeformStickers.length > 0) {
+    drawFreeformStickers(
+      ctx,
+      options.freeformStickers,
+      imagesMap,
+      targetWidth,
+      targetHeight,
+      options.selectedStickerId,
+      options.isExporting
+    );
+  }
 }
+
 
 function drawTemplateBackground(
   ctx: CanvasRenderingContext2D,
@@ -795,14 +817,16 @@ function drawTemplateOverlays(
   ctx.save();
   const isDark = template.background === "dark";
 
-  // Brand watermark
-  ctx.font = "bold 16px sans-serif";
-  ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.45)" : "rgba(56, 102, 65, 0.45)";
-  ctx.textAlign = "right";
-  ctx.fillText("Marcaderno Travel Memories", w - 24, h - 24);
+  // Brand watermark (optional)
+  if (options?.showWatermark) {
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = isDark ? "rgba(255, 255, 255, 0.45)" : "rgba(56, 102, 65, 0.45)";
+    ctx.textAlign = "right";
+    ctx.fillText("Marcaderno Travel Memories", w - 24, h - 24);
+  }
 
-  // Title / Date
-  if (options?.title) {
+  // Title / Date (optional)
+  if (options?.showTitle !== false && options?.title) {
     ctx.font = "bold 24px sans-serif";
     ctx.fillStyle = isDark ? "#FFFFFF" : "#386641";
     ctx.textAlign = "left";
@@ -815,8 +839,8 @@ function drawTemplateOverlays(
     }
   }
 
-  // Stamp badge for scrapbook or photo_diary
-  if (template.style === "scrapbook" || template.style === "photo_diary") {
+  // Stamp badge for scrapbook or photo_diary (optional)
+  if (options?.showStamp && (template.style === "scrapbook" || template.style === "photo_diary")) {
     ctx.save();
     ctx.translate(w - 70, 70);
     ctx.rotate((12 * Math.PI) / 180);
@@ -836,4 +860,146 @@ function drawTemplateOverlays(
 
   ctx.restore();
 }
+
+
+/**
+ * Render freeform stickers on Canvas with drop shadow and optional selection box.
+ */
+export function drawFreeformStickers(
+  ctx: CanvasRenderingContext2D,
+  stickers: FreeformSticker[],
+  imagesMap: Record<string, HTMLImageElement>,
+  canvasWidth: number,
+  canvasHeight: number,
+  selectedStickerId?: string | null,
+  isExporting = false
+) {
+  // Sort by zIndex so top stickers are drawn last
+  const sortedStickers = [...stickers].sort((a, b) => a.zIndex - b.zIndex);
+
+  sortedStickers.forEach((st) => {
+    const img = imagesMap[st.photoId];
+    if (!img) return;
+
+    const imgW = img.naturalWidth || img.width || 100;
+    const imgH = img.naturalHeight || img.height || 100;
+    const aspect = imgW / (imgH || 1);
+
+    // Calculate dimensions
+    const baseW = (st.width / 100) * canvasWidth;
+    const baseH = baseW / aspect;
+    const drawW = baseW * st.scale;
+    const drawH = baseH * st.scale;
+
+    const cx = (st.x / 100) * canvasWidth;
+    const cy = (st.y / 100) * canvasHeight;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((st.rotation * Math.PI) / 180);
+
+    // Drop shadow
+    ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+    ctx.shadowBlur = 14 * Math.max(st.scale, 0.5);
+    ctx.shadowOffsetY = 6 * Math.max(st.scale, 0.5);
+
+    // Draw sticker image
+    ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+
+    // Selection frame and handles (omitted during PNG export)
+    if (st.id === selectedStickerId && !isExporting) {
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = "#2563EB"; // Blue active border
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+
+      const pad = 6;
+      ctx.strokeRect(-drawW / 2 - pad, -drawH / 2 - pad, drawW + pad * 2, drawH + pad * 2);
+      ctx.setLineDash([]);
+
+      // Corner handles
+      ctx.fillStyle = "#FFFFFF";
+      ctx.strokeStyle = "#2563EB";
+      ctx.lineWidth = 2;
+      const handleSize = 10;
+      const corners = [
+        [-drawW / 2 - pad, -drawH / 2 - pad],
+        [drawW / 2 + pad, -drawH / 2 - pad],
+        [-drawW / 2 - pad, drawH / 2 + pad],
+        [drawW / 2 + pad, drawH / 2 + pad],
+      ];
+      corners.forEach(([hx, hy]) => {
+        ctx.fillRect(hx - handleSize / 2, hy - handleSize / 2, handleSize, handleSize);
+        ctx.strokeRect(hx - handleSize / 2, hy - handleSize / 2, handleSize, handleSize);
+      });
+
+      // Rotation pin handle at top center
+      const pinY = -drawH / 2 - pad - 22;
+      ctx.beginPath();
+      ctx.moveTo(0, -drawH / 2 - pad);
+      ctx.lineTo(0, pinY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, pinY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#2563EB";
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  });
+}
+
+/**
+ * Hit test for freeform stickers using inverse rotation transform.
+ * Returns the highest z-index sticker under the coordinate, or null.
+ */
+export function hitTestFreeformStickers(
+  px: number,
+  py: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  stickers: FreeformSticker[],
+  imagesMap: Record<string, HTMLImageElement>
+): FreeformSticker | null {
+  // Test from top to bottom (descending zIndex)
+  const sortedDesc = [...stickers].sort((a, b) => b.zIndex - a.zIndex);
+
+  for (const st of sortedDesc) {
+    const img = imagesMap[st.photoId];
+    if (!img) continue;
+
+    const imgW = img.naturalWidth || img.width || 100;
+    const imgH = img.naturalHeight || img.height || 100;
+    const aspect = imgW / (imgH || 1);
+
+    const baseW = (st.width / 100) * canvasWidth;
+    const baseH = baseW / aspect;
+    const drawW = baseW * st.scale;
+    const drawH = baseH * st.scale;
+
+    const cx = (st.x / 100) * canvasWidth;
+    const cy = (st.y / 100) * canvasHeight;
+
+    // Inverse rotation to local coordinate system
+    const dx = px - cx;
+    const dy = py - cy;
+    const rad = (-st.rotation * Math.PI) / 180;
+    const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+    const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+    // Check bounds with generous touch margin (+12px)
+    const touchMargin = 12;
+    const halfW = drawW / 2 + touchMargin;
+    const halfH = drawH / 2 + touchMargin;
+
+    if (Math.abs(localX) <= halfW && Math.abs(localY) <= halfH) {
+      return st;
+    }
+  }
+
+  return null;
+}
+
 

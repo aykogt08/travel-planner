@@ -37,6 +37,18 @@ export interface SavedCollagePhoto {
   dataUrl: string;
 }
 
+export interface FreeformSticker {
+  id: string;
+  photoId: string;
+  x: number; // percentage of canvas width (0-100)
+  y: number; // percentage of canvas height (0-100)
+  scale: number; // scale multiplier, default 1.0
+  rotation: number; // rotation in degrees (-180 to 180)
+  width: number; // percentage width
+  height: number; // percentage height
+  zIndex: number;
+}
+
 export interface SavedCollage {
   id: string; // uuid
   layout: CollageLayout;
@@ -50,6 +62,12 @@ export interface SavedCollage {
   tripId?: number;
   syncStatus?: "synced" | "pending_sync";
   includeDateStamp?: boolean;
+  showTitle?: boolean;
+  showWatermark?: boolean;
+  showStamp?: boolean;
   savedPhotos?: SavedCollagePhoto[];
+  freeformStickers?: FreeformSticker[];
 }
+
+
 
