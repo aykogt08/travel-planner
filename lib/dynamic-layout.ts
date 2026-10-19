@@ -174,14 +174,127 @@ export function generateDynamicTemplate(
   const backgroundTheme =
     gridStyle === "travel_journal" ? "notebook" : gridStyle === "polaroid_grid" ? "craft" : "clean";
 
+  const styleNames: Record<DynamicGridStyle, string> = {
+    travel_journal: `スマートモザイク (手帳風)`,
+    modern_clean: `クリーン・マルチグリッド`,
+    polaroid_grid: `ポラロイド・タイル`,
+  };
+
+  const styleDescs: Record<DynamicGridStyle, string> = {
+    travel_journal: `${safeCount}枚の写真をノート風の手帳にマスキングテープで貼った温かみのある配置`,
+    modern_clean: `${safeCount}枚の写真を傾きのない均等余白で並べた洗練されたモダンギャラリー`,
+    polaroid_grid: `${safeCount}枚の写真をポラロイドフレームにしてクラフト紙に並べた手作り感ある配置`,
+  };
+
   return {
-    id: `dynamic_grid_${safeCount}_${aspect}`,
-    name: `スマートモザイク (${safeCount}枚)`,
-    style: "photo_diary",
+    id: `dynamic_${gridStyle}_${safeCount}_${aspect}`,
+    name: styleNames[gridStyle] || `スマートモザイク (${safeCount}枚)`,
+    style: gridStyle === "modern_clean" ? "minimal" : gridStyle === "polaroid_grid" ? "polaroid" : "photo_diary",
     supportedPhotoCount: { min: safeCount, max: safeCount },
     aspect,
     background: backgroundTheme,
     slots,
-    description: `${safeCount}枚の写真を重複なくすっきり均等配置する自動レイアウト`,
+    description: styleDescs[gridStyle] || `${safeCount}枚の写真を重複なくすっきり均等配置する自動レイアウト`,
   };
+}
+
+/**
+ * 主役写真を上部に大きく1枚配置し、下部に残り写真をタイル状に並べるダイナミックレイアウト
+ */
+export function generateFeaturedHeaderTemplate(
+  photoCount: number,
+  aspect: "4:5" | "9:16" | "1:1" = "4:5"
+): CollageTemplate {
+  const safeCount = Math.min(Math.max(photoCount, 4), 16);
+  const remainingCount = safeCount - 1;
+
+  const marginX = 0.04;
+  const marginTop = 0.07;
+  const availableWidth = 1.0 - marginX * 2;
+
+  // Header main photo (takes ~36% of canvas height)
+  const headerHeight = 0.35;
+  const gap = 0.02;
+
+  const slots: TemplateSlot[] = [
+    {
+      role: "mainPhoto",
+      x: marginX,
+      y: marginTop,
+      width: availableWidth,
+      height: headerHeight,
+      rotationRange: [0, 0],
+      zIndex: 5,
+      preferredOrientation: "landscape",
+      cropMode: "cover",
+      frameStyle: "tape",
+    },
+  ];
+
+  // Distribute remaining photos in rows below
+  const subRows = getRowDistribution(remainingCount);
+  const subTotalHeightRatio = subRows.reduce((sum, r) => sum + r.heightRatio, 0);
+  const subAvailableHeight = 1.0 - (marginTop + headerHeight + gap) - 0.05;
+  const subTotalGapsY = (subRows.length - 1) * gap;
+  const subNetHeight = subAvailableHeight - subTotalGapsY;
+
+  let currentY = marginTop + headerHeight + gap;
+  let slotIndex = 1;
+
+  subRows.forEach((row) => {
+    const rowHeight = (row.heightRatio / subTotalHeightRatio) * subNetHeight;
+    const totalGapsX = (row.count - 1) * gap;
+    const colWidth = (availableWidth - totalGapsX) / row.count;
+
+    let currentX = marginX;
+    for (let c = 0; c < row.count; c++) {
+      if (slotIndex >= safeCount) break;
+      slots.push({
+        role: "subPhoto",
+        x: Number(currentX.toFixed(4)),
+        y: Number(currentY.toFixed(4)),
+        width: Number(colWidth.toFixed(4)),
+        height: Number(rowHeight.toFixed(4)),
+        rotationRange: slotIndex % 2 === 0 ? [-1.5, 1.5] : [-2, 2],
+        zIndex: 5 + slotIndex,
+        preferredOrientation: "any",
+        cropMode: "cover",
+        frameStyle: "tape",
+      });
+      currentX += colWidth + gap;
+      slotIndex++;
+    }
+    currentY += rowHeight + gap;
+  });
+
+  return {
+    id: `dynamic_featured_${safeCount}_${aspect}`,
+    name: `フィーチャー・トップ (主役1枚+タイル)`,
+    style: "scrapbook",
+    supportedPhotoCount: { min: safeCount, max: safeCount },
+    aspect,
+    background: "craft",
+    slots,
+    description: `上部に主役写真を大きく1枚、下部に残り${remainingCount}枚を並べたメリハリ構成`,
+  };
+}
+
+/**
+ * 写真枚数に応じた全ての動的レイアウトバリエーションを生成
+ */
+export function getDynamicTemplatesForCount(
+  photoCount: number,
+  aspect: "4:5" | "9:16" | "1:1" = "4:5"
+): CollageTemplate[] {
+  const templates: CollageTemplate[] = [
+    generateDynamicTemplate(photoCount, aspect, "travel_journal"),
+    generateDynamicTemplate(photoCount, aspect, "modern_clean"),
+    generateDynamicTemplate(photoCount, aspect, "polaroid_grid"),
+  ];
+
+  if (photoCount >= 5) {
+    templates.push(generateFeaturedHeaderTemplate(photoCount, aspect));
+  }
+
+  return templates;
 }

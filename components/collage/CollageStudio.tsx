@@ -240,23 +240,16 @@ export default function CollageStudio({
       // Re-score templates strictly based on regular photos (not stickers)
       const regularPhotos = combinedPhotos.filter((p) => !p.isCutoutSticker);
       
-      // If 7 or more regular photos, auto-activate dynamic mosaic
-      if (regularPhotos.length >= 7) {
-        const dynTemplate = generateDynamicTemplate(regularPhotos.length, currentAspect);
-        setCurrentTemplate(dynTemplate);
-        setIsDynamicMosaicActive(true);
-        const assignments = assignPhotosToTemplate(dynTemplate, regularPhotos, jitterSeed);
-        setCurrentAssignments(assignments);
-      } else if (regularPhotos.length > 0) {
-        const scores = scoreTemplatesForPhotos(regularPhotos);
+      if (regularPhotos.length > 0) {
+        const scores = scoreTemplatesForPhotos(regularPhotos, currentAspect);
         setCandidateScores(scores);
 
         let activeTemplate = currentTemplate;
-        if (!activeTemplate && scores.length > 0) {
-          activeTemplate = scores[0].template;
+        if (!activeTemplate || !scores.some((s) => s.template.id === activeTemplate?.id)) {
+          activeTemplate = scores[0]?.template;
           setCurrentTemplate(activeTemplate);
           setCandidateIndex(0);
-        } else if (activeTemplate) {
+        } else {
           const idx = scores.findIndex((s) => s.template.id === activeTemplate?.id);
           if (idx !== -1) setCandidateIndex(idx);
         }
@@ -383,15 +376,27 @@ export default function CollageStudio({
     const nextAspect = aspects[(aspects.indexOf(currentAspect) + 1) % aspects.length];
     setCurrentAspect(nextAspect);
 
-    if (isDynamicMosaicActive) {
-      const regularPhotos = analyzedPhotos.filter((p) => !p.isCutoutSticker);
-      const dynTemplate = generateDynamicTemplate(regularPhotos.length, nextAspect);
-      setCurrentTemplate(dynTemplate);
-      const assignments = assignPhotosToTemplate(dynTemplate, analyzedPhotos, jitterSeed);
-      setCurrentAssignments(assignments);
-    } else if (currentTemplate) {
-      // Update template aspect
-      setCurrentTemplate({ ...currentTemplate, aspect: nextAspect });
+    const regularPhotos = analyzedPhotos.filter((p) => !p.isCutoutSticker);
+    if (regularPhotos.length > 0) {
+      const scores = scoreTemplatesForPhotos(regularPhotos, nextAspect);
+      setCandidateScores(scores);
+
+      let activeTemplate = currentTemplate;
+      if (activeTemplate?.id.startsWith("dynamic_")) {
+        // Find matching dynamic template in new aspect
+        const matched = scores.find((s) => s.template.id.startsWith("dynamic_"))?.template;
+        if (matched) activeTemplate = matched;
+      } else if (activeTemplate) {
+        activeTemplate = { ...activeTemplate, aspect: nextAspect };
+      }
+
+      if (activeTemplate) {
+        setCurrentTemplate(activeTemplate);
+        const idx = scores.findIndex((s) => s.template.id === activeTemplate?.id);
+        if (idx !== -1) setCandidateIndex(idx);
+        const assignments = assignPhotosToTemplate(activeTemplate, analyzedPhotos, jitterSeed);
+        setCurrentAssignments(assignments);
+      }
     }
     showToast(`📐 アスペクト比を ${nextAspect} に変更しました`);
   };
@@ -777,12 +782,15 @@ export default function CollageStudio({
     setImagesMap(updatedImagesMap);
 
     if (updatedPhotos.length > 0) {
-      const scores = scoreTemplatesForPhotos(updatedPhotos);
+      const scores = scoreTemplatesForPhotos(updatedPhotos, currentAspect);
       setCandidateScores(scores);
-      const best = scores[0].template;
-      setCurrentTemplate(best);
-      const assignments = assignPhotosToTemplate(best, updatedPhotos, jitterSeed);
-      setCurrentAssignments(assignments);
+      const best = scores[0]?.template;
+      if (best) {
+        setCurrentTemplate(best);
+        setCandidateIndex(0);
+        const assignments = assignPhotosToTemplate(best, updatedPhotos, jitterSeed);
+        setCurrentAssignments(assignments);
+      }
     } else {
       handleClearPhotos();
     }
@@ -1345,7 +1353,7 @@ export default function CollageStudio({
                           }`}
                         >
                           <div className="flex items-center justify-between w-full font-bold text-[11px]">
-                            <span className="truncate">{tpl.name.split(" ")[0]}</span>
+                            <span className="truncate">{tpl.name}</span>
                             <span
                               className={`text-[9px] px-1 rounded-xs shrink-0 ${
                                 isSelected

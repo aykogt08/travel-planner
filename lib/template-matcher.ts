@@ -6,6 +6,7 @@ import {
   TemplateSlot,
 } from "@/types/collage-template";
 import { COLLAGE_TEMPLATES } from "./collage-templates";
+import { getDynamicTemplatesForCount } from "./dynamic-layout";
 
 export interface MappedSlotAssignment {
   slot: TemplateSlot;
@@ -16,6 +17,7 @@ export interface MappedSlotAssignment {
 /**
  * Deterministically evaluates and scores all templates based on user's photo features.
  * Gives strong weight to landscape photos if the user has many horizontal photos.
+ * Automatically generates and includes dynamic layout patterns for 7+ photos.
  */
 export function scoreTemplatesForPhotos(
   photos: PhotoFeatures[],
@@ -34,8 +36,35 @@ export function scoreTemplatesForPhotos(
   const avgBrightness =
     effectivePhotos.reduce((sum, p) => sum + p.brightness, 0) / (effectivePhotos.length || 1);
 
-  const scored: TemplateMatchScore[] = COLLAGE_TEMPLATES.map((tpl) => {
-    let score = 50; // base score
+  // Generate dynamic layouts for 7+ photos so they appear in "すべてのデザインから選ぶ"
+  const dynamicTemplates =
+    photoCount >= 7 ? getDynamicTemplatesForCount(photoCount, preferredAspect || "4:5") : [];
+  const allTemplates = [...dynamicTemplates, ...COLLAGE_TEMPLATES];
+
+  const scored: (TemplateMatchScore & { rawScore: number })[] = [];
+
+  for (const tpl of allTemplates) {
+    // Rule 1: Cinema Story is strictly for 3 photos only
+    if (tpl.id === "cinema_story_001" && photoCount !== 3) {
+      continue;
+    }
+
+    // Rule 2: Panorama Landscape is strictly for 3 photos only
+    if (tpl.id === "landscape_panorama_001" && photoCount !== 3) {
+      continue;
+    }
+
+    // Rule 3: For 7+ photos, exclude templates whose max photo capacity is less than 7
+    if (photoCount >= 7 && tpl.supportedPhotoCount.max < 7) {
+      continue;
+    }
+
+    // Rule 4: For small photo sets, exclude templates that require significantly more photos
+    if (photoCount < tpl.supportedPhotoCount.min && tpl.supportedPhotoCount.min - photoCount >= 2) {
+      continue;
+    }
+
+    let score = tpl.id.startsWith("dynamic_") ? 82 : 50; // Dynamic templates get higher base compatibility
     const reasons: string[] = [];
 
     // 1. Photo Count Compatibility (Strong weight)
@@ -57,6 +86,12 @@ export function scoreTemplatesForPhotos(
     } else {
       const diff = photoCount - maxCount;
       score -= diff * 10;
+    }
+
+    // Bonus for 3-photo specialized templates
+    if (photoCount === 3 && (tpl.id === "cinema_story_001" || tpl.id === "landscape_panorama_001")) {
+      score += 25;
+      reasons.push(`3枚写真専用の最適化レイアウト`);
     }
 
     // 2. Landscape / Portrait Orientation Alignment (Special Emphasis!)
@@ -117,13 +152,13 @@ export function scoreTemplatesForPhotos(
       reasons.push(`明るい旅の思い出に合うスクラップ調`);
     }
 
-    return {
+    scored.push({
       template: tpl,
       rawScore: score,
       score: Math.max(10, Math.min(99, score)),
       reasons,
-    };
-  });
+    });
+  }
 
   // Sort descending by raw score
   return scored
