@@ -2662,22 +2662,6 @@ function CityLegModal({
     return `${diffDays}日間`;
   };
 
-  const handleSelectCompanionPreset = (preset: string) => {
-    if (preset === "なし") {
-      setCompanion("");
-      return;
-    }
-    setCompanion(preset);
-    if (!name || PRESET_COMPANIONS.includes(name) || name === "一人旅") {
-      setName(preset);
-    }
-    if (preset.includes("一人旅")) {
-      setFlag("👤");
-    } else if (flag === "👤" || flag === "🌍") {
-      setFlag("👥");
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !startDate || !endDate) return;
@@ -2702,7 +2686,7 @@ function CityLegModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 backdrop-blur-xs">
-      <div className="bg-[#FDF0D5] border border-[#DDA15E]/40 rounded-2xl p-5 max-w-lg w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-[#FDF0D5] border border-[#DDA15E]/40 rounded-2xl p-5 max-w-md w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[#386641]/10">
           <div className="flex items-center gap-2">
@@ -2746,26 +2730,6 @@ function CityLegModal({
               className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               required
             />
-            {/* Companion Preset Chips */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {PRESET_COMPANIONS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => handleSelectCompanionPreset(preset)}
-                  className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition ${
-                    name === preset || companion === preset || (preset === "なし" && !companion && !name)
-                      ? "bg-[#003049] text-white border-[#003049]"
-                      : "bg-white/80 border-[#003049]/20 text-[#003049] hover:bg-white"
-                  }`}
-                >
-                  {preset}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1.5 text-[11px] text-[#386641]/60">
-              日程タブやグループカード、絞り込みピルバーの表示名になります。
-            </p>
           </div>
 
           {/* Date Range Selection */}
@@ -2858,32 +2822,10 @@ function CityLegModal({
             </div>
           </div>
 
-          {/* Preset Group Icons Chips */}
-          <div>
-            <div className="text-[11px] font-semibold text-[#386641]/70 mb-1.5">よく使うアイコン（タップで選択）:</div>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_GROUP_ICONS.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => setFlag(item.icon)}
-                  className={`px-2 py-1 rounded-lg border text-[11px] font-medium transition flex items-center gap-1 ${
-                    flag === item.icon
-                      ? "bg-[#386641] text-white border-[#386641]"
-                      : "bg-white/80 border-[#386641]/15 text-[#386641] hover:bg-white"
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Area / Group Memo */}
           <div>
             <label className="block text-xs font-semibold text-[#386641] mb-1">
-              グループメモ・ひとことハイライト（任意）
+              グループメモ（任意）
             </label>
             <textarea
               value={memo}
