@@ -42,6 +42,8 @@ import {
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./PlacesManager";
 import { KNOWN_CITIES } from "@/constants/cities";
 import BookingScanModal from "./bookings/BookingScanModal";
+import { CityMasterItem, loadCityMaster } from "@/lib/city-master";
+import CityMasterModal from "./CityMasterModal";
 
 interface TimelineViewProps {
   tripId: number;
@@ -198,13 +200,83 @@ export default function TimelineView({
     }
   };
 
+  // City Master list & modal
+  const [cityMasterList, setCityMasterList] = useState<CityMasterItem[]>(() => loadCityMaster());
+  const [isCityMasterOpen, setIsCityMasterOpen] = useState(false);
+  const [assigningCityDate, setAssigningCityDate] = useState<string | null>(null);
+
+  // Day-specific city overrides: dateStr -> cityName
+  const [dayCityOverrides, setDayCityOverrides] = useState<Record<string, string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`trip_day_cities_${tripId}`);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return {};
+  });
+
+  const handleSetDayCity = (dateStr: string, cityName: string) => {
+    setDayCityOverrides((prev) => {
+      const updated = { ...prev, [dateStr]: cityName };
+      try {
+        localStorage.setItem(`trip_day_cities_${tripId}`, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+    setAssigningCityDate(null);
+  };
+
   // Custom City Legs management (null = using auto-generated)
   const [customCityLegs, setCustomCityLegs] = useState<CityLegItem[] | null>(() => {
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
         if (stored) {
-          return JSON.parse(stored);
+          const parsed: CityLegItem[] = JSON.parse(stored);
+          // Check if user has an updated companion like "まな・さくら"
+          const updatedCompanionLeg = parsed.find(
+            (item) => item.name.includes("まな") || item.companion?.includes("まな")
+          );
+          if (updatedCompanionLeg) {
+            const canonicalCompanion = updatedCompanionLeg.companion || updatedCompanionLeg.name;
+            // Clean up any zombie "両親と" or "マナと"
+            const cleaned = parsed.map((item) => {
+              if (
+                item.name === "両親と" ||
+                item.name === "マナと" ||
+                item.companion === "両親と" ||
+                item.companion === "マナと"
+              ) {
+                return {
+                  ...item,
+                  name: canonicalCompanion,
+                  companion: canonicalCompanion,
+                };
+              }
+              return item;
+            });
+            // Merge contiguous identical legs
+            const merged: CityLegItem[] = [];
+            cleaned.forEach((item) => {
+              const last = merged[merged.length - 1];
+              if (last && last.name === item.name) {
+                last.endDate = item.endDate;
+                if (item.cityName && !last.cityName?.includes(item.cityName)) {
+                  last.cityName = last.cityName ? `${last.cityName}・${item.cityName}` : item.cityName;
+                }
+              } else {
+                merged.push({ ...item });
+              }
+            });
+            localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(merged));
+            return merged;
+          }
+          return parsed;
         }
       } catch (e) {
         console.error("Failed to load custom city legs from localStorage", e);
@@ -221,8 +293,10 @@ export default function TimelineView({
       try {
         const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
         setCustomCityLegs(stored ? JSON.parse(stored) : null);
+        const dayCitiesStored = localStorage.getItem(`trip_day_cities_${tripId}`);
+        setDayCityOverrides(dayCitiesStored ? JSON.parse(dayCitiesStored) : {});
       } catch (e) {
-        console.error("Failed to load custom city legs from localStorage", e);
+        console.error("Failed to load data from localStorage", e);
       }
     }
   }, [tripId]);
@@ -233,67 +307,21 @@ export default function TimelineView({
     return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
   };
 
-  // Helper: detect city and companion for a given day
-  const getDayMetadata = useCallback((dateStr: string, daySchedules: Schedule[]) => {
-    let detectedCity = KNOWN_CITIES.find((c) => c.name === "ヨーロッパ周遊")!;
-    let companion: string | null = null;
-
-    // Also include any staying hotels that cover this date (from check-in to check-out)
-    const coveringHotels = schedules.filter((s) => {
-      if (s.category !== "HOTEL") return false;
-      const sDate = s.date.split("T")[0];
-      const sOutDate = s.checkOutDate ? s.checkOutDate.split("T")[0] : sDate;
-      return sDate <= dateStr && dateStr <= sOutDate;
-    });
-
-    const allRelatedSchedules = Array.from(new Set([...daySchedules, ...coveringHotels]));
-
-    // Combine all texts from schedules for this day and linked places
-    const textsArray: string[] = [];
-    allRelatedSchedules.forEach((s) => {
-      if (s.title) textsArray.push(s.title);
-      if (s.memo) textsArray.push(s.memo);
-      if (s.fromPlace) textsArray.push(s.fromPlace);
-      if (s.toPlace) textsArray.push(s.toPlace);
-
-      // Check linked place
-      const place = s.place || (s.placeId ? places.find((p) => p.id === s.placeId) : null);
-      if (place) {
-        if (place.name) textsArray.push(place.name);
-        if (place.memo) textsArray.push(place.memo);
-        if (place.address) textsArray.push(place.address);
+  // Helper: get city and companion for a given day (NO KEYWORD GUESSING)
+  const getDayMetadata = useCallback(
+    (dateStr: string, _daySchedules: Schedule[]) => {
+      // 1. City: check dayCityOverrides first, then fallback to Europe/default
+      const overrideCityName = dayCityOverrides[dateStr];
+      let city = cityMasterList.find((c) => c.name === overrideCityName);
+      if (!city) {
+        city = cityMasterList.find((c) => c.name === "ヨーロッパ周遊") || cityMasterList[0];
       }
-    });
 
-    const allTexts = textsArray.join(" ");
-
-    // Companion detection
-    if (allTexts.includes("両親")) {
-      companion = "両親と";
-    } else if (allTexts.includes("なゆ・ほのか") || (allTexts.includes("なゆ") && allTexts.includes("ほのか"))) {
-      companion = "なゆ・ほのかと";
-    } else if (allTexts.includes("たろー")) {
-      companion = "たろーと";
-    } else if (allTexts.includes("マナ")) {
-      companion = "マナと";
-    } else if (allTexts.includes("なゆ")) {
-      companion = "なゆと";
-    } else if (allTexts.includes("一人旅") || allTexts.includes("単独")) {
-      companion = "一人旅";
-    }
-
-    // City detection (search in known cities, matching case-insensitively)
-    const normalizedTexts = allTexts.toLowerCase();
-    for (const city of KNOWN_CITIES) {
-      if (city.name === "ヨーロッパ周遊") continue;
-      if (city.keywords.some((k) => normalizedTexts.includes(k.toLowerCase()))) {
-        detectedCity = city;
-        break;
-      }
-    }
-
-    return { city: detectedCity, companion };
-  }, [schedules, places]);
+      // Companion: no keyword guessing! Explicitly managed via groups (CityLegs)
+      return { city, companion: null as string | null };
+    },
+    [dayCityOverrides, cityMasterList]
+  );
 
   // Calculate day list from trip start/end date & schedules (including checkOutDate)
   const getDateList = () => {
@@ -325,7 +353,7 @@ export default function TimelineView({
 
   // Raw pre-calculated metadata before manual overrides
   const rawDayMetaMap = useMemo(() => {
-    const map = new Map<string, { city: typeof KNOWN_CITIES[0]; companion: string | null }>();
+    const map = new Map<string, { city: CityMasterItem; companion: string | null }>();
     datesList.forEach((dateStr) => {
       const dayScheds = schedules.filter((s) => s.date.split("T")[0] === dateStr);
       map.set(dateStr, getDayMetadata(dateStr, dayScheds));
@@ -527,7 +555,7 @@ export default function TimelineView({
     });
   }, [customCityLegs, autoGeneratedCityLegItems, datesList, schedules, rawDayMetaMap]);
 
-  // Effective day metadata mapping reflecting cityLegs with fallback
+  // Effective day metadata mapping reflecting cityLegs and dayCityOverrides
   const dayMetaMap = useMemo(() => {
     const map = new Map<string, { city: { name: string; flag: string; country: string }; companion: string | null }>();
     datesList.forEach((d) => {
@@ -535,7 +563,7 @@ export default function TimelineView({
       if (raw) {
         map.set(d, {
           city: { name: raw.city.name, flag: raw.city.flag, country: raw.city.country },
-          companion: raw.companion,
+          companion: null,
         });
       }
     });
@@ -543,15 +571,29 @@ export default function TimelineView({
     cityLegs.forEach((leg) => {
       leg.dates.forEach((d) => {
         const existing = map.get(d);
+        const overrideCityName = dayCityOverrides[d];
+        const masterCity = overrideCityName ? cityMasterList.find((c) => c.name === overrideCityName) : null;
+        const fallbackCity = leg.cityName ? cityMasterList.find((c) => c.name === leg.cityName) : null;
+
+        const effectiveCity = masterCity
+          ? { name: masterCity.name, flag: masterCity.flag, country: masterCity.country }
+          : existing && existing.city.name !== "ヨーロッパ周遊"
+          ? existing.city
+          : fallbackCity
+          ? { name: fallbackCity.name, flag: fallbackCity.flag, country: fallbackCity.country }
+          : existing
+          ? existing.city
+          : { name: leg.name, flag: leg.flag, country: leg.country };
+
         map.set(d, {
-          city: existing ? existing.city : { name: leg.name, flag: leg.flag, country: leg.country },
+          city: effectiveCity,
           companion: leg.companion || leg.name,
         });
       });
     });
 
     return map;
-  }, [cityLegs, datesList, rawDayMetaMap]);
+  }, [cityLegs, datesList, rawDayMetaMap, dayCityOverrides, cityMasterList]);
 
   // Handle jumping to initial date tab when specified from outside (e.g. added from spots)
   useEffect(() => {
@@ -1190,6 +1232,16 @@ export default function TimelineView({
 
           <button
             type="button"
+            onClick={() => setIsCityMasterOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/50 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FDF0D5]/80 transition shadow-2xs cursor-pointer"
+            title="都市マスターの登録・管理"
+          >
+            <MapPin className="w-4 h-4 text-[#386641]" />
+            <span className="hidden sm:inline">都市マスター</span>
+            <span className="sm:hidden">都市</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setIsScanModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-2 bg-[#FDF0D5] text-[#386641] border border-[#DDA15E]/50 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FDF0D5]/80 transition shadow-2xs cursor-pointer"
             title="航空券やホテルのスクショから自動入力"
@@ -1557,12 +1609,20 @@ export default function TimelineView({
                     </span>
                   </div>
                   {meta && (
-                    <div className="flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5">
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAssigningCityDate(dateStr);
+                      }}
+                      title="この日の都市を変更（都市マスターから選択）"
+                      className="flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5 hover:opacity-100 hover:text-[#C1121F] transition cursor-pointer"
+                    >
                       <span>{meta.city.flag}</span>
                       <span className="font-semibold">{meta.city.name}</span>
                       {meta.companion && (
                         <span className="opacity-75">・{meta.companion}</span>
                       )}
+                      <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
                     </div>
                   )}
                 </button>
@@ -1610,6 +1670,50 @@ export default function TimelineView({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Selected Date Header Bar */}
+          {selectedDateTab !== "ALL" && (
+            <div className="flex items-center justify-between p-3 bg-white/95 border border-[#DDA15E]/30 rounded-2xl shadow-2xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-[#386641]">
+                  Day {datesList.indexOf(selectedDateTab) + 1} ({formatDate(selectedDateTab)})
+                </span>
+                {(() => {
+                  const meta = dayMetaMap.get(selectedDateTab);
+                  if (!meta) return null;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setAssigningCityDate(selectedDateTab)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#386641]/10 text-[#386641] hover:bg-[#386641]/20 text-xs font-semibold transition"
+                      title="この日の都市を変更（都市マスターから選択）"
+                    >
+                      <span>{meta.city.flag}</span>
+                      <span>{meta.city.name}</span>
+                      <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                    </button>
+                  );
+                })()}
+                {(() => {
+                  const meta = dayMetaMap.get(selectedDateTab);
+                  if (!meta?.companion) return null;
+                  return (
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
+                      {meta.companion}
+                    </span>
+                  );
+                })()}
+              </div>
+              <button
+                type="button"
+                onClick={() => setAssigningCityDate(selectedDateTab)}
+                className="text-xs font-semibold text-[#386641] hover:text-[#C1121F] flex items-center gap-1 transition"
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#386641]" />
+                都市を変更
+              </button>
             </div>
           )}
 
@@ -2501,6 +2605,24 @@ export default function TimelineView({
           tripStartDate={startDate}
           tripEndDate={endDate}
           datesList={datesList}
+          cityMasterList={cityMasterList}
+        />
+      )}
+
+      {/* City Master Modal */}
+      {(isCityMasterOpen || Boolean(assigningCityDate)) && (
+        <CityMasterModal
+          cities={cityMasterList}
+          onCitiesChange={(newCities) => setCityMasterList(newCities)}
+          onClose={() => {
+            setIsCityMasterOpen(false);
+            setAssigningCityDate(null);
+          }}
+          onSelectCity={
+            assigningCityDate
+              ? (city) => handleSetDayCity(assigningCityDate, city.name)
+              : undefined
+          }
         />
       )}
 
@@ -2617,6 +2739,7 @@ interface CityLegModalProps {
   tripStartDate: string | null;
   tripEndDate: string | null;
   datesList: string[];
+  cityMasterList?: CityMasterItem[];
 }
 
 function CityLegModal({
@@ -2627,6 +2750,7 @@ function CityLegModal({
   tripStartDate,
   tripEndDate,
   datesList,
+  cityMasterList = [],
 }: CityLegModalProps) {
   const isEditing = Boolean(leg);
   const minDate = tripStartDate || (datesList.length > 0 ? datesList[0] : "");
@@ -2726,7 +2850,7 @@ function CityLegModal({
                 setName(val);
                 if (!companion) setCompanion(val);
               }}
-              placeholder="例: 両親と, 一人旅, なゆ・ほのかと, 友達グループ"
+              placeholder="例: まな・さくら, 一人旅, 友達グループ"
               className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
               required
             />
@@ -2786,9 +2910,29 @@ function CityLegModal({
               type="text"
               value={cityName}
               onChange={(e) => setCityName(e.target.value)}
-              placeholder="例: リスボン・シントラ, マドリード＆トレド, バルセロナ"
+              placeholder="例: リスボン・シントラ, マドリード＆トレド, ベネチア"
               className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
             />
+            {cityMasterList.length > 0 && (
+              <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+                <span className="text-[10px] text-[#386641]/60 font-semibold mr-0.5">都市候補:</span>
+                {cityMasterList.slice(0, 10).map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setCityName(c.name);
+                      if (c.country && !country) setCountry(c.country);
+                      if (c.flag && (!flag || flag === "👥")) setFlag(c.flag);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#386641]/15 text-[#386641] text-[10px] font-medium hover:bg-[#FDF0D5] hover:border-[#DDA15E] transition"
+                  >
+                    <span>{c.flag}</span>
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <p className="mt-1 text-[11px] text-[#386641]/60">
               このグループ期間中に訪問する都市のメモです。カード上にバッジとして表示されます。
             </p>
