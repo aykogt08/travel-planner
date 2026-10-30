@@ -23,6 +23,8 @@ model Trip {
   packingList PackingItem[]
   wishes      WishItem[]
   souvenirs   SouvenirItem[]
+  tripGroups  TripGroup[]
+  dayCities   TripDayCity[]
 }
 
 model Place {
@@ -122,4 +124,31 @@ model SouvenirItem {
   tripId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TripGroup {
+  id         Int      @id @default(autoincrement())
+  tripId     Int
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name       String   // グループ名（= 同行者表記）
+  flag       String   @default("👥")
+  country    String   @default("")
+  cityName   String?
+  startDate  String   // "YYYY-MM-DD"
+  endDate    String   // "YYYY-MM-DD"
+  customMemo String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tripId])
+}
+
+model TripDayCity {
+  id       Int    @id @default(autoincrement())
+  tripId   Int
+  trip     Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  date     String // "YYYY-MM-DD"
+  cityName String
+
+  @@unique([tripId, date])
 }

@@ -218,17 +218,39 @@ export default function TimelineView({
     return {};
   });
 
-  const handleSetDayCity = (dateStr: string, cityName: string) => {
-    setDayCityOverrides((prev) => {
-      const updated = { ...prev, [dateStr]: cityName };
-      try {
-        localStorage.setItem(`trip_day_cities_${tripId}`, JSON.stringify(updated));
-      } catch (e) {
-        console.error(e);
-      }
-      return updated;
-    });
+  const handleSetDayCity = async (dateStr: string, cityName: string) => {
+    const updated = { ...dayCityOverrides, [dateStr]: cityName };
+    setDayCityOverrides(updated);
     setAssigningCityDate(null);
+    try {
+      localStorage.setItem(`trip_day_cities_${tripId}`, JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (!isOffline) {
+      try {
+        await fetch(`/api/trips/${tripId}/day-cities`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated),
+        });
+      } catch (e) {
+        console.error("Failed to save day city override to DB", e);
+      }
+    }
+  };
+
+  // Helper to normalize legs so companion is always in sync with group name
+  const normalizeCityLegs = (legs: CityLegItem[]): CityLegItem[] => {
+    return legs.map((item) => {
+      const name = item.name?.trim() || "";
+      return {
+        ...item,
+        name,
+        companion: name,
+      };
+    });
   };
 
   // Custom City Legs management (null = using auto-generated)
@@ -238,45 +260,8 @@ export default function TimelineView({
         const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
         if (stored) {
           const parsed: CityLegItem[] = JSON.parse(stored);
-          // Check if user has an updated companion like "まな・さくら"
-          const updatedCompanionLeg = parsed.find(
-            (item) => item.name.includes("まな") || item.companion?.includes("まな")
-          );
-          if (updatedCompanionLeg) {
-            const canonicalCompanion = updatedCompanionLeg.companion || updatedCompanionLeg.name;
-            // Clean up any zombie "両親と" or "マナと"
-            const cleaned = parsed.map((item) => {
-              if (
-                item.name === "両親と" ||
-                item.name === "マナと" ||
-                item.companion === "両親と" ||
-                item.companion === "マナと"
-              ) {
-                return {
-                  ...item,
-                  name: canonicalCompanion,
-                  companion: canonicalCompanion,
-                };
-              }
-              return item;
-            });
-            // Merge contiguous identical legs
-            const merged: CityLegItem[] = [];
-            cleaned.forEach((item) => {
-              const last = merged[merged.length - 1];
-              if (last && last.name === item.name) {
-                last.endDate = item.endDate;
-                if (item.cityName && !last.cityName?.includes(item.cityName)) {
-                  last.cityName = last.cityName ? `${last.cityName}・${item.cityName}` : item.cityName;
-                }
-              } else {
-                merged.push({ ...item });
-              }
-            });
-            localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(merged));
-            return merged;
-          }
-          return parsed;
+          const normalized = normalizeCityLegs(parsed);
+          return normalized;
         }
       } catch (e) {
         console.error("Failed to load custom city legs from localStorage", e);
@@ -287,19 +272,99 @@ export default function TimelineView({
   const [editingCityLeg, setEditingCityLeg] = useState<CityLeg | null>(null);
   const [isCreatingCityLeg, setIsCreatingCityLeg] = useState<boolean>(false);
 
-  // Sync custom city legs if tripId changes
+  // Sync custom city legs and day-cities with DB (with one-time localStorage migration)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
-        setCustomCityLegs(stored ? JSON.parse(stored) : null);
-        const dayCitiesStored = localStorage.getItem(`trip_day_cities_${tripId}`);
-        setDayCityOverrides(dayCitiesStored ? JSON.parse(dayCitiesStored) : {});
-      } catch (e) {
-        console.error("Failed to load data from localStorage", e);
+    let isMounted = true;
+    const loadData = async () => {
+      if (isOffline) {
+        if (typeof window !== "undefined") {
+          try {
+            const stored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
+            if (stored) setCustomCityLegs(normalizeCityLegs(JSON.parse(stored)));
+            const dayCitiesStored = localStorage.getItem(`trip_day_cities_${tripId}`);
+            if (dayCitiesStored) setDayCityOverrides(JSON.parse(dayCitiesStored));
+          } catch (e) {
+            console.error("Failed to load data from localStorage", e);
+          }
+        }
+        return;
       }
-    }
-  }, [tripId]);
+
+      try {
+        // 1. Fetch groups from DB
+        const groupsRes = await fetch(`/api/trips/${tripId}/groups`);
+        if (groupsRes.ok) {
+          const dbGroups: CityLegItem[] = await groupsRes.json();
+          if (!isMounted) return;
+
+          if (dbGroups.length > 0) {
+            const normalized = normalizeCityLegs(dbGroups);
+            setCustomCityLegs(normalized);
+            try {
+              localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(normalized));
+            } catch {}
+          } else {
+            // DB is empty, check if legacy localStorage exists to migrate
+            const localStored = localStorage.getItem(`trip_custom_city_legs_${tripId}`);
+            if (localStored) {
+              try {
+                const parsed: CityLegItem[] = JSON.parse(localStored);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  const normalized = normalizeCityLegs(parsed);
+                  setCustomCityLegs(normalized);
+                  await fetch(`/api/trips/${tripId}/groups`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(normalized),
+                  });
+                }
+              } catch (err) {
+                console.error("Failed to migrate legacy groups to DB", err);
+              }
+            }
+          }
+        }
+
+        // 2. Fetch day-cities from DB
+        const citiesRes = await fetch(`/api/trips/${tripId}/day-cities`);
+        if (citiesRes.ok) {
+          const dbCities: Record<string, string> = await citiesRes.json();
+          if (!isMounted) return;
+
+          if (Object.keys(dbCities).length > 0) {
+            setDayCityOverrides(dbCities);
+            try {
+              localStorage.setItem(`trip_day_cities_${tripId}`, JSON.stringify(dbCities));
+            } catch {}
+          } else {
+            const localStoredCities = localStorage.getItem(`trip_day_cities_${tripId}`);
+            if (localStoredCities) {
+              try {
+                const parsedCities = JSON.parse(localStoredCities);
+                if (parsedCities && Object.keys(parsedCities).length > 0) {
+                  setDayCityOverrides(parsedCities);
+                  await fetch(`/api/trips/${tripId}/day-cities`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(parsedCities),
+                  });
+                }
+              } catch (err) {
+                console.error("Failed to migrate legacy day cities to DB", err);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load groups/day-cities from DB", e);
+      }
+    };
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, [tripId, isOffline]);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -623,7 +688,7 @@ export default function TimelineView({
   }, [selectedDateTab]);
 
   // Delete a city leg from summary
-  const handleDeleteCityLeg = (legId: string) => {
+  const handleDeleteCityLeg = async (legId: string) => {
     const targetLeg = cityLegs.find((l) => l.id === legId);
     if (!targetLeg) return;
     const confirmed = window.confirm(
@@ -634,86 +699,77 @@ export default function TimelineView({
     const currentItems = customCityLegs !== null ? customCityLegs : autoGeneratedCityLegItems;
     const updated = currentItems.filter((item) => item.id !== legId);
     setCustomCityLegs(updated);
+
     try {
       localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(updated));
     } catch (e) {
       console.error("Failed to save custom city legs", e);
     }
+
+    if (!isOffline) {
+      try {
+        const res = await fetch(`/api/trips/${tripId}/groups`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated),
+        });
+        if (res.ok) {
+          const saved: CityLegItem[] = await res.json();
+          setCustomCityLegs(saved);
+          try {
+            localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(saved));
+          } catch {}
+        }
+      } catch (e) {
+        console.error("Failed to delete group in DB", e);
+      }
+    }
   };
 
   // Save (create or update) a city leg
   const handleSaveCityLeg = async (item: CityLegItem) => {
+    const normalizedItem: CityLegItem = {
+      ...item,
+      name: item.name.trim(),
+      companion: item.name.trim(),
+    };
     const currentItems = customCityLegs !== null ? [...customCityLegs] : [...autoGeneratedCityLegItems];
-    const existingIndex = currentItems.findIndex((l) => l.id === item.id);
+    const existingIndex = currentItems.findIndex((l) => l.id === normalizedItem.id);
 
     let updated: CityLegItem[];
     if (existingIndex >= 0) {
-      const oldLeg = currentItems[existingIndex];
       updated = [...currentItems];
-      updated[existingIndex] = item;
-
-      // Sync companion changes to schedules
-      const oldCompanion = oldLeg.companion;
-      const newCompanion = item.companion?.trim();
-      if (oldCompanion && newCompanion && oldCompanion !== newCompanion) {
-        const legDates: string[] = [];
-        const cur = new Date(item.startDate);
-        const end = new Date(item.endDate);
-        while (cur <= end) {
-          legDates.push(cur.toISOString().split("T")[0]);
-          cur.setDate(cur.getDate() + 1);
-        }
-
-        const affectedSchedules = schedules.filter((s) => legDates.includes(s.date.split("T")[0]));
-        const updatedSchedules = schedules.map((s) => {
-          if (legDates.includes(s.date.split("T")[0])) {
-            let newMemo = s.memo || "";
-            if (newMemo.includes(oldCompanion)) {
-              newMemo = newMemo.replaceAll(oldCompanion, newCompanion);
-            }
-            let newTitle = s.title;
-            if (newTitle.includes(oldCompanion)) {
-              newTitle = newTitle.replaceAll(oldCompanion, newCompanion);
-            }
-            return { ...s, memo: newMemo, title: newTitle };
-          }
-          return s;
-        });
-        onSchedulesChange(updatedSchedules);
-
-        if (!isOffline) {
-          for (const s of affectedSchedules) {
-            let newMemo = s.memo || "";
-            let newTitle = s.title;
-            let changed = false;
-            if (newMemo.includes(oldCompanion)) {
-              newMemo = newMemo.replaceAll(oldCompanion, newCompanion);
-              changed = true;
-            }
-            if (newTitle.includes(oldCompanion)) {
-              newTitle = newTitle.replaceAll(oldCompanion, newCompanion);
-              changed = true;
-            }
-            if (changed) {
-              fetch(`/api/schedules/${s.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...s, memo: newMemo, title: newTitle }),
-              }).catch((err) => console.error("Failed to update schedule memo", err));
-            }
-          }
-        }
-      }
+      updated[existingIndex] = normalizedItem;
     } else {
-      updated = [...currentItems, item];
+      updated = [...currentItems, normalizedItem];
     }
 
     updated.sort((a, b) => a.startDate.localeCompare(b.startDate));
     setCustomCityLegs(updated);
+
     try {
       localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(updated));
     } catch (e) {
       console.error("Failed to save custom city legs to localStorage", e);
+    }
+
+    if (!isOffline) {
+      try {
+        const res = await fetch(`/api/trips/${tripId}/groups`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated),
+        });
+        if (res.ok) {
+          const saved: CityLegItem[] = await res.json();
+          setCustomCityLegs(saved);
+          try {
+            localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(saved));
+          } catch {}
+        }
+      } catch (e) {
+        console.error("Failed to save group to DB", e);
+      }
     }
 
     setEditingCityLeg(null);
@@ -721,7 +777,7 @@ export default function TimelineView({
   };
 
   // Reset customization to auto-detection
-  const handleResetAllCityLegs = () => {
+  const handleResetAllCityLegs = async () => {
     const confirmed = window.confirm(
       "グループまとめを最初の自動判定の状態に戻しますか？\n\n※ご自身で行った追加・削除・編集内容はリセットされます。"
     );
@@ -733,6 +789,18 @@ export default function TimelineView({
       localStorage.removeItem(`trip_city_overrides_${tripId}`);
     } catch (e) {
       console.error(e);
+    }
+
+    if (!isOffline) {
+      try {
+        await fetch(`/api/trips/${tripId}/groups`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify([]),
+        });
+      } catch (e) {
+        console.error("Failed to reset groups in DB", e);
+      }
     }
   };
 
@@ -1611,18 +1679,24 @@ export default function TimelineView({
                   {meta && (
                     <div
                       onClick={(e) => {
-                        e.stopPropagation();
-                        setAssigningCityDate(dateStr);
+                        if (originalIndex === 0) {
+                          e.stopPropagation();
+                          setAssigningCityDate(dateStr);
+                        }
                       }}
-                      title="この日の都市を変更（都市マスターから選択）"
-                      className="flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5 hover:opacity-100 hover:text-[#C1121F] transition cursor-pointer"
+                      title={originalIndex === 0 ? "この日の都市を変更（都市マスターから選択）" : undefined}
+                      className={`flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5 ${
+                        originalIndex === 0 ? "hover:opacity-100 hover:text-[#C1121F] transition cursor-pointer" : ""
+                      }`}
                     >
                       <span>{meta.city.flag}</span>
                       <span className="font-semibold">{meta.city.name}</span>
                       {meta.companion && (
                         <span className="opacity-75">・{meta.companion}</span>
                       )}
-                      <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                      {originalIndex === 0 && (
+                        <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                      )}
                     </div>
                   )}
                 </button>
@@ -1683,7 +1757,8 @@ export default function TimelineView({
                 {(() => {
                   const meta = dayMetaMap.get(selectedDateTab);
                   if (!meta) return null;
-                  return (
+                  const isDay1 = datesList.indexOf(selectedDateTab) === 0;
+                  return isDay1 ? (
                     <button
                       type="button"
                       onClick={() => setAssigningCityDate(selectedDateTab)}
@@ -1694,6 +1769,11 @@ export default function TimelineView({
                       <span>{meta.city.name}</span>
                       <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
                     </button>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#386641]/10 text-[#386641] text-xs font-semibold">
+                      <span>{meta.city.flag}</span>
+                      <span>{meta.city.name}</span>
+                    </span>
                   );
                 })()}
                 {(() => {
@@ -1706,14 +1786,16 @@ export default function TimelineView({
                   );
                 })()}
               </div>
-              <button
-                type="button"
-                onClick={() => setAssigningCityDate(selectedDateTab)}
-                className="text-xs font-semibold text-[#386641] hover:text-[#C1121F] flex items-center gap-1 transition"
-              >
-                <MapPin className="w-3.5 h-3.5 text-[#386641]" />
-                都市を変更
-              </button>
+              {datesList.indexOf(selectedDateTab) === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAssigningCityDate(selectedDateTab)}
+                  className="text-xs font-semibold text-[#386641] hover:text-[#C1121F] flex items-center gap-1 transition"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-[#386641]" />
+                  都市を変更
+                </button>
+              )}
             </div>
           )}
 
@@ -2795,13 +2877,14 @@ function CityLegModal({
     const realEnd = startDate <= endDate ? endDate : startDate;
 
     const id = leg?.id || `leg-custom-${Date.now()}`;
+    const cleanName = name.trim();
     onSave({
       id,
-      name: name.trim(),
+      name: cleanName,
       flag: flag.trim() || "👥",
       country: country.trim(),
       cityName: cityName.trim() || undefined,
-      companion: companion.trim() || name.trim(),
+      companion: cleanName,
       startDate: realStart,
       endDate: realEnd,
       customMemo: memo.trim(),
@@ -2848,7 +2931,7 @@ function CityLegModal({
               onChange={(e) => {
                 const val = e.target.value;
                 setName(val);
-                if (!companion) setCompanion(val);
+                setCompanion(val);
               }}
               placeholder="例: まな・さくら, 一人旅, 友達グループ"
               className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
