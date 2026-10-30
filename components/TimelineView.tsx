@@ -1621,24 +1621,18 @@ export default function TimelineView({
                   {meta && (
                     <div
                       onClick={(e) => {
-                        if (originalIndex === 0) {
-                          e.stopPropagation();
-                          setAssigningCityDate(dateStr);
-                        }
+                        e.stopPropagation();
+                        setAssigningCityDate(dateStr);
                       }}
-                      title={originalIndex === 0 ? "この日の都市を変更（都市マスターから選択）" : undefined}
-                      className={`flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5 ${
-                        originalIndex === 0 ? "hover:opacity-100 hover:text-[#C1121F] transition cursor-pointer" : ""
-                      }`}
+                      title="この日の都市を変更（都市マスターから選択）"
+                      className="flex items-center gap-1 text-[10px] font-normal opacity-85 mt-0.5 hover:opacity-100 hover:text-[#C1121F] transition cursor-pointer group/city"
                     >
                       <span>{meta.city.flag}</span>
                       <span className="font-semibold">{meta.city.name}</span>
                       {meta.groupName && (
                         <span className="opacity-75">・{meta.groupName}</span>
                       )}
-                      {originalIndex === 0 && (
-                        <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5" />
-                      )}
+                      <Edit2 className="w-2.5 h-2.5 opacity-60 ml-0.5 group-hover/city:opacity-100" />
                     </div>
                   )}
                 </button>
