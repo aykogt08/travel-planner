@@ -37,7 +37,6 @@ import {
   LayoutGrid,
   ListOrdered,
   X,
-  RotateCcw,
   AlertCircle,
 } from "lucide-react";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./PlacesManager";
@@ -695,61 +694,6 @@ export default function TimelineView({
     setIsCreatingCityLeg(false);
   };
 
-  // Reset customization to auto-detection (resets both groups and day-cities)
-  const handleResetAllCityLegs = () => {
-    setConfirmModalConfig({
-      title: "グループと都市のリセット",
-      message: "グループまとめと、日ごとに設定した都市をリセットして自動判定に戻しますか？\n\n※ご自身で行った追加・変更内容はリセットされます。",
-      confirmLabel: "リセットする",
-      isDestructive: true,
-      onConfirm: async () => {
-        setConfirmModalConfig(null);
-        const prevLegs = customCityLegs;
-        const prevCities = dayCityOverrides;
-
-        setCustomCityLegs(null);
-        setDayCityOverrides({});
-        try {
-          localStorage.removeItem(`trip_custom_city_legs_${tripId}`);
-          localStorage.removeItem(`trip_day_cities_${tripId}`);
-          localStorage.removeItem(`trip_city_overrides_${tripId}`);
-        } catch (e) {
-          console.error(e);
-        }
-
-        if (!isOffline) {
-          try {
-            const [res1, res2] = await Promise.all([
-              fetch(`/api/trips/${tripId}/groups`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify([]),
-              }),
-              fetch(`/api/trips/${tripId}/day-cities`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
-              }),
-            ]);
-            if (!res1.ok || !res2.ok) {
-              throw new Error("Failed to reset");
-            }
-          } catch (e) {
-            console.error("Failed to reset groups/cities in DB", e);
-            setCustomCityLegs(prevLegs);
-            setDayCityOverrides(prevCities);
-            try {
-              if (prevLegs !== null) {
-                localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(prevLegs));
-              }
-              localStorage.setItem(`trip_day_cities_${tripId}`, JSON.stringify(prevCities));
-            } catch {}
-            setToastError("リセットに失敗しました。もう一度お試しください。");
-          }
-        }
-      },
-    });
-  };
 
   // Unique city list for quick filter pills
   const uniqueCitiesList = useMemo(() => {
@@ -1291,24 +1235,9 @@ export default function TimelineView({
                 <Users className="w-4 h-4 text-[#003049]" />
                 全行程グループ一覧 ({cityLegs.length} グループ / 計 {datesList.length} 日間)
               </span>
-              {customCityLegs !== null && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#003049]/10 text-[#003049] border border-[#003049]/20">
-                  カスタム設定中
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {customCityLegs !== null && (
-                <button
-                  type="button"
-                  onClick={handleResetAllCityLegs}
-                  className="flex items-center gap-1 text-[11px] text-[#C1121F] hover:underline font-semibold px-2 py-1 transition"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  自動判定に戻す
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => setIsCreatingCityLeg(true)}
@@ -1327,7 +1256,7 @@ export default function TimelineView({
                 表示できるグループがありません
               </p>
               <p className="text-xs text-[#386641]/60 max-w-sm">
-                不要なグループをすべて削除したか、初期化されています。「グループを追加」ボタンから手動で登録するか、初期判定に復元してください。
+                「グループを追加」ボタンから登録してください。
               </p>
               <div className="flex items-center gap-3 mt-2">
                 <button
@@ -1337,15 +1266,6 @@ export default function TimelineView({
                 >
                   ＋ グループを追加
                 </button>
-                {customCityLegs !== null && (
-                  <button
-                    type="button"
-                    onClick={handleResetAllCityLegs}
-                    className="px-4 py-2 bg-white border border-[#386641]/20 text-[#386641] rounded-xl text-xs font-semibold hover:bg-white/80 transition"
-                  >
-                    自動判定に戻す
-                  </button>
-                )}
               </div>
             </div>
           ) : (
