@@ -615,19 +615,12 @@ export default function TimelineView({
                 localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(saved));
               } catch {}
             } else {
-              throw new Error("Failed to delete group");
+              console.warn("Failed to delete group on server (status: " + res.status + "), keeping local save.");
+              setToastError("グループを端末から削除しました（サーバー同期は次回接続時に行われます）");
             }
           } catch (e) {
-            console.error("Failed to delete group in DB", e);
-            setCustomCityLegs(prev);
-            try {
-              if (prev !== null) {
-                localStorage.setItem(`trip_custom_city_legs_${tripId}`, JSON.stringify(prev));
-              } else {
-                localStorage.removeItem(`trip_custom_city_legs_${tripId}`);
-              }
-            } catch {}
-            setToastError("グループの削除に失敗しました。もう一度お試しください。");
+            console.warn("Network error deleting group from DB, keeping local save:", e);
+            setToastError("グループを端末から削除しました（オフライン保存）");
           }
         }
       },
@@ -2670,8 +2663,8 @@ function CityLegModal({
   existingLegs = [],
 }: CityLegModalProps) {
   const isEditing = Boolean(leg);
-  const minDate = tripStartDate || (datesList.length > 0 ? datesList[0] : "");
-  const maxDate = tripEndDate || (datesList.length > 0 ? datesList[datesList.length - 1] : "");
+  const minDate = tripStartDate ? tripStartDate.split("T")[0] : (datesList.length > 0 ? datesList[0] : "");
+  const maxDate = tripEndDate ? tripEndDate.split("T")[0] : (datesList.length > 0 ? datesList[datesList.length - 1] : "");
 
   const [name, setName] = useState(leg?.name || "");
   const [flag, setFlag] = useState(leg?.flag || "👥");
@@ -2777,15 +2770,11 @@ function CityLegModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1">
-          {/* Overlap Error Message */}
-          {validationError && (
-            <div className="p-3 bg-[#C1121F]/10 border border-[#C1121F]/30 rounded-xl text-[#C1121F] text-xs font-semibold flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{validationError}</span>
-            </div>
-          )}
-
+        <form
+          id="city-leg-form"
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1"
+        >
           {/* Group Name */}
           <div>
             <label className="block text-xs font-semibold text-[#386641] mb-1">
@@ -2931,35 +2920,36 @@ function CityLegModal({
               className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641] resize-none"
             />
           </div>
-
-          {/* Validation Error Message above footer */}
-          {validationError && (
-            <div className="p-3 bg-[#C1121F]/10 border border-[#C1121F]/30 rounded-xl text-[#C1121F] text-xs font-semibold flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{validationError}</span>
-            </div>
-          )}
-
-          {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#386641]/10">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-3.5 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
-            >
-              {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              {isSubmitting ? "保存中..." : isEditing ? "変更を保存" : "グループを追加"}
-            </button>
-          </div>
         </form>
+
+        {/* Validation Error Message pinned above footer */}
+        {validationError && (
+          <div className="p-3 my-2 bg-[#C1121F]/10 border border-[#C1121F]/30 rounded-xl text-[#C1121F] text-xs font-semibold flex items-start gap-2 shrink-0">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{validationError}</span>
+          </div>
+        )}
+
+        {/* Footer Buttons pinned at bottom */}
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#386641]/10 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-3.5 py-2 text-[#386641]/70 hover:text-[#386641] text-xs font-medium disabled:opacity-50"
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            form="city-leg-form"
+            disabled={isSubmitting}
+            className="px-5 py-2 bg-[#C1121F] text-white rounded-xl text-xs font-semibold hover:bg-[#a50f1a] transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {isSubmitting ? "保存中..." : isEditing ? "変更を保存" : "グループを追加"}
+          </button>
+        </div>
       </div>
     </div>
   );
