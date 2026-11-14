@@ -29,11 +29,12 @@ import {
   PRESET_PAYMENT_METHODS,
   PRESET_BOOKING_SITES,
   ReservationStatus,
+  TransportType,
 } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 
 interface ExtractedBooking {
-  bookingType: "FLIGHT" | "TRAIN" | "BUS" | "SHIP" | "HOTEL" | "CAR" | "ACTIVITY" | "OTHER";
+  bookingType: "FLIGHT" | "TRAIN" | "BUS" | "SHIP" | "HOTEL" | "CAR" | "ACTIVITY" | "RESTAURANT" | "OTHER";
   title: string;
   date: string | null;
   startTime: string | null;
@@ -52,6 +53,32 @@ interface ExtractedBooking {
   paymentMethod: string | null;
   hasBreakfast: boolean | null;
   memo: string | null;
+}
+
+function normalizeExtractedDate(
+  dateStr: string | null | undefined,
+  tripStartDate?: string | null,
+  tripEndDate?: string | null
+): string | null {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr || null;
+  if (!tripStartDate) return dateStr;
+
+  const startY = parseInt(tripStartDate.split("-")[0], 10);
+  const endY = tripEndDate ? parseInt(tripEndDate.split("-")[0], 10) : startY;
+  const extractedY = parseInt(dateStr.split("-")[0], 10);
+  const extractedM = parseInt(dateStr.split("-")[1], 10);
+
+  if (extractedY < startY || extractedY > endY) {
+    let targetYear = startY;
+    if (endY > startY && tripEndDate) {
+      const endM = parseInt(tripEndDate.split("-")[1], 10);
+      if (extractedM <= endM) {
+        targetYear = endY;
+      }
+    }
+    return `${targetYear}-${dateStr.slice(5)}`;
+  }
+  return dateStr;
 }
 
 interface BookingScanModalProps {
@@ -305,6 +332,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           imageBase64: base64,
           mimeType: "image/jpeg",
           apiKey: activeKey || undefined,
+          tripStartDate: tripStartDate || undefined,
+          tripEndDate: tripEndDate || undefined,
           currentData: formData, // Send current form state to AI for merging!
         }),
       });
@@ -325,15 +354,18 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         setUsedModel(String(data.modelUsed).replace(/^models\//, ""));
       }
 
+      const normalizedMergedDate = normalizeExtractedDate(merged.date, tripStartDate, tripEndDate);
+      const normalizedMergedCheckOut = normalizeExtractedDate(merged.checkOutDate, tripStartDate, tripEndDate);
+
       // Merge into formData (preserve existing values unless new info was found)
       setFormData((prev) => ({
         ...prev,
         bookingType: merged.bookingType || prev.bookingType,
         title: merged.title || prev.title,
-        date: merged.date || prev.date,
+        date: normalizedMergedDate || prev.date,
         startTime: merged.startTime || prev.startTime,
         endTime: merged.endTime || prev.endTime,
-        checkOutDate: merged.checkOutDate || prev.checkOutDate,
+        checkOutDate: normalizedMergedCheckOut || prev.checkOutDate,
         flightNumber: merged.flightNumber || prev.flightNumber,
         fromPlace: merged.fromPlace || prev.fromPlace,
         toPlace: merged.toPlace || prev.toPlace,
@@ -405,6 +437,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           imageBase64,
           mimeType: "image/jpeg",
           apiKey: activeKey || undefined,
+          tripStartDate: tripStartDate || undefined,
+          tripEndDate: tripEndDate || undefined,
         }),
       });
 
@@ -435,10 +469,14 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         setUsedModel(String(data.modelUsed).replace(/^models\//, ""));
       }
 
+      // Year normalization fail-safe
+      const normalizedDate = normalizeExtractedDate(extracted.date, tripStartDate, tripEndDate);
+      const normalizedCheckOutDate = normalizeExtractedDate(extracted.checkOutDate, tripStartDate, tripEndDate);
+
       // Populate form
       const isHotel = extracted.bookingType === "HOTEL";
       const defaultDate =
-        extracted.date ||
+        normalizedDate ||
         (tripStartDate ? tripStartDate.split("T")[0] : new Date().toISOString().split("T")[0]);
 
       setFormData({
@@ -448,7 +486,7 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         date: defaultDate,
         startTime: extracted.startTime || (isHotel ? extracted.checkInTime || "15:00" : ""),
         endTime: extracted.endTime || (isHotel ? extracted.checkOutTime || "11:00" : ""),
-        checkOutDate: extracted.checkOutDate || "",
+        checkOutDate: normalizedCheckOutDate || "",
         flightNumber: extracted.flightNumber || "",
         fromPlace: extracted.fromPlace || "",
         toPlace: extracted.toPlace || "",
@@ -487,10 +525,21 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
 
     try {
       if (formData.targetDestination === "PLACE") {
-        // Create as Place (Hotel Spot)
+        const isHotel = formData.bookingType === "HOTEL";
+        const isMeal = formData.bookingType === "RESTAURANT";
+        const isSightseeing = formData.bookingType === "ACTIVITY";
+        const placeCategory = isHotel
+          ? "HOTEL"
+          : isMeal
+          ? "FOOD"
+          : isSightseeing
+          ? "SIGHTSEEING"
+          : "OTHER";
+
+        // Create as Place (Hotel Spot, Restaurant, Sightseeing Spot)
         const payload = {
           name: formData.title.trim(),
-          category: "HOTEL",
+          category: placeCategory,
           memo: formData.memo || null,
           checkInDate: formData.date || null,
           checkOutDate: formData.checkOutDate || null,
@@ -529,21 +578,27 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
 
         onBookingAdded("PLACE", finalPlace);
       } else {
-        // Create as Schedule (Flight / Train / Hotel stay in timeline)
+        // Create as Schedule (Flight / Train / Hotel stay / Sightseeing / Food in timeline)
         const isHotel = formData.bookingType === "HOTEL";
-        const transportType = isHotel
-          ? null
-          : formData.bookingType === "FLIGHT"
-          ? "FLIGHT"
-          : formData.bookingType === "TRAIN"
-          ? "TRAIN"
-          : formData.bookingType === "BUS"
-          ? "BUS"
-          : formData.bookingType === "CAR"
-          ? "CAR"
-          : formData.bookingType === "SHIP"
-          ? "SHIP"
-          : "OTHER";
+        const isSightseeing = formData.bookingType === "ACTIVITY";
+        const isMeal = formData.bookingType === "RESTAURANT";
+        const isTransport = ["FLIGHT", "TRAIN", "BUS", "CAR", "SHIP"].includes(formData.bookingType);
+
+        let category: "HOTEL" | "TRANSPORT" | "SIGHTSEEING" | "FOOD" | "OTHER" = "OTHER";
+        let transportType: TransportType | null = null;
+
+        if (isHotel) {
+          category = "HOTEL";
+        } else if (isSightseeing) {
+          category = "SIGHTSEEING";
+        } else if (isMeal) {
+          category = "FOOD";
+        } else if (isTransport) {
+          category = "TRANSPORT";
+          transportType = formData.bookingType as TransportType;
+        } else {
+          category = "OTHER";
+        }
 
         const payload = {
           date: formData.date || new Date().toISOString().split("T")[0],
@@ -551,11 +606,11 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
           endTime: formData.endTime || null,
           checkOutDate: formData.checkOutDate || null,
           title: formData.title.trim(),
-          category: isHotel ? "HOTEL" : "TRANSPORT",
+          category,
           transportType,
-          flightNumber: formData.flightNumber || null,
-          fromPlace: formData.fromPlace || null,
-          toPlace: formData.toPlace || null,
+          flightNumber: isTransport ? (formData.flightNumber || null) : null,
+          fromPlace: isTransport ? (formData.fromPlace || null) : null,
+          toPlace: isTransport ? (formData.toPlace || null) : null,
           cost: costNumber,
           memo: formData.memo || null,
           reservationStatus: formData.reservationStatus,
@@ -931,6 +986,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                       { type: "HOTEL", label: "🏨 ホテル" },
                       { type: "BUS", label: "🚌 バス" },
                       { type: "CAR", label: "🚗 レンタカー" },
+                      { type: "ACTIVITY", label: "🏛 観光・体験" },
+                      { type: "RESTAURANT", label: "🍽 レストラン" },
                       { type: "OTHER", label: "🎟 その他" },
                     ].map((item) => (
                       <button
@@ -997,6 +1054,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                   <input
                     type="date"
                     value={formData.date}
+                    min={tripStartDate ? tripStartDate.split("T")[0] : undefined}
+                    max={tripEndDate ? tripEndDate.split("T")[0] : undefined}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full bg-white border border-[#386641]/20 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#386641]/20"
                   />
@@ -1009,6 +1068,8 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
                     <input
                       type="date"
                       value={formData.checkOutDate}
+                      min={formData.date || (tripStartDate ? tripStartDate.split("T")[0] : undefined)}
+                      max={tripEndDate ? tripEndDate.split("T")[0] : undefined}
                       onChange={(e) => setFormData({ ...formData, checkOutDate: e.target.value })}
                       className="w-full bg-white border border-[#386641]/20 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#386641]/20"
                     />
