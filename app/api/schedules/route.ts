@@ -11,6 +11,7 @@ export async function GET(request: Request) {
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
       include: {
         place: true,
+        group: true,
       },
     });
     return NextResponse.json(schedules);
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
       bookingSite,
       hasBreakfast,
       placeId,
+      groupId,
       tripId,
     } = body;
 
@@ -73,10 +75,12 @@ export async function POST(request: Request) {
         bookingSite: bookingSite || null,
         hasBreakfast: hasBreakfast !== undefined ? Boolean(hasBreakfast) : false,
         placeId: placeId ? Number(placeId) : null,
+        groupId: groupId ? Number(groupId) : null,
         tripId: Number(tripId),
       },
       include: {
         place: true,
+        group: true,
       },
     });
     return NextResponse.json(schedule, { status: 201 });

@@ -80,10 +80,14 @@ model Schedule {
   isCompleted       Boolean  @default(false)
   place             Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
   placeId           Int?
+  group             TripGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupId           Int?
   trip              Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   tripId            Int
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  @@index([groupId])
 }
 
 model PackingItem {
@@ -137,6 +141,7 @@ model TripGroup {
   startDate  String   // "YYYY-MM-DD"
   endDate    String   // "YYYY-MM-DD"
   customMemo String?
+  schedules  Schedule[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

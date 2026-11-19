@@ -64,24 +64,55 @@ export async function PUT(
       }
     }
 
-    // Replace all groups for this trip transactionally
+    // Diff-based upsert: update existing groups to preserve IDs, create new groups, delete removed ones
     await prisma.$transaction(async (tx) => {
-      await tx.tripGroup.deleteMany({
+      const existingGroups = await tx.tripGroup.findMany({
         where: { tripId },
+        select: { id: true },
       });
+      const existingIdSet = new Set(existingGroups.map((eg) => eg.id));
+      const keptIds = new Set<number>();
 
-      if (groups.length > 0) {
-        await tx.tripGroup.createMany({
-          data: groups.map((g: any) => ({
-            tripId,
-            name: g.name.trim(),
-            flag: g.flag ? String(g.flag).trim() : "👥",
-            country: g.country ? String(g.country).trim() : "",
-            cityName: g.cityName ? String(g.cityName).trim() : null,
-            startDate: String(g.startDate),
-            endDate: String(g.endDate),
-            customMemo: g.customMemo ? String(g.customMemo).trim() : null,
-          })),
+      for (const g of groups) {
+        const numericId = g.id ? Number(g.id) : null;
+        if (numericId && !isNaN(numericId) && existingIdSet.has(numericId)) {
+          keptIds.add(numericId);
+          await tx.tripGroup.update({
+            where: { id: numericId },
+            data: {
+              name: g.name.trim(),
+              flag: g.flag ? String(g.flag).trim() : "👥",
+              country: g.country ? String(g.country).trim() : "",
+              cityName: g.cityName ? String(g.cityName).trim() : null,
+              startDate: String(g.startDate),
+              endDate: String(g.endDate),
+              customMemo: g.customMemo ? String(g.customMemo).trim() : null,
+            },
+          });
+        } else {
+          const created = await tx.tripGroup.create({
+            data: {
+              tripId,
+              name: g.name.trim(),
+              flag: g.flag ? String(g.flag).trim() : "👥",
+              country: g.country ? String(g.country).trim() : "",
+              cityName: g.cityName ? String(g.cityName).trim() : null,
+              startDate: String(g.startDate),
+              endDate: String(g.endDate),
+              customMemo: g.customMemo ? String(g.customMemo).trim() : null,
+            },
+          });
+          keptIds.add(created.id);
+        }
+      }
+
+      const toDeleteIds = existingGroups
+        .map((eg) => eg.id)
+        .filter((id) => !keptIds.has(id));
+
+      if (toDeleteIds.length > 0) {
+        await tx.tripGroup.deleteMany({
+          where: { id: { in: toDeleteIds } },
         });
       }
     });

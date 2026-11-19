@@ -32,6 +32,7 @@ export async function PUT(
       hasBreakfast,
       isCompleted,
       placeId,
+      groupId,
     } = body;
 
     // Validate placeId: if it references a deleted Place, treat as null
@@ -72,9 +73,11 @@ export async function PUT(
         hasBreakfast: hasBreakfast !== undefined ? Boolean(hasBreakfast) : undefined,
         isCompleted: isCompleted !== undefined ? Boolean(isCompleted) : undefined,
         placeId: resolvedPlaceId,
+        groupId: groupId !== undefined ? (groupId ? Number(groupId) : null) : undefined,
       },
       include: {
         place: true,
+        group: true,
       },
     });
 

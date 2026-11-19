@@ -805,6 +805,7 @@ export default function TimelineView({
     cost: "",
     memo: "",
     placeId: "" as string,
+    groupId: "" as string,
     hasBreakfast: false,
     reservationStatus: "NONE" as ReservationStatus,
     bookingNumber: "",
@@ -830,6 +831,13 @@ export default function TimelineView({
     nextDay.setDate(nextDay.getDate() + 1);
     const defaultOutDate = nextDay.toISOString().split("T")[0];
 
+    // Find if any group covers this date
+    const matchingLeg = cityLegs.find(
+      (leg) => leg.startDate <= baseDate && leg.endDate >= baseDate
+    );
+    const defaultGroupId =
+      matchingLeg && !isNaN(Number(matchingLeg.id)) ? String(matchingLeg.id) : "";
+
     setForm({
       date: baseDate,
       startTime: "10:00",
@@ -845,6 +853,7 @@ export default function TimelineView({
       cost: "",
       memo: "",
       placeId: "",
+      groupId: defaultGroupId,
       hasBreakfast: false,
       reservationStatus: "NONE",
       bookingNumber: "",
@@ -871,9 +880,16 @@ export default function TimelineView({
     nextDay.setDate(nextDay.getDate() + 1);
     const defaultOutDate = nextDay.toISOString().split("T")[0];
 
+    const matchingLeg = cityLegs.find(
+      (leg) => leg.startDate <= baseDate && leg.endDate >= baseDate
+    );
+    const defaultGroupId =
+      matchingLeg && !isNaN(Number(matchingLeg.id)) ? String(matchingLeg.id) : "";
+
     setForm((prev) => ({
       ...prev,
       category,
+      groupId: defaultGroupId,
       startTime: category === "HOTEL" ? "15:00" : "10:00",
       endTime: category === "HOTEL" ? "11:00" : "11:30",
       checkOutDate: defaultOutDate,
@@ -908,6 +924,7 @@ export default function TimelineView({
       cost: schedule.cost ? String(schedule.cost) : "",
       memo: schedule.memo || "",
       placeId: schedule.placeId && places.some((p) => p.id === schedule.placeId) ? String(schedule.placeId) : "",
+      groupId: schedule.groupId ? String(schedule.groupId) : "",
       hasBreakfast: Boolean(schedule.hasBreakfast),
       reservationStatus: (schedule.reservationStatus as ReservationStatus) || "NONE",
       bookingNumber: schedule.bookingNumber || "",
@@ -974,6 +991,7 @@ export default function TimelineView({
       memo: form.memo.trim() || null,
       hasBreakfast: isHotel ? Boolean(form.hasBreakfast) : false,
       placeId: form.placeId ? Number(form.placeId) : null,
+      groupId: form.groupId ? Number(form.groupId) : null,
       reservationStatus: form.reservationStatus,
       bookingNumber: form.bookingNumber.trim() || null,
       paymentMethod: form.paymentMethod.trim() || null,
@@ -1003,10 +1021,22 @@ export default function TimelineView({
         }
 
         if (!updated) {
+          const matchedLeg = form.groupId ? cityLegs.find((l) => l.id === form.groupId) : null;
           updated = {
             ...editingSchedule,
             ...payload,
             date: payload.date,
+            group: matchedLeg
+              ? {
+                  id: Number(matchedLeg.id),
+                  tripId,
+                  name: matchedLeg.name,
+                  flag: matchedLeg.flag,
+                  country: matchedLeg.country,
+                  startDate: matchedLeg.startDate,
+                  endDate: matchedLeg.endDate,
+                }
+              : null,
             updatedAt: new Date().toISOString(),
           };
         }
@@ -1036,10 +1066,22 @@ export default function TimelineView({
           }
         }
 
+        const matchedLeg = form.groupId ? cityLegs.find((l) => l.id === form.groupId) : null;
         const finalCreated: Schedule = created || {
           id: Date.now(),
           ...payload,
           date: payload.date,
+          group: matchedLeg
+            ? {
+                id: Number(matchedLeg.id),
+                tripId,
+                name: matchedLeg.name,
+                flag: matchedLeg.flag,
+                country: matchedLeg.country,
+                startDate: matchedLeg.startDate,
+                endDate: matchedLeg.endDate,
+              }
+            : null,
           isCompleted: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -1057,10 +1099,22 @@ export default function TimelineView({
     } catch (err) {
       console.error("Save schedule error:", err);
       // Fallback local update
+      const matchedLeg = form.groupId ? cityLegs.find((l) => l.id === form.groupId) : null;
       const fallbackSchedule: Schedule = {
         id: editingSchedule ? editingSchedule.id : Date.now(),
         ...payload,
         date: payload.date,
+        group: matchedLeg
+          ? {
+              id: Number(matchedLeg.id),
+              tripId,
+              name: matchedLeg.name,
+              flag: matchedLeg.flag,
+              country: matchedLeg.country,
+              startDate: matchedLeg.startDate,
+              endDate: matchedLeg.endDate,
+            }
+          : null,
         isCompleted: editingSchedule ? editingSchedule.isCompleted : false,
         createdAt: editingSchedule ? editingSchedule.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1775,6 +1829,20 @@ export default function TimelineView({
                           </span>
                         )}
 
+                        {/* Group / Companion Badge */}
+                        {(() => {
+                          const assignedGroup = schedule.groupId
+                            ? schedule.group || cityLegs.find((l) => l.id === String(schedule.groupId))
+                            : null;
+                          if (!assignedGroup) return null;
+                          return (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#003049]/10 text-[#003049] border border-[#003049]/20 flex items-center gap-1">
+                              <span>{assignedGroup.flag || "👥"}</span>
+                              <span>{assignedGroup.name}</span>
+                            </span>
+                          );
+                        })()}
+
                         {selectedDateTab === "ALL" && (
                           <span className="text-[11px] text-[#386641]/50 font-medium ml-auto sm:ml-0">
                             {formatDate(item.dateStr)}
@@ -2342,6 +2410,31 @@ export default function TimelineView({
                 )}
               </div>
 
+              {/* Group / Expense Owner */}
+              <div>
+                <label className="block text-xs font-semibold text-[#386641] mb-1.5 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-[#386641]/70" />
+                  グループ・同行者（出費の所属）
+                </label>
+                <select
+                  value={form.groupId}
+                  onChange={(e) => setForm({ ...form, groupId: e.target.value })}
+                  className="w-full border border-[#386641]/20 rounded-xl px-3.5 py-2.5 text-sm bg-white text-[#386641] focus:outline-none focus:ring-2 focus:ring-[#386641]/20 focus:border-[#386641]"
+                >
+                  <option value="">未設定 / 全体共通</option>
+                  {cityLegs
+                    .filter((leg) => !isNaN(Number(leg.id)))
+                    .map((leg) => (
+                      <option key={leg.id} value={leg.id}>
+                        {leg.flag} {leg.name} ({leg.startDate} 〜 {leg.endDate})
+                      </option>
+                    ))}
+                </select>
+                <p className="text-[11px] text-[#386641]/60 mt-1">
+                  ※ 予算ページでグループ別に出費を集計・確認する際に利用されます。
+                </p>
+              </div>
+
               {/* Booking and Reservation management */}
               <div className="p-3.5 rounded-2xl bg-[#003049]/5 border border-[#003049]/20 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
@@ -2514,6 +2607,7 @@ export default function TimelineView({
         tripId={tripId}
         tripStartDate={startDate}
         tripEndDate={endDate}
+        places={places}
         onBookingAdded={handleBookingAdded}
         isOffline={isOffline}
       />

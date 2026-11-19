@@ -30,6 +30,7 @@ import {
   PRESET_BOOKING_SITES,
   ReservationStatus,
   TransportType,
+  Place,
 } from "@/types/trip";
 import { normalizeNumberInput } from "@/lib/utils";
 
@@ -87,6 +88,7 @@ interface BookingScanModalProps {
   tripId: number;
   tripStartDate?: string | null;
   tripEndDate?: string | null;
+  places?: Place[];
   onBookingAdded: (type: "SCHEDULE" | "PLACE", item: any) => void;
   isOffline?: boolean;
 }
@@ -97,6 +99,7 @@ export default function BookingScanModal({
   tripId,
   tripStartDate,
   tripEndDate,
+  places = [],
   onBookingAdded,
   isOffline = false,
 }: BookingScanModalProps) {
@@ -556,6 +559,37 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         };
 
         let createdPlace;
+        const normalizedTitle = formData.title.trim().toLowerCase();
+        const existingHotel = isHotel
+          ? places.find(
+              (p) =>
+                p.category === "HOTEL" &&
+                p.name.trim().toLowerCase() === normalizedTitle &&
+                (!formData.date || !p.checkInDate || p.checkInDate.split("T")[0] === formData.date)
+            )
+          : null;
+
+        if (existingHotel) {
+          if (!isOffline) {
+            try {
+              const res = await fetch(`/api/places/${existingHotel.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+              if (res.ok) {
+                createdPlace = await res.json();
+              }
+            } catch (e) {
+              console.warn("Update existing place failed:", e);
+            }
+          }
+          const finalPlace = createdPlace || { ...existingHotel, ...payload };
+          onBookingAdded("PLACE", finalPlace);
+          onClose();
+          return;
+        }
+
         if (!isOffline) {
           const res = await fetch("/api/places", {
             method: "POST",
@@ -626,36 +660,48 @@ const compressImageForAi = (file: File): Promise<{ base64: string; dataUrl: stri
         let linkedPlaceId: number | null = null;
 
         if (!isOffline) {
-          // If Hotel, also create place in /api/places so it appears in spots list too!
+          // If Hotel, check if existing place exists before creating to prevent duplicates
           if (isHotel) {
-            try {
-              const placeRes = await fetch("/api/places", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name: formData.title.trim(),
-                  category: "HOTEL",
-                  memo: formData.memo || null,
-                  checkInDate: formData.date || null,
-                  checkOutDate: formData.checkOutDate || null,
-                  checkInTime: formData.startTime || null,
-                  checkOutTime: formData.endTime || null,
-                  cost: costNumber,
-                  reservationStatus: formData.reservationStatus,
-                  bookingNumber: formData.bookingNumber || null,
-                  bookingSite: formData.bookingSite || null,
-                  paymentMethod: formData.paymentMethod || null,
-                  cancelDeadline: formData.cancelDeadline || null,
-                  hasBreakfast: formData.hasBreakfast,
-                  tripId,
-                }),
-              });
-              if (placeRes.ok) {
-                const createdPlace = await placeRes.json();
-                linkedPlaceId = createdPlace.id;
+            const normalizedTitle = formData.title.trim().toLowerCase();
+            const existingHotelPlace = places.find(
+              (p) =>
+                p.category === "HOTEL" &&
+                p.name.trim().toLowerCase() === normalizedTitle &&
+                (!formData.date || !p.checkInDate || p.checkInDate.split("T")[0] === formData.date)
+            );
+
+            if (existingHotelPlace) {
+              linkedPlaceId = existingHotelPlace.id;
+            } else {
+              try {
+                const placeRes = await fetch("/api/places", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: formData.title.trim(),
+                    category: "HOTEL",
+                    memo: formData.memo || null,
+                    checkInDate: formData.date || null,
+                    checkOutDate: formData.checkOutDate || null,
+                    checkInTime: formData.startTime || null,
+                    checkOutTime: formData.endTime || null,
+                    cost: costNumber,
+                    reservationStatus: formData.reservationStatus,
+                    bookingNumber: formData.bookingNumber || null,
+                    bookingSite: formData.bookingSite || null,
+                    paymentMethod: formData.paymentMethod || null,
+                    cancelDeadline: formData.cancelDeadline || null,
+                    hasBreakfast: formData.hasBreakfast,
+                    tripId,
+                  }),
+                });
+                if (placeRes.ok) {
+                  const createdPlace = await placeRes.json();
+                  linkedPlaceId = createdPlace.id;
+                }
+              } catch (placeErr) {
+                console.warn("Could not create linked place for hotel:", placeErr);
               }
-            } catch (placeErr) {
-              console.warn("Could not create linked place for hotel:", placeErr);
             }
           }
 

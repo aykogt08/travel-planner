@@ -792,6 +792,7 @@ export default function BookingsManager({
         tripId={tripId}
         tripStartDate={tripStartDate}
         tripEndDate={tripEndDate}
+        places={places}
         onBookingAdded={handleBookingAdded}
         isOffline={isOffline}
       />

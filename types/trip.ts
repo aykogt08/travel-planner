@@ -117,6 +117,8 @@ export interface Schedule {
   isCompleted: boolean;
   placeId: number | null;
   place?: Place | null;
+  groupId?: number | null;
+  group?: TripGroup | null;
   tripId: number;
   createdAt?: string | Date;
   updatedAt?: string | Date;
@@ -179,6 +181,20 @@ export interface SouvenirItem {
   updatedAt?: string | Date;
 }
 
+export interface TripGroup {
+  id: number;
+  tripId: number;
+  name: string;
+  flag: string;
+  country: string;
+  cityName?: string | null;
+  startDate: string;
+  endDate: string;
+  customMemo?: string | null;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
 export interface Trip {
   id: number;
   title: string;
@@ -196,4 +212,5 @@ export interface Trip {
   packingList: PackingItem[];
   wishes: WishItem[];
   souvenirs?: SouvenirItem[];
+  tripGroups?: TripGroup[];
 }

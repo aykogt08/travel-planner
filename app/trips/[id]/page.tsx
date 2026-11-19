@@ -716,7 +716,12 @@ export default function TripDetailPage() {
             />
           )}
 
-          {activeTab === "budget" && <BudgetSummary trip={trip} />}
+          {activeTab === "budget" && (
+            <BudgetSummary
+              trip={trip}
+              onSchedulesChange={handleSchedulesChange}
+            />
+          )}
         </div>
       </div>
 

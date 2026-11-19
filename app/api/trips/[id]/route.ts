@@ -20,6 +20,7 @@ export async function GET(
           orderBy: [{ date: "asc" }, { startTime: "asc" }],
           include: {
             place: true,
+            group: true,
           },
         },
         packingList: {
@@ -30,6 +31,9 @@ export async function GET(
         },
         souvenirs: {
           orderBy: { id: "asc" },
+        },
+        tripGroups: {
+          orderBy: [{ startDate: "asc" }, { id: "asc" }],
         },
       },
     });
@@ -70,9 +74,12 @@ export async function PUT(
       include: {
         places: true,
         schedules: {
-          include: { place: true },
+          include: { place: true, group: true },
         },
         packingList: true,
+        tripGroups: {
+          orderBy: [{ startDate: "asc" }, { id: "asc" }],
+        },
       },
     });
 
